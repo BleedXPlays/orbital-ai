@@ -408,7 +408,9 @@ function Sidebar({
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenProjectMenu(
-                        openProjectMenu === originalIndex ? null : originalIndex
+                        openProjectMenu === originalIndex
+                          ? null
+                          : originalIndex
                       );
                       setOpenChatMenu(null);
                     }}

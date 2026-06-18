@@ -57,10 +57,7 @@ function App() {
   });
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
   useEffect(() => {
@@ -101,6 +98,11 @@ function App() {
         return (
           <Chat
             selectedChat={selectedChat}
+            setSelectedChat={setSelectedChat}
+            chats={chats}
+            setChats={setChats}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
             chatMessages={chatMessages}
             setChatMessages={setChatMessages}
           />

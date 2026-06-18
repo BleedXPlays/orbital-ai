@@ -1,9 +1,184 @@
 import { useState } from "react";
 
-function Chat({ selectedChat, chatMessages, setChatMessages }) {
+function Chat({
+  selectedChat,
+  setSelectedChat,
+  chats,
+  setChats,
+  projectChats,
+  setProjectChats,
+  chatMessages,
+  setChatMessages,
+}) {
   const [input, setInput] = useState("");
 
   const messages = chatMessages[selectedChat] || [];
+
+  const analyzeTask = (text) => {
+    const lowerText = text.toLowerCase();
+    const detectedTasks = [];
+
+    if (
+      lowerText.includes("research") ||
+      lowerText.includes("information") ||
+      lowerText.includes("facts") ||
+      lowerText.includes("sources")
+    ) {
+      detectedTasks.push({
+        task: "Research",
+        ai: "Claude",
+      });
+    }
+
+    if (
+      lowerText.includes("write") ||
+      lowerText.includes("essay") ||
+      lowerText.includes("report") ||
+      lowerText.includes("content") ||
+      lowerText.includes("explain")
+    ) {
+      detectedTasks.push({
+        task: "Writing",
+        ai: "ChatGPT",
+      });
+    }
+
+    if (
+      lowerText.includes("image") ||
+      lowerText.includes("poster") ||
+      lowerText.includes("diagram") ||
+      lowerText.includes("logo") ||
+      lowerText.includes("visual")
+    ) {
+      detectedTasks.push({
+        task: "Images",
+        ai: "Gemini",
+      });
+    }
+
+    if (
+      lowerText.includes("website") ||
+      lowerText.includes("code") ||
+      lowerText.includes("app") ||
+      lowerText.includes("react")
+    ) {
+      detectedTasks.push({
+        task: "Coding",
+        ai: "GitHub Copilot",
+      });
+    }
+
+    if (
+      lowerText.includes("presentation") ||
+      lowerText.includes("ppt") ||
+      lowerText.includes("slides")
+    ) {
+      detectedTasks.push({
+        task: "Presentation",
+        ai: "Gamma",
+      });
+    }
+
+    if (
+      lowerText.includes("video") ||
+      lowerText.includes("reel") ||
+      lowerText.includes("youtube")
+    ) {
+      detectedTasks.push({
+        task: "Video",
+        ai: "Runway",
+      });
+    }
+
+    if (
+      lowerText.includes("translate") ||
+      lowerText.includes("translation") ||
+      lowerText.includes("language")
+    ) {
+      detectedTasks.push({
+        task: "Translation",
+        ai: "Google Translate AI",
+      });
+    }
+
+    if (
+      lowerText.includes("voice") ||
+      lowerText.includes("audio") ||
+      lowerText.includes("speech")
+    ) {
+      detectedTasks.push({
+        task: "Voice Input",
+        ai: "Whisper",
+      });
+    }
+
+    if (detectedTasks.length === 0) {
+      detectedTasks.push({
+        task: "General Answer",
+        ai: "ChatGPT",
+      });
+    }
+
+    return detectedTasks;
+  };
+
+  const getOutputs = (tasks) => {
+    const outputs = [];
+
+    tasks.forEach((item) => {
+      if (item.task === "Research") {
+        outputs.push(["📚", "Research Notes", "Detailed sources"]);
+      }
+
+      if (item.task === "Writing") {
+        outputs.push(["📄", "Written Content", "Essay / report"]);
+      }
+
+      if (item.task === "Images") {
+        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
+      }
+
+      if (item.task === "Coding") {
+        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
+      }
+
+      if (item.task === "Presentation") {
+        outputs.push(["📊", "Presentation", "Slides"]);
+      }
+
+      if (item.task === "Video") {
+        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
+      }
+
+      if (item.task === "Translation") {
+        outputs.push(["🌍", "Translation", "Translated output"]);
+      }
+
+      if (item.task === "Voice Input") {
+        outputs.push(["🎙️", "Transcript", "Voice to text"]);
+      }
+
+      if (item.task === "General Answer") {
+        outputs.push(["💬", "Answer", "General response"]);
+      }
+    });
+
+    return outputs;
+  };
+
+  const generateChatTitle = (text) => {
+    const words = text
+      .replace(/[^\w\s]/gi, "")
+      .split(" ")
+      .filter((word) => word.length > 3)
+      .slice(0, 4);
+
+    if (words.length === 0) return "Untitled Chat";
+
+    return words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   const setMessagesForCurrentChat = (newMessages) => {
     setChatMessages({
@@ -15,6 +190,8 @@ function Chat({ selectedChat, chatMessages, setChatMessages }) {
   const sendMessage = () => {
     if (!input.trim()) return;
 
+    const tasks = analyzeTask(input);
+
     const userMessage = {
       role: "user",
       text: input,
@@ -22,11 +199,42 @@ function Chat({ selectedChat, chatMessages, setChatMessages }) {
 
     const aiMessage = {
       role: "ai",
-      text: "OrbitalAI received your request. It is assigning the best AI models for the task.",
+      text: "OrbitalAI analyzed your request and assigned the best AI models.",
+      tasks: tasks,
+      outputs: getOutputs(tasks),
     };
 
-    setMessagesForCurrentChat([...messages, userMessage, aiMessage]);
+    if (selectedChat.startsWith("New Chat") && messages.length === 0) {
+      const newTitle = generateChatTitle(input);
 
+      const updatedChats = chats.map((chat) =>
+        chat === selectedChat ? newTitle : chat
+      );
+
+      const updatedChatMessages = {
+        ...chatMessages,
+        [newTitle]: [userMessage, aiMessage],
+      };
+
+      delete updatedChatMessages[selectedChat];
+
+      const updatedProjectChats = {};
+
+      Object.keys(projectChats).forEach((project) => {
+        updatedProjectChats[project] = projectChats[project].map((chat) =>
+          chat === selectedChat ? newTitle : chat
+        );
+      });
+
+      setChats(updatedChats);
+      setChatMessages(updatedChatMessages);
+      setProjectChats(updatedProjectChats);
+      setSelectedChat(newTitle);
+      setInput("");
+      return;
+    }
+
+    setMessagesForCurrentChat([...messages, userMessage, aiMessage]);
     setInput("");
   };
 
@@ -85,75 +293,53 @@ function Chat({ selectedChat, chatMessages, setChatMessages }) {
                     {message.text}
                   </p>
 
-                  <p className="text-gray-400 mb-8">
-                    OrbitalAI automatically assigned the best AI model for each
-                    task.
-                  </p>
+                  {message.tasks && message.tasks.length > 0 && (
+                    <>
+                      <p className="text-gray-400 mb-8">
+                        OrbitalAI automatically assigned the best AI model for
+                        each task.
+                      </p>
 
-                  <div className="flex flex-wrap gap-3 mb-8">
-                    <span className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700">
-                      Claude → Research
-                    </span>
+                      <div className="flex flex-wrap gap-3 mb-8">
+                        {message.tasks.map((item, taskIndex) => (
+                          <span
+                            key={taskIndex}
+                            className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700"
+                          >
+                            {item.ai} → {item.task}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
 
-                    <span className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700">
-                      ChatGPT → Writing
-                    </span>
+                  {message.outputs && message.outputs.length > 0 && (
+                    <>
+                      <h2 className="text-2xl font-bold mb-6">
+                        Generated Outputs
+                      </h2>
 
-                    <span className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700">
-                      Gemini → Images
-                    </span>
+                      <div className="grid grid-cols-3 gap-5">
+                        {message.outputs.map((output, outputIndex) => (
+                          <div
+                            key={outputIndex}
+                            className="bg-[#101827] border border-gray-800 rounded-xl p-5"
+                          >
+                            <h3 className="font-bold text-lg mb-2">
+                              {output[0]} {output[1]}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              {output[2]}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
 
-                    <span className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700">
-                      Copilot → Website
-                    </span>
-
-                    <span className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700">
-                      Gamma → Presentation
-                    </span>
-                  </div>
-
-                  <h2 className="text-2xl font-bold mb-6">
-                    Generated Outputs
-                  </h2>
-
-                  <div className="grid grid-cols-5 gap-5">
-                    <div className="bg-[#101827] border border-gray-800 rounded-xl p-5">
-                      <h3 className="font-bold text-lg mb-2">
-                        📄 Project Report
-                      </h3>
-                      <p className="text-gray-400 text-sm">12 pages</p>
-                    </div>
-
-                    <div className="bg-[#101827] border border-gray-800 rounded-xl p-5">
-                      <h3 className="font-bold text-lg mb-2">🖼️ Images</h3>
-                      <p className="text-gray-400 text-sm">8 image ideas</p>
-                    </div>
-
-                    <div className="bg-[#101827] border border-gray-800 rounded-xl p-5">
-                      <h3 className="font-bold text-lg mb-2">
-                        💻 Website Code
-                      </h3>
-                      <p className="text-gray-400 text-sm">HTML, CSS, JS</p>
-                    </div>
-
-                    <div className="bg-[#101827] border border-gray-800 rounded-xl p-5">
-                      <h3 className="font-bold text-lg mb-2">
-                        📊 Presentation
-                      </h3>
-                      <p className="text-gray-400 text-sm">12 slides</p>
-                    </div>
-
-                    <div className="bg-[#101827] border border-gray-800 rounded-xl p-5">
-                      <h3 className="font-bold text-lg mb-2">
-                        📚 Bibliography
-                      </h3>
-                      <p className="text-gray-400 text-sm">15 sources</p>
-                    </div>
-                  </div>
-
-                  <button className="mt-8 text-purple-400 font-semibold hover:text-purple-300">
-                    Open All Files →
-                  </button>
+                      <button className="mt-8 text-purple-400 font-semibold hover:text-purple-300">
+                        Open All Files →
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
