@@ -36,11 +36,14 @@ function Sidebar({
 
   const createProject = () => {
     const newProjectName = `New Project ${projects.length + 1}`;
+
     setProjects([...projects, newProjectName]);
+
     setProjectChats({
       ...projectChats,
       [newProjectName]: [],
     });
+
     setSelectedProject(newProjectName);
     setPage("project");
   };
@@ -194,17 +197,23 @@ function Sidebar({
       return;
     }
 
-    const currentChats = projectChats[targetProject] || [];
+    const currentProjectChats = projectChats[targetProject] || [];
 
-    if (currentChats.includes(chatToMove)) {
+    if (currentProjectChats.includes(chatToMove)) {
       alert("This chat is already inside that project.");
       return;
     }
 
     setProjectChats({
       ...projectChats,
-      [targetProject]: [...currentChats, chatToMove],
+      [targetProject]: [...currentProjectChats, chatToMove],
     });
+
+    setChats(chats.filter((chat) => chat !== chatToMove));
+
+    setSelectedProject(targetProject);
+    setSelectedChat(chatToMove);
+    setPage("project");
 
     setShowMoveModal(false);
     setChatToMove("");
