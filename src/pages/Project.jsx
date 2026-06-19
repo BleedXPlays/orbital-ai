@@ -11,26 +11,25 @@ function Project({
   setSelectedChat,
   setPage,
 }) {
-  const createProjectChat = () => {
-  const chatName = `New Chat ${chats.length + 1}`;
-
-  setChats([...chats, chatName]);
-
-  setProjectChats({
-    ...projectChats,
-    [selectedProject]: [
-      ...(projectChats[selectedProject] || []),
-      chatName,
-    ],
-  });
-
-  setSelectedChat(chatName);
-  setPage("chat");
-};
   const [activeTab, setActiveTab] = useState("chats");
 
-  const chats = projectChats[selectedProject] || [];
+  const projectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
+  const images = files.filter((file) => file.type.startsWith("image"));
+
+  const createProjectChat = () => {
+    const chatName = `New Chat ${chats.length + 1}`;
+
+    setChats([...chats, chatName]);
+
+    setProjectChats({
+      ...projectChats,
+      [selectedProject]: [...projectChatList, chatName],
+    });
+
+    setSelectedChat(chatName);
+    setPage("chat");
+  };
 
   const handleUpload = (e) => {
     const uploadedFiles = Array.from(e.target.files);
@@ -60,8 +59,6 @@ function Project({
     });
   };
 
-  const images = files.filter((file) => file.type.startsWith("image"));
-
   return (
     <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
       <div className="mb-10">
@@ -70,54 +67,25 @@ function Project({
         </h1>
 
         <p className="text-gray-400 mt-2">
-          {chats.length} chats • {files.length} files • {images.length} images
+          {projectChatList.length} chats • {files.length} files •{" "}
+          {images.length} images
         </p>
       </div>
 
       <div className="flex gap-10 border-b border-gray-800 mb-8 pb-4">
-        <button
-          onClick={() => setActiveTab("chats")}
-          className={
-            activeTab === "chats"
-              ? "text-purple-400 border-b-2 border-purple-500 pb-3"
-              : "text-gray-400 pb-3"
-          }
-        >
-          Chats
-        </button>
-
-        <button
-          onClick={() => setActiveTab("files")}
-          className={
-            activeTab === "files"
-              ? "text-purple-400 border-b-2 border-purple-500 pb-3"
-              : "text-gray-400 pb-3"
-          }
-        >
-          Files
-        </button>
-
-        <button
-          onClick={() => setActiveTab("images")}
-          className={
-            activeTab === "images"
-              ? "text-purple-400 border-b-2 border-purple-500 pb-3"
-              : "text-gray-400 pb-3"
-          }
-        >
-          Images
-        </button>
-
-        <button
-          onClick={() => setActiveTab("notes")}
-          className={
-            activeTab === "notes"
-              ? "text-purple-400 border-b-2 border-purple-500 pb-3"
-              : "text-gray-400 pb-3"
-          }
-        >
-          Notes
-        </button>
+        {["chats", "files", "images", "notes"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={
+              activeTab === tab
+                ? "text-purple-400 border-b-2 border-purple-500 pb-3 capitalize"
+                : "text-gray-400 pb-3 capitalize"
+            }
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-[1fr_280px] gap-6">
@@ -125,26 +93,24 @@ function Project({
           {activeTab === "chats" && (
             <>
               <div className="flex justify-between items-center mb-6">
-  <h2 className="text-2xl font-bold">
-    Chats in this project
-  </h2>
+                <h2 className="text-2xl font-bold">Chats in this project</h2>
 
-  <button
-    onClick={createProjectChat}
-    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700"
-  >
-    + New Chat
-  </button>
-</div>
+                <button
+                  onClick={createProjectChat}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700"
+                >
+                  + New Chat
+                </button>
+              </div>
 
-              {chats.length === 0 ? (
+              {projectChatList.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
-                  No chats inside this project yet. Use the chat three-dot menu
-                  and choose “Move to Project”.
+                  No chats inside this project yet. Click + New Chat or move a
+                  chat into this project.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {chats.map((chat) => (
+                  {projectChatList.map((chat) => (
                     <div
                       key={chat}
                       onClick={() => {
@@ -286,7 +252,7 @@ function Project({
           </p>
 
           <p className="text-gray-400 mb-2">Total Chats</p>
-          <p className="font-semibold mb-6">{chats.length}</p>
+          <p className="font-semibold mb-6">{projectChatList.length}</p>
 
           <p className="text-gray-400 mb-2">Files</p>
           <p className="font-semibold mb-6">{files.length}</p>
