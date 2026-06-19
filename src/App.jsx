@@ -40,6 +40,10 @@ function App() {
     return JSON.parse(localStorage.getItem("projectChats")) || {};
   });
 
+  const [projectFiles, setProjectFiles] = useState(() => {
+    return JSON.parse(localStorage.getItem("projectFiles")) || {};
+  });
+
   const [selectedChat, setSelectedChat] = useState(() => {
     return localStorage.getItem("selectedChat") || "Global Warming Project";
   });
@@ -77,6 +81,10 @@ function App() {
   }, [projectChats]);
 
   useEffect(() => {
+    localStorage.setItem("projectFiles", JSON.stringify(projectFiles));
+  }, [projectFiles]);
+
+  useEffect(() => {
     localStorage.setItem("selectedChat", selectedChat);
   }, [selectedChat]);
 
@@ -111,11 +119,16 @@ function App() {
       case "project":
         return (
           <Project
-            selectedProject={selectedProject}
-            projectChats={projectChats}
-            setSelectedChat={setSelectedChat}
-            setPage={setPage}
-          />
+  selectedProject={selectedProject}
+  projectChats={projectChats}
+  setProjectChats={setProjectChats}
+  chats={chats}
+  setChats={setChats}
+  projectFiles={projectFiles}
+  setProjectFiles={setProjectFiles}
+  setSelectedChat={setSelectedChat}
+  setPage={setPage}
+/>
         );
 
       case "search":
