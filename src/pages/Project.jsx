@@ -18,7 +18,7 @@ function Project({
   const images = files.filter((file) => file.type.startsWith("image"));
 
   const createProjectChat = () => {
-    const chatName = `New Chat ${chats.length + 1}`;
+    const chatName = `New Chat ${projectChatList.length + 1}`;
 
     setChats([...chats, chatName]);
 
