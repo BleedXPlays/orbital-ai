@@ -17,19 +17,17 @@ function Project({
   const files = projectFiles[selectedProject] || [];
   const images = files.filter((file) => file.type.startsWith("image"));
 
-  const createProjectChat = () => {
-    const chatName = `New Chat ${projectChatList.length + 1}`;
+const createProjectChat = () => {
+  const chatName = `New Chat ${projectChatList.length + 1}`;
 
-    setChats([...chats, chatName]);
+  setProjectChats({
+    ...projectChats,
+    [selectedProject]: [...projectChatList, chatName],
+  });
 
-    setProjectChats({
-      ...projectChats,
-      [selectedProject]: [...projectChatList, chatName],
-    });
-
-    setSelectedChat(chatName);
-    setPage("chat");
-  };
+  setSelectedChat(chatName);
+  setPage("chat");
+};
 
   const handleUpload = (e) => {
     const uploadedFiles = Array.from(e.target.files);
