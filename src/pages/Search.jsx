@@ -6,6 +6,7 @@ function Search({
   projectChats,
   chatMessages,
   projectFiles,
+  projectNotes,
   setSelectedChat,
   setSelectedProject,
   setPage,
@@ -14,7 +15,6 @@ function Search({
   const [activeTab, setActiveTab] = useState("All");
 
   const lowerQuery = query.toLowerCase();
-
   const allResults = [];
 
   chats.forEach((chat) => {
@@ -65,47 +65,44 @@ function Search({
     });
   });
 
- Object.keys(chatMessages).forEach((chatName) => {
-  const messages = chatMessages[chatName] || [];
+  Object.keys(chatMessages).forEach((chatName) => {
+    const messages = chatMessages[chatName] || [];
 
-  const matchedMessages = messages.filter(
-    (message) =>
-      message.text &&
-      message.text.toLowerCase().includes(lowerQuery)
-  );
+    const matchedMessages = messages.filter(
+      (message) =>
+        message.text && message.text.toLowerCase().includes(lowerQuery)
+    );
 
-  if (matchedMessages.length > 0) {
-    let projectName = "";
+    if (matchedMessages.length > 0) {
+      let projectName = "";
 
-    Object.keys(projectChats).forEach((project) => {
-      if (projectChats[project].includes(chatName)) {
-        projectName = project;
-      }
-    });
-
-    allResults.push({
-      icon: "💬",
-      title: chatName,
-      desc: projectName
-        ? `Project Chat • ${projectName}`
-        : "Chat",
-      subDesc: `${matchedMessages.length} matching message${
-        matchedMessages.length > 1 ? "s" : ""
-      }`,
-      type: "Messages",
-      action: () => {
-        setSelectedChat(chatName);
-
-        if (projectName) {
-          setSelectedProject(projectName);
+      Object.keys(projectChats).forEach((project) => {
+        if (projectChats[project].includes(chatName)) {
+          projectName = project;
         }
+      });
 
-        setPage("chat");
-      },
-      key: `messages-${chatName}`,
-    });
-  }
-});
+      allResults.push({
+        icon: "💬",
+        title: chatName,
+        desc: projectName ? `Project Chat • ${projectName}` : "Chat",
+        subDesc: `${matchedMessages.length} matching message${
+          matchedMessages.length > 1 ? "s" : ""
+        }`,
+        type: "Messages",
+        action: () => {
+          setSelectedChat(chatName);
+
+          if (projectName) {
+            setSelectedProject(projectName);
+          }
+
+          setPage("chat");
+        },
+        key: `messages-${chatName}`,
+      });
+    }
+  });
 
   Object.keys(projectFiles).forEach((project) => {
     projectFiles[project].forEach((file, index) => {
@@ -127,6 +124,27 @@ function Search({
     });
   });
 
+  Object.keys(projectNotes || {}).forEach((project) => {
+    projectNotes[project].forEach((note, index) => {
+      const noteText = `${note.title} ${note.body}`.toLowerCase();
+
+      if (noteText.includes(lowerQuery)) {
+        allResults.push({
+          icon: "📝",
+          title: note.title,
+          desc: `Note • ${project}`,
+          subDesc: note.body.slice(0, 80),
+          type: "Notes",
+          action: () => {
+            setSelectedProject(project);
+            setPage("project");
+          },
+          key: `${project}-note-${index}`,
+        });
+      }
+    });
+  });
+
   const visibleResults =
     query.trim() === ""
       ? []
@@ -134,14 +152,22 @@ function Search({
       ? allResults
       : allResults.filter((result) => result.type === activeTab);
 
-  const tabs = ["All", "Chats", "Projects", "Messages", "Files", "Images"];
+  const tabs = [
+    "All",
+    "Chats",
+    "Projects",
+    "Messages",
+    "Files",
+    "Images",
+    "Notes",
+  ];
 
   return (
     <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
       <h1 className="text-4xl font-bold mb-2">Global Search</h1>
 
       <p className="text-gray-400 mb-8">
-        Search across chats, projects, messages, files and images.
+        Search across chats, projects, messages, files, images and notes.
       </p>
 
       <div className="grid grid-cols-[1fr_300px] gap-8">
@@ -200,11 +226,11 @@ function Search({
                     <h3 className="text-xl font-bold">{result.title}</h3>
                     <p className="text-gray-400">{result.desc}</p>
 
-{result.subDesc && (
-  <p className="text-purple-400 text-sm mt-1">
-    {result.subDesc}
-  </p>
-)}
+                    {result.subDesc && (
+                      <p className="text-purple-400 text-sm mt-1">
+                        {result.subDesc}
+                      </p>
+                    )}
                   </div>
                 </button>
               ))}
@@ -229,8 +255,8 @@ function Search({
           <div className="border-t border-gray-800 pt-5 mt-5">
             <p className="text-purple-400 mb-3">Searches</p>
             <p className="text-gray-400 text-sm">
-              Chats, projects, project chats, messages, files and images are now
-              searchable.
+              Chats, projects, project chats, messages, files, images and notes
+              are now searchable.
             </p>
           </div>
         </div>
@@ -238,5 +264,4 @@ function Search({
     </div>
   );
 }
-
 export default Search;

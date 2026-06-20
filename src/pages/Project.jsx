@@ -4,17 +4,20 @@ function Project({
   selectedProject,
   projectChats,
   setProjectChats,
-  chats,
-  setChats,
   projectFiles,
   setProjectFiles,
+  projectNotes,
+  setProjectNotes,
   setSelectedChat,
   setPage,
 }) {
   const [activeTab, setActiveTab] = useState("chats");
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteBody, setNoteBody] = useState("");
 
   const projectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
+  const notes = projectNotes[selectedProject] || [];
   const images = files.filter((file) => file.type.startsWith("image"));
 
   const createProjectChat = () => {
@@ -57,6 +60,33 @@ function Project({
     });
   };
 
+  const addNote = () => {
+    if (!noteTitle.trim() && !noteBody.trim()) return;
+
+    const newNote = {
+      title: noteTitle.trim() || "Untitled Note",
+      body: noteBody.trim(),
+      createdAt: new Date().toLocaleString(),
+    };
+
+    setProjectNotes({
+      ...projectNotes,
+      [selectedProject]: [...notes, newNote],
+    });
+
+    setNoteTitle("");
+    setNoteBody("");
+  };
+
+  const deleteNote = (index) => {
+    const updatedNotes = notes.filter((_, i) => i !== index);
+
+    setProjectNotes({
+      ...projectNotes,
+      [selectedProject]: updatedNotes,
+    });
+  };
+
   return (
     <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
       <div className="mb-10">
@@ -66,7 +96,7 @@ function Project({
 
         <p className="text-gray-400 mt-2">
           {projectChatList.length} chats • {files.length} files •{" "}
-          {images.length} images
+          {images.length} images • {notes.length} notes
         </p>
       </div>
 
@@ -234,9 +264,65 @@ function Project({
             <div>
               <h2 className="text-2xl font-bold mb-6">Notes</h2>
 
-              <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
-                Notes section will be added next.
+              <div className="bg-[#101827] border border-gray-800 rounded-xl p-5 mb-6">
+                <input
+                  type="text"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  placeholder="Note title..."
+                  className="w-full mb-4 p-3 rounded-xl bg-[#08111F] border border-[#1B2540] outline-none"
+                />
+
+                <textarea
+                  value={noteBody}
+                  onChange={(e) => setNoteBody(e.target.value)}
+                  placeholder="Write your note..."
+                  rows="5"
+                  className="w-full mb-4 p-3 rounded-xl bg-[#08111F] border border-[#1B2540] outline-none resize-none"
+                />
+
+                <button
+                  onClick={addNote}
+                  className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700"
+                >
+                  Add Note
+                </button>
               </div>
+
+              {notes.length === 0 ? (
+                <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
+                  No notes added yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {notes.map((note, index) => (
+                    <div
+                      key={`${note.title}-${index}`}
+                      className="bg-[#101827] border border-gray-800 rounded-xl p-5"
+                    >
+                      <div className="flex justify-between gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold">{note.title}</h3>
+                          <p className="text-gray-500 text-sm mt-1">
+                            {note.createdAt}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => deleteNote(index)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      <p className="text-gray-300 mt-4 whitespace-pre-wrap">
+                        {note.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -257,6 +343,9 @@ function Project({
 
           <p className="text-gray-400 mb-2">Images</p>
           <p className="font-semibold mb-6">{images.length}</p>
+
+          <p className="text-gray-400 mb-2">Notes</p>
+          <p className="font-semibold mb-6">{notes.length}</p>
 
           <label
             htmlFor="sidebarFileUpload"

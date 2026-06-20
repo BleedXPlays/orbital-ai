@@ -44,6 +44,10 @@ function App() {
     return JSON.parse(localStorage.getItem("projectFiles")) || {};
   });
 
+  const [projectNotes, setProjectNotes] = useState(() => {
+    return JSON.parse(localStorage.getItem("projectNotes")) || {};
+  });
+
   const [selectedChat, setSelectedChat] = useState(() => {
     return localStorage.getItem("selectedChat") || "Global Warming Project";
   });
@@ -83,6 +87,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("projectFiles", JSON.stringify(projectFiles));
   }, [projectFiles]);
+
+  useEffect(() => {
+    localStorage.setItem("projectNotes", JSON.stringify(projectNotes));
+  }, [projectNotes]);
 
   useEffect(() => {
     localStorage.setItem("selectedChat", selectedChat);
@@ -126,6 +134,8 @@ function App() {
             setChats={setChats}
             projectFiles={projectFiles}
             setProjectFiles={setProjectFiles}
+            projectNotes={projectNotes}
+            setProjectNotes={setProjectNotes}
             setSelectedChat={setSelectedChat}
             setPage={setPage}
           />
@@ -139,6 +149,7 @@ function App() {
             projectChats={projectChats}
             chatMessages={chatMessages}
             projectFiles={projectFiles}
+            projectNotes={projectNotes}
             setSelectedChat={setSelectedChat}
             setSelectedProject={setSelectedProject}
             setPage={setPage}
