@@ -119,20 +119,31 @@ function App() {
       case "project":
         return (
           <Project
-  selectedProject={selectedProject}
-  projectChats={projectChats}
-  setProjectChats={setProjectChats}
-  chats={chats}
-  setChats={setChats}
-  projectFiles={projectFiles}
-  setProjectFiles={setProjectFiles}
-  setSelectedChat={setSelectedChat}
-  setPage={setPage}
-/>
+            selectedProject={selectedProject}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
+            chats={chats}
+            setChats={setChats}
+            projectFiles={projectFiles}
+            setProjectFiles={setProjectFiles}
+            setSelectedChat={setSelectedChat}
+            setPage={setPage}
+          />
         );
 
       case "search":
-        return <Search />;
+        return (
+          <Search
+            chats={chats}
+            projects={projects}
+            projectChats={projectChats}
+            chatMessages={chatMessages}
+            projectFiles={projectFiles}
+            setSelectedChat={setSelectedChat}
+            setSelectedProject={setSelectedProject}
+            setPage={setPage}
+          />
+        );
 
       case "bulk":
         return (
