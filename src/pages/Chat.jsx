@@ -203,36 +203,35 @@ function Chat({
       tasks: tasks,
       outputs: getOutputs(tasks),
     };
+if (selectedChat.startsWith("New Chat") && messages.length === 0) {
+  const newTitle = generateChatTitle(input);
 
-    if (selectedChat.startsWith("New Chat") && messages.length === 0) {
-      const newTitle = generateChatTitle(input);
+  const updatedChats = chats.map((chat) =>
+    chat === selectedChat ? newTitle : chat
+  );
 
-      const updatedChats = chats.map((chat) =>
-        chat === selectedChat ? newTitle : chat
-      );
+  const updatedProjectChats = {};
 
-      const updatedChatMessages = {
-        ...chatMessages,
-        [newTitle]: [userMessage, aiMessage],
-      };
+  Object.keys(projectChats).forEach((project) => {
+    updatedProjectChats[project] = projectChats[project].map((chat) =>
+      chat === selectedChat ? newTitle : chat
+    );
+  });
 
-      delete updatedChatMessages[selectedChat];
+  const updatedChatMessages = {
+    ...chatMessages,
+    [newTitle]: [userMessage, aiMessage],
+  };
 
-      const updatedProjectChats = {};
+  delete updatedChatMessages[selectedChat];
 
-      Object.keys(projectChats).forEach((project) => {
-        updatedProjectChats[project] = projectChats[project].map((chat) =>
-          chat === selectedChat ? newTitle : chat
-        );
-      });
-
-      setChats(updatedChats);
-      setChatMessages(updatedChatMessages);
-      setProjectChats(updatedProjectChats);
-      setSelectedChat(newTitle);
-      setInput("");
-      return;
-    }
+  setChats(updatedChats);
+  setProjectChats(updatedProjectChats);
+  setChatMessages(updatedChatMessages);
+  setSelectedChat(newTitle);
+  setInput("");
+  return;
+}
 
     setMessagesForCurrentChat([...messages, userMessage, aiMessage]);
     setInput("");
