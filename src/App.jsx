@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "./firebase";
 
 import Sidebar from "./components/Sidebar";
 
@@ -11,8 +13,12 @@ import AIWorkflow from "./pages/AIWorkflow";
 import Archived from "./pages/Archived";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import Login from "./pages/Login";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [page, setPage] = useState("home");
 
   const [chats, setChats] = useState(() => {
@@ -65,6 +71,15 @@ function App() {
   });
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
@@ -107,6 +122,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("archivedProjects", JSON.stringify(archivedProjects));
   }, [archivedProjects]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
 
   const renderPage = () => {
     switch (page) {
@@ -196,22 +215,34 @@ function App() {
         return <Help />;
 
       default:
-  return (
-    <Home
-      chats={chats}
-      projects={projects}
-      projectChats={projectChats}
-      projectFiles={projectFiles}
-      projectNotes={projectNotes}
-      archivedChats={archivedChats}
-      archivedProjects={archivedProjects}
-      setSelectedChat={setSelectedChat}
-      setSelectedProject={setSelectedProject}
-      setPage={setPage}
-    />
-  );
+        return (
+          <Home
+            chats={chats}
+            projects={projects}
+            projectChats={projectChats}
+            projectFiles={projectFiles}
+            projectNotes={projectNotes}
+            archivedChats={archivedChats}
+            archivedProjects={archivedProjects}
+            setSelectedChat={setSelectedChat}
+            setSelectedProject={setSelectedProject}
+            setPage={setPage}
+          />
+        );
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Loading OrbitalAI...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="min-h-screen bg-black flex">
@@ -233,7 +264,16 @@ function App() {
         setArchivedProjects={setArchivedProjects}
       />
 
-      {renderPage()}
+      <div className="flex-1 relative">
+        <button
+          onClick={handleLogout}
+          className="absolute top-5 right-6 z-50 px-4 py-2 rounded-xl bg-[#101827] border border-[#1B2540] text-white hover:bg-[#141f33]"
+        >
+          Logout
+        </button>
+
+        {renderPage()}
+      </div>
     </div>
   );
 }
