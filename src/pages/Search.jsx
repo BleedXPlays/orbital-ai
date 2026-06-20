@@ -65,25 +65,47 @@ function Search({
     });
   });
 
-  Object.keys(chatMessages).forEach((chatName) => {
-    const messages = chatMessages[chatName] || [];
+ Object.keys(chatMessages).forEach((chatName) => {
+  const messages = chatMessages[chatName] || [];
 
-    messages.forEach((message, index) => {
-      if (message.text && message.text.toLowerCase().includes(lowerQuery)) {
-        allResults.push({
-          icon: message.role === "user" ? "👤" : "🤖",
-          title: message.text.slice(0, 70),
-          desc: `Message • ${chatName}`,
-          type: "Messages",
-          action: () => {
-            setSelectedChat(chatName);
-            setPage("chat");
-          },
-          key: `${chatName}-${index}`,
-        });
+  const matchedMessages = messages.filter(
+    (message) =>
+      message.text &&
+      message.text.toLowerCase().includes(lowerQuery)
+  );
+
+  if (matchedMessages.length > 0) {
+    let projectName = "";
+
+    Object.keys(projectChats).forEach((project) => {
+      if (projectChats[project].includes(chatName)) {
+        projectName = project;
       }
     });
-  });
+
+    allResults.push({
+      icon: "💬",
+      title: chatName,
+      desc: projectName
+        ? `Project Chat • ${projectName}`
+        : "Chat",
+      subDesc: `${matchedMessages.length} matching message${
+        matchedMessages.length > 1 ? "s" : ""
+      }`,
+      type: "Messages",
+      action: () => {
+        setSelectedChat(chatName);
+
+        if (projectName) {
+          setSelectedProject(projectName);
+        }
+
+        setPage("chat");
+      },
+      key: `messages-${chatName}`,
+    });
+  }
+});
 
   Object.keys(projectFiles).forEach((project) => {
     projectFiles[project].forEach((file, index) => {
@@ -177,6 +199,12 @@ function Search({
                   <div>
                     <h3 className="text-xl font-bold">{result.title}</h3>
                     <p className="text-gray-400">{result.desc}</p>
+
+{result.subDesc && (
+  <p className="text-purple-400 text-sm mt-1">
+    {result.subDesc}
+  </p>
+)}
                   </div>
                 </button>
               ))}
