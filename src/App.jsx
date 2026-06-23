@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
 
 import Sidebar from "./components/Sidebar";
 
@@ -16,115 +17,141 @@ import Help from "./pages/Help";
 import Login from "./pages/Login";
 
 function App() {
+  const defaultChats = [
+    "Global Warming Project",
+    "Chandrayaan-3 Research",
+    "Python Coding Help",
+    "Solar Energy Website",
+  ];
+
+  const defaultProjects = ["OrbitalAI", "Science Exhibition", "Solar Energy Website"];
+
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [page, setPage] = useState("home");
 
-  const [chats, setChats] = useState(() => {
-    return JSON.parse(localStorage.getItem("chats")) || [
-      "Global Warming Project",
-      "Chandrayaan-3 Research",
-      "Python Coding Help",
-      "Solar Energy Website",
-    ];
-  });
-
-  const [chatMessages, setChatMessages] = useState(() => {
-    return JSON.parse(localStorage.getItem("chatMessages")) || {};
-  });
-
-  const [projects, setProjects] = useState(() => {
-    return JSON.parse(localStorage.getItem("projects")) || [
-      "OrbitalAI",
-      "Science Exhibition",
-      "Solar Energy Website",
-    ];
-  });
-
-  const [projectChats, setProjectChats] = useState(() => {
-    return JSON.parse(localStorage.getItem("projectChats")) || {};
-  });
-
-  const [projectFiles, setProjectFiles] = useState(() => {
-    return JSON.parse(localStorage.getItem("projectFiles")) || {};
-  });
-
-  const [projectNotes, setProjectNotes] = useState(() => {
-    return JSON.parse(localStorage.getItem("projectNotes")) || {};
-  });
-
-  const [selectedChat, setSelectedChat] = useState(() => {
-    return localStorage.getItem("selectedChat") || "Global Warming Project";
-  });
-
-  const [selectedProject, setSelectedProject] = useState(() => {
-    return localStorage.getItem("selectedProject") || "OrbitalAI";
-  });
-
-  const [archivedChats, setArchivedChats] = useState(() => {
-    return JSON.parse(localStorage.getItem("archivedChats")) || [];
-  });
-
-  const [archivedProjects, setArchivedProjects] = useState(() => {
-    return JSON.parse(localStorage.getItem("archivedProjects")) || [];
-  });
+  const [chats, setChats] = useState(defaultChats);
+  const [chatMessages, setChatMessages] = useState({});
+  const [projects, setProjects] = useState(defaultProjects);
+  const [projectChats, setProjectChats] = useState({});
+  const [projectFiles, setProjectFiles] = useState({});
+  const [projectNotes, setProjectNotes] = useState({});
+  const [selectedChat, setSelectedChat] = useState("Global Warming Project");
+  const [selectedProject, setSelectedProject] = useState("OrbitalAI");
+  const [archivedChats, setArchivedChats] = useState([]);
+  const [archivedProjects, setArchivedProjects] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
+
+      if (!currentUser) {
+        setDataLoading(false);
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+
+      setDataLoading(true);
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+
+        setChats(data.chats || []);
+        setChatMessages(data.chatMessages || {});
+        setProjects(data.projects || []);
+        setProjectChats(data.projectChats || {});
+        setProjectFiles(data.projectFiles || {});
+        setProjectNotes(data.projectNotes || {});
+        setSelectedChat(data.selectedChat || "");
+        setSelectedProject(data.selectedProject || "");
+        setArchivedChats(data.archivedChats || []);
+        setArchivedProjects(data.archivedProjects || []);
+      } else {
+        await setDoc(userRef, {
+          name: user.displayName || "",
+          email: user.email,
+          createdAt: new Date().toISOString(),
+          chats: defaultChats,
+          chatMessages: {},
+          projects: defaultProjects,
+          projectChats: {},
+          projectFiles: {},
+          projectNotes: {},
+          selectedChat: "Global Warming Project",
+          selectedProject: "OrbitalAI",
+          archivedChats: [],
+          archivedProjects: [],
+        });
+      }
+
+      setDataLoading(false);
+    };
+
+    loadUserData();
+  }, [user]);
+
+  useEffect(() => {
+    const saveUserData = async () => {
+      if (!user || dataLoading) return;
+
+      const userRef = doc(db, "users", user.uid);
+
+      await setDoc(
+        userRef,
+        {
+          name: user.displayName || "",
+          email: user.email,
+          chats,
+          chatMessages,
+          projects,
+          projectChats,
+          projectFiles,
+          projectNotes,
+          selectedChat,
+          selectedProject,
+          archivedChats,
+          archivedProjects,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    };
+
+    saveUserData();
+  }, [
+    user,
+    dataLoading,
+    chats,
+    chatMessages,
+    projects,
+    projectChats,
+    projectFiles,
+    projectNotes,
+    selectedChat,
+    selectedProject,
+    archivedChats,
+    archivedProjects,
+  ]);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  useEffect(() => {
-    localStorage.setItem("chats", JSON.stringify(chats));
-  }, [chats]);
-
-  useEffect(() => {
-    localStorage.setItem("chatMessages", JSON.stringify(chatMessages));
-  }, [chatMessages]);
-
-  useEffect(() => {
-    localStorage.setItem("projects", JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem("projectChats", JSON.stringify(projectChats));
-  }, [projectChats]);
-
-  useEffect(() => {
-    localStorage.setItem("projectFiles", JSON.stringify(projectFiles));
-  }, [projectFiles]);
-
-  useEffect(() => {
-    localStorage.setItem("projectNotes", JSON.stringify(projectNotes));
-  }, [projectNotes]);
-
-  useEffect(() => {
-    localStorage.setItem("selectedChat", selectedChat);
-  }, [selectedChat]);
-
-  useEffect(() => {
-    localStorage.setItem("selectedProject", selectedProject);
-  }, [selectedProject]);
-
-  useEffect(() => {
-    localStorage.setItem("archivedChats", JSON.stringify(archivedChats));
-  }, [archivedChats]);
-
-  useEffect(() => {
-    localStorage.setItem("archivedProjects", JSON.stringify(archivedProjects));
-  }, [archivedProjects]);
-
   const handleLogout = async () => {
     await signOut(auth);
+    setPage("home");
   };
 
   const renderPage = () => {
@@ -232,7 +259,7 @@ function App() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         Loading OrbitalAI...
