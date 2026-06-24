@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
@@ -24,29 +24,60 @@ function App() {
     "Solar Energy Website",
   ];
 
-  const defaultProjects = ["OrbitalAI", "Science Exhibition", "Solar Energy Website"];
+  const defaultProjects = [
+    "OrbitalAI",
+    "Science Exhibition",
+    "Solar Energy Website",
+  ];
+
+  const saveTimer = useRef(null);
 
   const [user, setUser] = useState(null);
+  const [activeUserId, setActiveUserId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
+  const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
 
   const [page, setPage] = useState("home");
 
-  const [chats, setChats] = useState(defaultChats);
+  const [chats, setChats] = useState([]);
   const [chatMessages, setChatMessages] = useState({});
-  const [projects, setProjects] = useState(defaultProjects);
+  const [projects, setProjects] = useState([]);
   const [projectChats, setProjectChats] = useState({});
   const [projectFiles, setProjectFiles] = useState({});
   const [projectNotes, setProjectNotes] = useState({});
-  const [selectedChat, setSelectedChat] = useState("Global Warming Project");
-  const [selectedProject, setSelectedProject] = useState("OrbitalAI");
+  const [selectedChat, setSelectedChat] = useState("");
+  const [selectedProject, setSelectedProject] = useState("");
   const [archivedChats, setArchivedChats] = useState([]);
   const [archivedProjects, setArchivedProjects] = useState([]);
 
+  const resetWorkspace = () => {
+    setPage("home");
+    setChats([]);
+    setChatMessages({});
+    setProjects([]);
+    setProjectChats({});
+    setProjectFiles({});
+    setProjectNotes({});
+    setSelectedChat("");
+    setSelectedProject("");
+    setArchivedChats([]);
+    setArchivedProjects([]);
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+      }
+
       setAuthLoading(false);
+      setDataLoading(true);
+      setHasLoadedUserData(false);
+
+      resetWorkspace();
+      setUser(currentUser);
+      setActiveUserId(currentUser ? currentUser.uid : null);
 
       if (!currentUser) {
         setDataLoading(false);
@@ -58,28 +89,31 @@ function App() {
 
   useEffect(() => {
     const loadUserData = async () => {
-      if (!user) return;
+      if (!user || !activeUserId) return;
 
       setDataLoading(true);
+      setHasLoadedUserData(false);
 
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", activeUserId);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
         const data = userSnap.data();
 
-        setChats(data.chats || []);
+        setChats(Array.isArray(data.chats) ? data.chats : []);
         setChatMessages(data.chatMessages || {});
-        setProjects(data.projects || []);
+        setProjects(Array.isArray(data.projects) ? data.projects : []);
         setProjectChats(data.projectChats || {});
         setProjectFiles(data.projectFiles || {});
         setProjectNotes(data.projectNotes || {});
         setSelectedChat(data.selectedChat || "");
         setSelectedProject(data.selectedProject || "");
-        setArchivedChats(data.archivedChats || []);
-        setArchivedProjects(data.archivedProjects || []);
+        setArchivedChats(Array.isArray(data.archivedChats) ? data.archivedChats : []);
+        setArchivedProjects(
+          Array.isArray(data.archivedProjects) ? data.archivedProjects : []
+        );
       } else {
-        await setDoc(userRef, {
+        const initialData = {
           name: user.displayName || "",
           email: user.email,
           createdAt: new Date().toISOString(),
@@ -89,50 +123,78 @@ function App() {
           projectChats: {},
           projectFiles: {},
           projectNotes: {},
-          selectedChat: "Global Warming Project",
-          selectedProject: "OrbitalAI",
+          selectedChat: defaultChats[0],
+          selectedProject: defaultProjects[0],
           archivedChats: [],
           archivedProjects: [],
-        });
+        };
+
+        await setDoc(userRef, initialData);
+
+        setChats(initialData.chats);
+        setChatMessages(initialData.chatMessages);
+        setProjects(initialData.projects);
+        setProjectChats(initialData.projectChats);
+        setProjectFiles(initialData.projectFiles);
+        setProjectNotes(initialData.projectNotes);
+        setSelectedChat(initialData.selectedChat);
+        setSelectedProject(initialData.selectedProject);
+        setArchivedChats(initialData.archivedChats);
+        setArchivedProjects(initialData.archivedProjects);
       }
 
+      setHasLoadedUserData(true);
       setDataLoading(false);
     };
 
     loadUserData();
-  }, [user]);
+  }, [user, activeUserId]);
 
   useEffect(() => {
     const saveUserData = async () => {
-      if (!user || dataLoading) return;
+      if (!user || !activeUserId || dataLoading || !hasLoadedUserData) return;
 
-      const userRef = doc(db, "users", user.uid);
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+      }
 
-      await setDoc(
-        userRef,
-        {
-          name: user.displayName || "",
-          email: user.email,
-          chats,
-          chatMessages,
-          projects,
-          projectChats,
-          projectFiles,
-          projectNotes,
-          selectedChat,
-          selectedProject,
-          archivedChats,
-          archivedProjects,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
+      saveTimer.current = setTimeout(async () => {
+        const userRef = doc(db, "users", activeUserId);
+
+        await setDoc(
+          userRef,
+          {
+            name: user.displayName || "",
+            email: user.email,
+            chats,
+            chatMessages,
+            projects,
+            projectChats,
+            projectFiles,
+            projectNotes,
+            selectedChat,
+            selectedProject,
+            archivedChats,
+            archivedProjects,
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      }, 600);
     };
 
     saveUserData();
+
+    return () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+      }
+    };
   }, [
     user,
+    activeUserId,
     dataLoading,
+    hasLoadedUserData,
     chats,
     chatMessages,
     projects,
@@ -150,8 +212,15 @@ function App() {
   }, [page]);
 
   const handleLogout = async () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+    }
+
+    resetWorkspace();
+    setHasLoadedUserData(false);
+    setDataLoading(true);
+
     await signOut(auth);
-    setPage("home");
   };
 
   const renderPage = () => {
