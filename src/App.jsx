@@ -298,15 +298,17 @@ function App() {
       case "archived":
         return (
           <Archived
-            chats={chats}
-            setChats={setChats}
-            projects={projects}
-            setProjects={setProjects}
-            archivedChats={archivedChats}
-            setArchivedChats={setArchivedChats}
-            archivedProjects={archivedProjects}
-            setArchivedProjects={setArchivedProjects}
-          />
+  chats={chats}
+  setChats={setChats}
+  projects={projects}
+  setProjects={setProjects}
+  projectChats={projectChats}
+  setProjectChats={setProjectChats}
+  archivedChats={archivedChats}
+  setArchivedChats={setArchivedChats}
+  archivedProjects={archivedProjects}
+  setArchivedProjects={setArchivedProjects}
+/>
         );
 
       case "settings":

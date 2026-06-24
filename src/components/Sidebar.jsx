@@ -144,7 +144,13 @@ function Sidebar({
     const chatToArchive = chats[index];
     const updatedChats = chats.filter((_, i) => i !== index);
 
-    setArchivedChats([...archivedChats, chatToArchive]);
+    setArchivedChats([
+  ...archivedChats,
+  {
+    name: chatToArchive,
+    sourceProject: null,
+  },
+]);
     setChats(updatedChats);
 
     const updatedProjectChats = {};

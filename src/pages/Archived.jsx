@@ -3,14 +3,41 @@ function Archived({
   setChats,
   projects,
   setProjects,
+  projectChats,
+  setProjectChats,
   archivedChats,
   setArchivedChats,
   archivedProjects,
   setArchivedProjects,
 }) {
+  const getChatName = (chat) => {
+    return typeof chat === "string" ? chat : chat.name;
+  };
+
+  const getSourceProject = (chat) => {
+    return typeof chat === "string" ? null : chat.sourceProject;
+  };
+
   const restoreChat = (index) => {
-    const chat = archivedChats[index];
-    setChats([...chats, chat]);
+    const archivedChat = archivedChats[index];
+    const chatName = getChatName(archivedChat);
+    const sourceProject = getSourceProject(archivedChat);
+
+    if (sourceProject) {
+      const currentProjectChats = projectChats[sourceProject] || [];
+
+      setProjectChats({
+        ...projectChats,
+        [sourceProject]: currentProjectChats.includes(chatName)
+          ? currentProjectChats
+          : [...currentProjectChats, chatName],
+      });
+    } else {
+      if (!chats.includes(chatName)) {
+        setChats([...chats, chatName]);
+      }
+    }
+
     setArchivedChats(archivedChats.filter((_, i) => i !== index));
   };
 
@@ -20,7 +47,18 @@ function Archived({
 
   const restoreProject = (index) => {
     const project = archivedProjects[index];
-    setProjects([...projects, project]);
+
+    if (!projects.includes(project)) {
+      setProjects([...projects, project]);
+    }
+
+    if (!projectChats[project]) {
+      setProjectChats({
+        ...projectChats,
+        [project]: [],
+      });
+    }
+
     setArchivedProjects(archivedProjects.filter((_, i) => i !== index));
   };
 
@@ -31,8 +69,9 @@ function Archived({
   return (
     <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
       <h1 className="text-4xl font-bold mb-4">Archived Items</h1>
+
       <p className="text-gray-400 mb-8">
-        Restore or permanently delete archived chats and projects.
+        Restore chats back to their original place, or permanently delete them.
       </p>
 
       <div className="grid grid-cols-2 gap-8">
@@ -45,30 +84,43 @@ function Archived({
             <p className="text-gray-500">No archived chats yet.</p>
           ) : (
             <div className="space-y-3">
-              {archivedChats.map((chat, index) => (
-                <div
-                  key={index}
-                  className="bg-[#101827] border border-gray-800 rounded-xl p-4 flex justify-between items-center"
-                >
-                  <span>💬 {chat}</span>
+              {archivedChats.map((chat, index) => {
+                const chatName = getChatName(chat);
+                const sourceProject = getSourceProject(chat);
 
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => restoreChat(index)}
-                      className="text-green-400 hover:text-green-300"
-                    >
-                      Restore
-                    </button>
+                return (
+                  <div
+                    key={`${chatName}-${index}`}
+                    className="bg-[#101827] border border-gray-800 rounded-xl p-4 flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="font-semibold">💬 {chatName}</p>
 
-                    <button
-                      onClick={() => deleteArchivedChat(index)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      Delete
-                    </button>
+                      <p className="text-gray-500 text-sm mt-1">
+                        {sourceProject
+                          ? `From project: ${sourceProject}`
+                          : "From global chats"}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => restoreChat(index)}
+                        className="text-green-400 hover:text-green-300"
+                      >
+                        Restore
+                      </button>
+
+                      <button
+                        onClick={() => deleteArchivedChat(index)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -84,7 +136,7 @@ function Archived({
             <div className="space-y-3">
               {archivedProjects.map((project, index) => (
                 <div
-                  key={index}
+                  key={`${project}-${index}`}
                   className="bg-[#101827] border border-gray-800 rounded-xl p-4 flex justify-between items-center"
                 >
                   <span>📂 {project}</span>

@@ -79,7 +79,13 @@ function Project({
     };
 
     setProjectChats(updatedProjectChats);
-    setArchivedChats([...archivedChats, chatToArchive]);
+    setArchivedChats([
+  ...archivedChats,
+  {
+    name: chatToArchive,
+    sourceProject: selectedProject,
+  },
+]);
 
     if (selectedChat === chatToArchive) {
       setSelectedChat("");
