@@ -108,7 +108,9 @@ function App() {
         setProjectNotes(data.projectNotes || {});
         setSelectedChat(data.selectedChat || "");
         setSelectedProject(data.selectedProject || "");
-        setArchivedChats(Array.isArray(data.archivedChats) ? data.archivedChats : []);
+        setArchivedChats(
+          Array.isArray(data.archivedChats) ? data.archivedChats : []
+        );
         setArchivedProjects(
           Array.isArray(data.archivedProjects) ? data.archivedProjects : []
         );
@@ -245,13 +247,16 @@ function App() {
             selectedProject={selectedProject}
             projectChats={projectChats}
             setProjectChats={setProjectChats}
-            chats={chats}
-            setChats={setChats}
             projectFiles={projectFiles}
             setProjectFiles={setProjectFiles}
             projectNotes={projectNotes}
             setProjectNotes={setProjectNotes}
+            selectedChat={selectedChat}
             setSelectedChat={setSelectedChat}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
+            archivedChats={archivedChats}
+            setArchivedChats={setArchivedChats}
             setPage={setPage}
           />
         );

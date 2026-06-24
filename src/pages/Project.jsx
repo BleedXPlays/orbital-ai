@@ -8,12 +8,18 @@ function Project({
   setProjectFiles,
   projectNotes,
   setProjectNotes,
+  selectedChat,
   setSelectedChat,
+  chatMessages,
+  setChatMessages,
+  archivedChats,
+  setArchivedChats,
   setPage,
 }) {
   const [activeTab, setActiveTab] = useState("chats");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
+  const [openChatMenu, setOpenChatMenu] = useState(null);
 
   const projectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
@@ -30,6 +36,80 @@ function Project({
 
     setSelectedChat(chatName);
     setPage("chat");
+  };
+
+  const renameProjectChat = (index) => {
+    const oldName = projectChatList[index];
+    const newName = prompt("Enter new chat name:", oldName);
+
+    if (!newName || !newName.trim()) return;
+
+    const trimmedName = newName.trim();
+
+    const updatedProjectChats = {
+      ...projectChats,
+      [selectedProject]: projectChatList.map((chat) =>
+        chat === oldName ? trimmedName : chat
+      ),
+    };
+
+    const updatedChatMessages = { ...chatMessages };
+
+    if (updatedChatMessages[oldName]) {
+      updatedChatMessages[trimmedName] = updatedChatMessages[oldName];
+      delete updatedChatMessages[oldName];
+    }
+
+    setProjectChats(updatedProjectChats);
+    setChatMessages(updatedChatMessages);
+
+    if (selectedChat === oldName) {
+      setSelectedChat(trimmedName);
+    }
+
+    setOpenChatMenu(null);
+  };
+
+  const archiveProjectChat = (index) => {
+    const chatToArchive = projectChatList[index];
+
+    const updatedProjectChats = {
+      ...projectChats,
+      [selectedProject]: projectChatList.filter((_, i) => i !== index),
+    };
+
+    setProjectChats(updatedProjectChats);
+    setArchivedChats([...archivedChats, chatToArchive]);
+
+    if (selectedChat === chatToArchive) {
+      setSelectedChat("");
+    }
+
+    setOpenChatMenu(null);
+  };
+
+  const deleteProjectChat = (index) => {
+    const confirmDelete = confirm("Delete this project chat?");
+    if (!confirmDelete) return;
+
+    const chatToDelete = projectChatList[index];
+
+    const updatedProjectChats = {
+      ...projectChats,
+      [selectedProject]: projectChatList.filter((_, i) => i !== index),
+    };
+
+    const updatedChatMessages = { ...chatMessages };
+    delete updatedChatMessages[chatToDelete];
+
+    setProjectChats(updatedProjectChats);
+    setChatMessages(updatedChatMessages);
+
+    if (selectedChat === chatToDelete) {
+      setSelectedChat("");
+    }
+
+    setOpenChatMenu(null);
   };
 
   const handleUpload = (e) => {
@@ -88,7 +168,10 @@ function Project({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
+    <div
+      onClick={() => setOpenChatMenu(null)}
+      className="flex-1 min-h-screen bg-black text-white px-10 py-8"
+    >
       <div className="mb-10">
         <h1 className="text-4xl font-bold">
           📂 {selectedProject || "Untitled Project"}
@@ -138,14 +221,14 @@ function Project({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {projectChatList.map((chat) => (
+                  {projectChatList.map((chat, index) => (
                     <div
                       key={chat}
                       onClick={() => {
                         setSelectedChat(chat);
                         setPage("chat");
                       }}
-                      className="flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
+                      className="relative flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
                     >
                       <div>
                         <h3 className="font-semibold">💬 {chat}</h3>
@@ -154,7 +237,55 @@ function Project({
                         </p>
                       </div>
 
-                      <span className="text-gray-500">Open →</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-gray-500">Open →</span>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenChatMenu(
+                              openChatMenu === index ? null : index
+                            );
+                          }}
+                          className="text-gray-500 hover:text-white px-2"
+                        >
+                          ⋮
+                        </button>
+                      </div>
+
+                      {openChatMenu === index && (
+                        <div className="absolute right-4 top-14 z-50 w-36 bg-[#08111F] border border-[#1B2540] rounded-xl shadow-xl p-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              renameProjectChat(index);
+                            }}
+                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
+                          >
+                            Rename
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              archiveProjectChat(index);
+                            }}
+                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
+                          >
+                            Archive
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteProjectChat(index);
+                            }}
+                            className="block w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-[#141f33]"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
