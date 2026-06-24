@@ -320,17 +320,17 @@ function App() {
       default:
         return (
           <Home
-            chats={chats}
-            projects={projects}
-            projectChats={projectChats}
-            projectFiles={projectFiles}
-            projectNotes={projectNotes}
-            archivedChats={archivedChats}
-            archivedProjects={archivedProjects}
-            setSelectedChat={setSelectedChat}
-            setSelectedProject={setSelectedProject}
-            setPage={setPage}
-          />
+  chats={chats}
+  projects={projects}
+  projectChats={projectChats}
+  projectFiles={projectFiles}
+  projectNotes={projectNotes}
+  archivedChats={archivedChats}
+  archivedProjects={archivedProjects}
+  setSelectedChat={setSelectedChat}
+  setSelectedProject={setSelectedProject}
+  setPage={setPage}
+/>
         );
     }
   };
