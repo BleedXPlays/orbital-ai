@@ -14,6 +14,8 @@ function Project({
   setChatMessages,
   archivedChats,
   setArchivedChats,
+  pinnedChats,
+  setPinnedChats,
   setPage,
 }) {
   const [activeTab, setActiveTab] = useState("chats");
@@ -25,6 +27,16 @@ function Project({
   const files = projectFiles[selectedProject] || [];
   const notes = projectNotes[selectedProject] || [];
   const images = files.filter((file) => file.type.startsWith("image"));
+
+  const isPinned = (chat) => pinnedChats.includes(chat);
+
+  const togglePinChat = (chat) => {
+    if (isPinned(chat)) {
+      setPinnedChats(pinnedChats.filter((item) => item !== chat));
+    } else {
+      setPinnedChats([...pinnedChats, chat]);
+    }
+  };
 
   const createProjectChat = () => {
     const chatName = `New Chat ${projectChatList.length + 1}`;
@@ -63,6 +75,10 @@ function Project({
     setProjectChats(updatedProjectChats);
     setChatMessages(updatedChatMessages);
 
+    setPinnedChats(
+      pinnedChats.map((chat) => (chat === oldName ? trimmedName : chat))
+    );
+
     if (selectedChat === oldName) {
       setSelectedChat(trimmedName);
     }
@@ -79,13 +95,16 @@ function Project({
     };
 
     setProjectChats(updatedProjectChats);
+
     setArchivedChats([
-  ...archivedChats,
-  {
-    name: chatToArchive,
-    sourceProject: selectedProject,
-  },
-]);
+      ...archivedChats,
+      {
+        name: chatToArchive,
+        sourceProject: selectedProject,
+      },
+    ]);
+
+    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToArchive));
 
     if (selectedChat === chatToArchive) {
       setSelectedChat("");
@@ -110,6 +129,7 @@ function Project({
 
     setProjectChats(updatedProjectChats);
     setChatMessages(updatedChatMessages);
+    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
 
     if (selectedChat === chatToDelete) {
       setSelectedChat("");
@@ -237,7 +257,9 @@ function Project({
                       className="relative flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
                     >
                       <div>
-                        <h3 className="font-semibold">💬 {chat}</h3>
+                        <h3 className="font-semibold">
+                          {isPinned(chat) ? "⭐" : "💬"} {chat}
+                        </h3>
                         <p className="text-gray-400 text-sm">
                           Updated recently
                         </p>
@@ -269,6 +291,17 @@ function Project({
                             className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
                           >
                             Rename
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePinChat(chat);
+                              setOpenChatMenu(null);
+                            }}
+                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
+                          >
+                            {isPinned(chat) ? "Unpin" : "Pin"}
                           </button>
 
                           <button

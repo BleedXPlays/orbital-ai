@@ -16,6 +16,8 @@ function Sidebar({
   setArchivedChats,
   archivedProjects,
   setArchivedProjects,
+  pinnedChats,
+  setPinnedChats,
 }) {
   const [chatSearch, setChatSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
@@ -26,6 +28,16 @@ function Sidebar({
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [chatToMove, setChatToMove] = useState("");
   const [targetProject, setTargetProject] = useState("");
+
+  const isPinned = (chat) => pinnedChats.includes(chat);
+
+  const togglePinChat = (chat) => {
+    if (isPinned(chat)) {
+      setPinnedChats(pinnedChats.filter((item) => item !== chat));
+    } else {
+      setPinnedChats([...pinnedChats, chat]);
+    }
+  };
 
   const createChat = () => {
     const newChatName = `New Chat ${chats.length + 1}`;
@@ -69,6 +81,10 @@ function Sidebar({
 
     setProjectChats(updatedProjectChats);
 
+    setPinnedChats(
+      pinnedChats.map((chat) => (chat === oldName ? trimmedName : chat))
+    );
+
     if (selectedChat === oldName) {
       setSelectedChat(trimmedName);
     }
@@ -104,6 +120,7 @@ function Sidebar({
     const updatedChats = chats.filter((_, i) => i !== index);
 
     setChats(updatedChats);
+    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
 
     const updatedProjectChats = {};
 
@@ -130,6 +147,11 @@ function Sidebar({
 
     setProjects(updatedProjects);
 
+    const projectChatList = projectChats[projectToDelete] || [];
+    setPinnedChats(
+      pinnedChats.filter((chat) => !projectChatList.includes(chat))
+    );
+
     const updatedProjectChats = { ...projectChats };
     delete updatedProjectChats[projectToDelete];
     setProjectChats(updatedProjectChats);
@@ -145,13 +167,15 @@ function Sidebar({
     const updatedChats = chats.filter((_, i) => i !== index);
 
     setArchivedChats([
-  ...archivedChats,
-  {
-    name: chatToArchive,
-    sourceProject: null,
-  },
-]);
+      ...archivedChats,
+      {
+        name: chatToArchive,
+        sourceProject: null,
+      },
+    ]);
+
     setChats(updatedChats);
+    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToArchive));
 
     const updatedProjectChats = {};
 
@@ -175,6 +199,11 @@ function Sidebar({
 
     setArchivedProjects([...archivedProjects, projectToArchive]);
     setProjects(updatedProjects);
+
+    const projectChatList = projectChats[projectToArchive] || [];
+    setPinnedChats(
+      pinnedChats.filter((chat) => !projectChatList.includes(chat))
+    );
 
     const updatedProjectChats = { ...projectChats };
     delete updatedProjectChats[projectToArchive];
@@ -262,6 +291,32 @@ function Sidebar({
           className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-8 cursor-pointer"
         />
 
+        {pinnedChats.length > 0 && (
+          <>
+            <h2 className="text-yellow-400 font-semibold mb-3">PINNED</h2>
+
+            <div className="space-y-3 mb-8">
+              {pinnedChats.map((chat) => (
+                <div
+                  key={chat}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedChat(chat);
+                    setPage("chat");
+                  }}
+                  className={`p-3 rounded-lg cursor-pointer border ${
+                    selectedChat === chat
+                      ? "bg-[#101827] border-purple-700"
+                      : "bg-[#101827] border-gray-800 hover:border-purple-700"
+                  }`}
+                >
+                  ⭐ {chat}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         <h2 className="text-purple-400 font-semibold mb-3">CHATS</h2>
 
         <button
@@ -340,6 +395,17 @@ function Sidebar({
                       className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
                     >
                       Move to Project
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        togglePinChat(chat);
+                        setOpenChatMenu(null);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
+                    >
+                      {isPinned(chat) ? "Unpin" : "Pin"}
                     </button>
 
                     <button
@@ -483,53 +549,23 @@ function Sidebar({
         </div>
 
         <div className="space-y-3 pb-4">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("bulk");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setPage("bulk"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">
             ✏️ Edit Items
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("archived");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setPage("archived"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">
             🗄️ Archived Items
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("settings");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setPage("settings"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">
             ⚙️ Settings
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("help");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setPage("help"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">
             ❓ Help & Support
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("workflow");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setPage("workflow"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">
             🤖 AI Workflow
           </button>
         </div>

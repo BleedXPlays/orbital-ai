@@ -50,6 +50,7 @@ function App() {
   const [selectedProject, setSelectedProject] = useState("");
   const [archivedChats, setArchivedChats] = useState([]);
   const [archivedProjects, setArchivedProjects] = useState([]);
+  const [pinnedChats, setPinnedChats] = useState([]);
 
   const resetWorkspace = () => {
     setPage("home");
@@ -63,6 +64,7 @@ function App() {
     setSelectedProject("");
     setArchivedChats([]);
     setArchivedProjects([]);
+    setPinnedChats([]);
   };
 
   useEffect(() => {
@@ -114,6 +116,7 @@ function App() {
         setArchivedProjects(
           Array.isArray(data.archivedProjects) ? data.archivedProjects : []
         );
+        setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
       } else {
         const initialData = {
           name: user.displayName || "",
@@ -129,6 +132,7 @@ function App() {
           selectedProject: defaultProjects[0],
           archivedChats: [],
           archivedProjects: [],
+          pinnedChats: [],
         };
 
         await setDoc(userRef, initialData);
@@ -143,6 +147,7 @@ function App() {
         setSelectedProject(initialData.selectedProject);
         setArchivedChats(initialData.archivedChats);
         setArchivedProjects(initialData.archivedProjects);
+        setPinnedChats(initialData.pinnedChats);
       }
 
       setHasLoadedUserData(true);
@@ -178,6 +183,7 @@ function App() {
             selectedProject,
             archivedChats,
             archivedProjects,
+            pinnedChats,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
@@ -207,6 +213,7 @@ function App() {
     selectedProject,
     archivedChats,
     archivedProjects,
+    pinnedChats,
   ]);
 
   useEffect(() => {
@@ -257,6 +264,8 @@ function App() {
             setChatMessages={setChatMessages}
             archivedChats={archivedChats}
             setArchivedChats={setArchivedChats}
+            pinnedChats={pinnedChats}
+            setPinnedChats={setPinnedChats}
             setPage={setPage}
           />
         );
@@ -298,17 +307,17 @@ function App() {
       case "archived":
         return (
           <Archived
-  chats={chats}
-  setChats={setChats}
-  projects={projects}
-  setProjects={setProjects}
-  projectChats={projectChats}
-  setProjectChats={setProjectChats}
-  archivedChats={archivedChats}
-  setArchivedChats={setArchivedChats}
-  archivedProjects={archivedProjects}
-  setArchivedProjects={setArchivedProjects}
-/>
+            chats={chats}
+            setChats={setChats}
+            projects={projects}
+            setProjects={setProjects}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
+            archivedChats={archivedChats}
+            setArchivedChats={setArchivedChats}
+            archivedProjects={archivedProjects}
+            setArchivedProjects={setArchivedProjects}
+          />
         );
 
       case "settings":
@@ -320,17 +329,18 @@ function App() {
       default:
         return (
           <Home
-  chats={chats}
-  projects={projects}
-  projectChats={projectChats}
-  projectFiles={projectFiles}
-  projectNotes={projectNotes}
-  archivedChats={archivedChats}
-  archivedProjects={archivedProjects}
-  setSelectedChat={setSelectedChat}
-  setSelectedProject={setSelectedProject}
-  setPage={setPage}
-/>
+            chats={chats}
+            projects={projects}
+            projectChats={projectChats}
+            projectFiles={projectFiles}
+            projectNotes={projectNotes}
+            archivedChats={archivedChats}
+            archivedProjects={archivedProjects}
+            pinnedChats={pinnedChats}
+            setSelectedChat={setSelectedChat}
+            setSelectedProject={setSelectedProject}
+            setPage={setPage}
+          />
         );
     }
   };
@@ -365,6 +375,8 @@ function App() {
         setArchivedChats={setArchivedChats}
         archivedProjects={archivedProjects}
         setArchivedProjects={setArchivedProjects}
+        pinnedChats={pinnedChats}
+        setPinnedChats={setPinnedChats}
       />
 
       <div className="flex-1 relative">

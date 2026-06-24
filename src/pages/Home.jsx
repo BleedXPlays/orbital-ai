@@ -6,6 +6,7 @@ function Home({
   projectNotes,
   archivedChats,
   archivedProjects,
+  pinnedChats,
   setSelectedChat,
   setSelectedProject,
   setPage,
@@ -36,8 +37,8 @@ function Home({
     }))
   );
 
-  const recentChats = [...globalRecentChats, ...projectRecentChats].slice(-5).reverse();
-
+  const allChats = [...globalRecentChats, ...projectRecentChats];
+  const recentChats = allChats.slice(-5).reverse();
   const recentProjects = [...projects].slice(-5).reverse();
 
   const openChat = (chat) => {
@@ -45,6 +46,20 @@ function Home({
 
     if (chat.project) {
       setSelectedProject(chat.project);
+    }
+
+    setPage("chat");
+  };
+
+  const openPinnedChat = (chatName) => {
+    const matchedProject = Object.keys(projectChats || {}).find((project) =>
+      (projectChats[project] || []).includes(chatName)
+    );
+
+    setSelectedChat(chatName);
+
+    if (matchedProject) {
+      setSelectedProject(matchedProject);
     }
 
     setPage("chat");
@@ -112,12 +127,29 @@ function Home({
           </div>
 
           <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Workspace Health</p>
-            <h2 className="text-2xl font-bold mt-4 text-green-400">
-              Excellent
-            </h2>
+            <p className="text-gray-400">Pinned Chats</p>
+            <h2 className="text-4xl font-bold mt-3">{pinnedChats.length}</h2>
           </div>
         </div>
+
+        {pinnedChats.length > 0 && (
+          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6 mb-12">
+            <h2 className="text-2xl font-bold mb-5">Pinned Chats</h2>
+
+            <div className="grid grid-cols-3 gap-4">
+              {pinnedChats.map((chat) => (
+                <button
+                  key={chat}
+                  onClick={() => openPinnedChat(chat)}
+                  className="text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
+                >
+                  <h3 className="font-semibold">⭐ {chat}</h3>
+                  <p className="text-gray-400 text-sm mt-1">Pinned chat</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-8 mb-12">
           <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
