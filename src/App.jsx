@@ -396,15 +396,19 @@ function App() {
       />
 
       <div className="flex-1 relative">
-        <button
-          onClick={handleLogout}
-          className="absolute top-5 right-6 z-50 px-4 py-2 rounded-xl bg-[#101827] border border-[#1B2540] text-white hover:bg-[#141f33]"
-        >
-          Logout
-        </button>
+  <div className="absolute top-5 right-6 z-50">
+    <button
+      onClick={handleLogout}
+      className="px-4 py-2 rounded-xl bg-[#101827] border border-[#1B2540] text-white hover:bg-[#141f33]"
+    >
+      Logout
+    </button>
+  </div>
 
-        {renderPage()}
-      </div>
+  <div className="pr-32">
+    {renderPage()}
+  </div>
+</div>
     </div>
   );
 }
