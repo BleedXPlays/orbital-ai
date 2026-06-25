@@ -334,7 +334,19 @@ function App() {
         );
 
       case "settings":
-        return <Settings />;
+  return (
+    <Settings
+      user={user}
+      chats={chats}
+      projects={projects}
+      projectChats={projectChats}
+      projectNotes={projectNotes}
+      pinnedChats={pinnedChats}
+      archivedChats={archivedChats}
+      archivedProjects={archivedProjects}
+      handleLogout={handleLogout}
+    />
+  );
 
       case "help":
         return <Help />;
