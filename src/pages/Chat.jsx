@@ -9,6 +9,10 @@ function Chat({
   setProjectChats,
   chatMessages,
   setChatMessages,
+  pinnedChats,
+  setPinnedChats,
+  chatActivity,
+  setChatActivity,
 }) {
   const [input, setInput] = useState("");
 
@@ -24,10 +28,7 @@ function Chat({
       lowerText.includes("facts") ||
       lowerText.includes("sources")
     ) {
-      detectedTasks.push({
-        task: "Research",
-        ai: "Claude",
-      });
+      detectedTasks.push({ task: "Research", ai: "Claude" });
     }
 
     if (
@@ -37,10 +38,7 @@ function Chat({
       lowerText.includes("content") ||
       lowerText.includes("explain")
     ) {
-      detectedTasks.push({
-        task: "Writing",
-        ai: "ChatGPT",
-      });
+      detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
     }
 
     if (
@@ -50,10 +48,7 @@ function Chat({
       lowerText.includes("logo") ||
       lowerText.includes("visual")
     ) {
-      detectedTasks.push({
-        task: "Images",
-        ai: "Gemini",
-      });
+      detectedTasks.push({ task: "Images", ai: "Gemini" });
     }
 
     if (
@@ -62,10 +57,7 @@ function Chat({
       lowerText.includes("app") ||
       lowerText.includes("react")
     ) {
-      detectedTasks.push({
-        task: "Coding",
-        ai: "GitHub Copilot",
-      });
+      detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
     }
 
     if (
@@ -73,10 +65,7 @@ function Chat({
       lowerText.includes("ppt") ||
       lowerText.includes("slides")
     ) {
-      detectedTasks.push({
-        task: "Presentation",
-        ai: "Gamma",
-      });
+      detectedTasks.push({ task: "Presentation", ai: "Gamma" });
     }
 
     if (
@@ -84,10 +73,7 @@ function Chat({
       lowerText.includes("reel") ||
       lowerText.includes("youtube")
     ) {
-      detectedTasks.push({
-        task: "Video",
-        ai: "Runway",
-      });
+      detectedTasks.push({ task: "Video", ai: "Runway" });
     }
 
     if (
@@ -95,10 +81,7 @@ function Chat({
       lowerText.includes("translation") ||
       lowerText.includes("language")
     ) {
-      detectedTasks.push({
-        task: "Translation",
-        ai: "Google Translate AI",
-      });
+      detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
     }
 
     if (
@@ -106,17 +89,11 @@ function Chat({
       lowerText.includes("audio") ||
       lowerText.includes("speech")
     ) {
-      detectedTasks.push({
-        task: "Voice Input",
-        ai: "Whisper",
-      });
+      detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
     }
 
     if (detectedTasks.length === 0) {
-      detectedTasks.push({
-        task: "General Answer",
-        ai: "ChatGPT",
-      });
+      detectedTasks.push({ task: "General Answer", ai: "ChatGPT" });
     }
 
     return detectedTasks;
@@ -126,41 +103,15 @@ function Chat({
     const outputs = [];
 
     tasks.forEach((item) => {
-      if (item.task === "Research") {
-        outputs.push(["📚", "Research Notes", "Detailed sources"]);
-      }
-
-      if (item.task === "Writing") {
-        outputs.push(["📄", "Written Content", "Essay / report"]);
-      }
-
-      if (item.task === "Images") {
-        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
-      }
-
-      if (item.task === "Coding") {
-        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
-      }
-
-      if (item.task === "Presentation") {
-        outputs.push(["📊", "Presentation", "Slides"]);
-      }
-
-      if (item.task === "Video") {
-        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
-      }
-
-      if (item.task === "Translation") {
-        outputs.push(["🌍", "Translation", "Translated output"]);
-      }
-
-      if (item.task === "Voice Input") {
-        outputs.push(["🎙️", "Transcript", "Voice to text"]);
-      }
-
-      if (item.task === "General Answer") {
-        outputs.push(["💬", "Answer", "General response"]);
-      }
+      if (item.task === "Research") outputs.push(["📚", "Research Notes", "Detailed sources"]);
+      if (item.task === "Writing") outputs.push(["📄", "Written Content", "Essay / report"]);
+      if (item.task === "Images") outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
+      if (item.task === "Coding") outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
+      if (item.task === "Presentation") outputs.push(["📊", "Presentation", "Slides"]);
+      if (item.task === "Video") outputs.push(["🎬", "Video Plan", "Scene prompts"]);
+      if (item.task === "Translation") outputs.push(["🌍", "Translation", "Translated output"]);
+      if (item.task === "Voice Input") outputs.push(["🎙️", "Transcript", "Voice to text"]);
+      if (item.task === "General Answer") outputs.push(["💬", "Answer", "General response"]);
     });
 
     return outputs;
@@ -190,6 +141,7 @@ function Chat({
   const sendMessage = () => {
     if (!input.trim()) return;
 
+    const now = new Date().toISOString();
     const tasks = analyzeTask(input);
 
     const userMessage = {
@@ -200,40 +152,57 @@ function Chat({
     const aiMessage = {
       role: "ai",
       text: "OrbitalAI analyzed your request and assigned the best AI models.",
-      tasks: tasks,
+      tasks,
       outputs: getOutputs(tasks),
     };
-if (selectedChat.startsWith("New Chat") && messages.length === 0) {
-  const newTitle = generateChatTitle(input);
 
-  const updatedChats = chats.map((chat) =>
-    chat === selectedChat ? newTitle : chat
-  );
+    if (selectedChat.startsWith("New Chat") && messages.length === 0) {
+      const newTitle = generateChatTitle(input);
 
-  const updatedProjectChats = {};
+      const updatedChats = chats.map((chat) =>
+        chat === selectedChat ? newTitle : chat
+      );
 
-  Object.keys(projectChats).forEach((project) => {
-    updatedProjectChats[project] = projectChats[project].map((chat) =>
-      chat === selectedChat ? newTitle : chat
-    );
-  });
+      const updatedProjectChats = {};
 
-  const updatedChatMessages = {
-    ...chatMessages,
-    [newTitle]: [userMessage, aiMessage],
-  };
+      Object.keys(projectChats).forEach((project) => {
+        updatedProjectChats[project] = projectChats[project].map((chat) =>
+          chat === selectedChat ? newTitle : chat
+        );
+      });
 
-  delete updatedChatMessages[selectedChat];
+      const updatedChatMessages = {
+        ...chatMessages,
+        [newTitle]: [userMessage, aiMessage],
+      };
 
-  setChats(updatedChats);
-  setProjectChats(updatedProjectChats);
-  setChatMessages(updatedChatMessages);
-  setSelectedChat(newTitle);
-  setInput("");
-  return;
-}
+      delete updatedChatMessages[selectedChat];
+
+      const updatedPinnedChats = pinnedChats.map((chat) =>
+        chat === selectedChat ? newTitle : chat
+      );
+
+      const updatedChatActivity = { ...chatActivity };
+      delete updatedChatActivity[selectedChat];
+      updatedChatActivity[newTitle] = now;
+
+      setChats(updatedChats);
+      setProjectChats(updatedProjectChats);
+      setChatMessages(updatedChatMessages);
+      setPinnedChats(updatedPinnedChats);
+      setChatActivity(updatedChatActivity);
+      setSelectedChat(newTitle);
+      setInput("");
+      return;
+    }
 
     setMessagesForCurrentChat([...messages, userMessage, aiMessage]);
+
+    setChatActivity({
+      ...chatActivity,
+      [selectedChat]: now,
+    });
+
     setInput("");
   };
 
@@ -288,15 +257,12 @@ if (selectedChat.startsWith("New Chat") && messages.length === 0) {
                 </div>
               ) : (
                 <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-8 max-w-5xl">
-                  <p className="text-xl font-semibold mb-4">
-                    {message.text}
-                  </p>
+                  <p className="text-xl font-semibold mb-4">{message.text}</p>
 
                   {message.tasks && message.tasks.length > 0 && (
                     <>
                       <p className="text-gray-400 mb-8">
-                        OrbitalAI automatically assigned the best AI model for
-                        each task.
+                        OrbitalAI automatically assigned the best AI model for each task.
                       </p>
 
                       <div className="flex flex-wrap gap-3 mb-8">
@@ -327,9 +293,7 @@ if (selectedChat.startsWith("New Chat") && messages.length === 0) {
                             <h3 className="font-bold text-lg mb-2">
                               {output[0]} {output[1]}
                             </h3>
-                            <p className="text-gray-400 text-sm">
-                              {output[2]}
-                            </p>
+                            <p className="text-gray-400 text-sm">{output[2]}</p>
                           </div>
                         ))}
                       </div>
@@ -358,9 +322,7 @@ if (selectedChat.startsWith("New Chat") && messages.length === 0) {
             placeholder="Ask OrbitalAI anything..."
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                sendMessage();
-              }
+              if (e.key === "Enter") sendMessage();
             }}
             className="flex-1 bg-transparent outline-none text-gray-300"
           />

@@ -16,6 +16,8 @@ function Project({
   setArchivedChats,
   pinnedChats,
   setPinnedChats,
+  chatActivity,
+  setChatActivity,
   setPage,
 }) {
   const [activeTab, setActiveTab] = useState("chats");
@@ -23,10 +25,29 @@ function Project({
   const [noteBody, setNoteBody] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
 
-  const projectChatList = projectChats[selectedProject] || [];
+  const rawProjectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
   const notes = projectNotes[selectedProject] || [];
   const images = files.filter((file) => file.type.startsWith("image"));
+
+  const getChatTime = (chat) => {
+    return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
+  };
+
+  const formatUpdatedTime = (chat) => {
+    if (!chatActivity[chat]) return "No activity yet";
+    return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
+  };
+
+  const projectChatList = [...rawProjectChatList].sort((a, b) => {
+    const aPinned = pinnedChats.includes(a);
+    const bPinned = pinnedChats.includes(b);
+
+    if (aPinned && !bPinned) return -1;
+    if (!aPinned && bPinned) return 1;
+
+    return getChatTime(b) - getChatTime(a);
+  });
 
   const isPinned = (chat) => pinnedChats.includes(chat);
 
@@ -39,11 +60,17 @@ function Project({
   };
 
   const createProjectChat = () => {
-    const chatName = `New Chat ${projectChatList.length + 1}`;
+    const chatName = `New Chat ${rawProjectChatList.length + 1}`;
+    const now = new Date().toISOString();
 
     setProjectChats({
       ...projectChats,
-      [selectedProject]: [...projectChatList, chatName],
+      [selectedProject]: [...rawProjectChatList, chatName],
+    });
+
+    setChatActivity({
+      ...chatActivity,
+      [chatName]: now,
     });
 
     setSelectedChat(chatName);
@@ -60,7 +87,7 @@ function Project({
 
     const updatedProjectChats = {
       ...projectChats,
-      [selectedProject]: projectChatList.map((chat) =>
+      [selectedProject]: rawProjectChatList.map((chat) =>
         chat === oldName ? trimmedName : chat
       ),
     };
@@ -72,8 +99,16 @@ function Project({
       delete updatedChatMessages[oldName];
     }
 
+    const updatedChatActivity = { ...chatActivity };
+
+    if (updatedChatActivity[oldName]) {
+      updatedChatActivity[trimmedName] = updatedChatActivity[oldName];
+      delete updatedChatActivity[oldName];
+    }
+
     setProjectChats(updatedProjectChats);
     setChatMessages(updatedChatMessages);
+    setChatActivity(updatedChatActivity);
 
     setPinnedChats(
       pinnedChats.map((chat) => (chat === oldName ? trimmedName : chat))
@@ -91,10 +126,16 @@ function Project({
 
     const updatedProjectChats = {
       ...projectChats,
-      [selectedProject]: projectChatList.filter((_, i) => i !== index),
+      [selectedProject]: rawProjectChatList.filter(
+        (chat) => chat !== chatToArchive
+      ),
     };
 
+    const updatedChatActivity = { ...chatActivity };
+    delete updatedChatActivity[chatToArchive];
+
     setProjectChats(updatedProjectChats);
+    setChatActivity(updatedChatActivity);
 
     setArchivedChats([
       ...archivedChats,
@@ -121,14 +162,20 @@ function Project({
 
     const updatedProjectChats = {
       ...projectChats,
-      [selectedProject]: projectChatList.filter((_, i) => i !== index),
+      [selectedProject]: rawProjectChatList.filter(
+        (chat) => chat !== chatToDelete
+      ),
     };
 
     const updatedChatMessages = { ...chatMessages };
     delete updatedChatMessages[chatToDelete];
 
+    const updatedChatActivity = { ...chatActivity };
+    delete updatedChatActivity[chatToDelete];
+
     setProjectChats(updatedProjectChats);
     setChatMessages(updatedChatMessages);
+    setChatActivity(updatedChatActivity);
     setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
 
     if (selectedChat === chatToDelete) {
@@ -204,7 +251,7 @@ function Project({
         </h1>
 
         <p className="text-gray-400 mt-2">
-          {projectChatList.length} chats • {files.length} files •{" "}
+          {rawProjectChatList.length} chats • {files.length} files •{" "}
           {images.length} images • {notes.length} notes
         </p>
       </div>
@@ -261,7 +308,7 @@ function Project({
                           {isPinned(chat) ? "⭐" : "💬"} {chat}
                         </h3>
                         <p className="text-gray-400 text-sm">
-                          Updated recently
+                          {formatUpdatedTime(chat)}
                         </p>
                       </div>
 
@@ -506,7 +553,7 @@ function Project({
           </p>
 
           <p className="text-gray-400 mb-2">Total Chats</p>
-          <p className="font-semibold mb-6">{projectChatList.length}</p>
+          <p className="font-semibold mb-6">{rawProjectChatList.length}</p>
 
           <p className="text-gray-400 mb-2">Files</p>
           <p className="font-semibold mb-6">{files.length}</p>

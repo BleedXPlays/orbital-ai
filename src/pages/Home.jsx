@@ -7,6 +7,7 @@ function Home({
   archivedChats,
   archivedProjects,
   pinnedChats,
+  chatActivity,
   setSelectedChat,
   setSelectedProject,
   setPage,
@@ -23,6 +24,15 @@ function Home({
   const archivedCount = archivedChats.length + archivedProjects.length;
   const totalChats = chats.length + projectChatCount;
 
+  const getChatTime = (chat) => {
+    return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
+  };
+
+  const formatUpdatedTime = (chat) => {
+    if (!chatActivity[chat]) return "No activity yet";
+    return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
+  };
+
   const globalRecentChats = chats.map((chat) => ({
     name: chat,
     source: "Global Chat",
@@ -38,7 +48,11 @@ function Home({
   );
 
   const allChats = [...globalRecentChats, ...projectRecentChats];
-  const recentChats = allChats.slice(-5).reverse();
+
+  const recentChats = [...allChats]
+    .sort((a, b) => getChatTime(b.name) - getChatTime(a.name))
+    .slice(0, 5);
+
   const recentProjects = [...projects].slice(-5).reverse();
 
   const openChat = (chat) => {
@@ -144,7 +158,9 @@ function Home({
                   className="text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
                 >
                   <h3 className="font-semibold">⭐ {chat}</h3>
-                  <p className="text-gray-400 text-sm mt-1">Pinned chat</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {formatUpdatedTime(chat)}
+                  </p>
                 </button>
               ))}
             </div>
@@ -176,11 +192,15 @@ function Home({
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <h3 className="font-semibold">💬 {chat.name}</h3>
+                        <h3 className="font-semibold">
+                          {pinnedChats.includes(chat.name) ? "⭐" : "💬"}{" "}
+                          {chat.name}
+                        </h3>
                         <p className="text-gray-400 text-sm mt-1">
                           {chat.project
                             ? `Project: ${chat.project}`
-                            : chat.source}
+                            : chat.source}{" "}
+                          • {formatUpdatedTime(chat.name)}
                         </p>
                       </div>
 

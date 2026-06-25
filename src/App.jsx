@@ -51,6 +51,7 @@ function App() {
   const [archivedChats, setArchivedChats] = useState([]);
   const [archivedProjects, setArchivedProjects] = useState([]);
   const [pinnedChats, setPinnedChats] = useState([]);
+  const [chatActivity, setChatActivity] = useState({});
 
   const resetWorkspace = () => {
     setPage("home");
@@ -65,6 +66,7 @@ function App() {
     setArchivedChats([]);
     setArchivedProjects([]);
     setPinnedChats([]);
+    setChatActivity({});
   };
 
   useEffect(() => {
@@ -117,6 +119,7 @@ function App() {
           Array.isArray(data.archivedProjects) ? data.archivedProjects : []
         );
         setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
+        setChatActivity(data.chatActivity || {});
       } else {
         const initialData = {
           name: user.displayName || "",
@@ -133,6 +136,7 @@ function App() {
           archivedChats: [],
           archivedProjects: [],
           pinnedChats: [],
+          chatActivity: {},
         };
 
         await setDoc(userRef, initialData);
@@ -148,6 +152,7 @@ function App() {
         setArchivedChats(initialData.archivedChats);
         setArchivedProjects(initialData.archivedProjects);
         setPinnedChats(initialData.pinnedChats);
+        setChatActivity(initialData.chatActivity);
       }
 
       setHasLoadedUserData(true);
@@ -184,6 +189,7 @@ function App() {
             archivedChats,
             archivedProjects,
             pinnedChats,
+            chatActivity,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
@@ -214,6 +220,7 @@ function App() {
     archivedChats,
     archivedProjects,
     pinnedChats,
+    chatActivity,
   ]);
 
   useEffect(() => {
@@ -245,6 +252,10 @@ function App() {
             setProjectChats={setProjectChats}
             chatMessages={chatMessages}
             setChatMessages={setChatMessages}
+            pinnedChats={pinnedChats}
+            setPinnedChats={setPinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
           />
         );
 
@@ -266,6 +277,8 @@ function App() {
             setArchivedChats={setArchivedChats}
             pinnedChats={pinnedChats}
             setPinnedChats={setPinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
             setPage={setPage}
           />
         );
@@ -337,6 +350,7 @@ function App() {
             archivedChats={archivedChats}
             archivedProjects={archivedProjects}
             pinnedChats={pinnedChats}
+            chatActivity={chatActivity}
             setSelectedChat={setSelectedChat}
             setSelectedProject={setSelectedProject}
             setPage={setPage}
@@ -377,6 +391,8 @@ function App() {
         setArchivedProjects={setArchivedProjects}
         pinnedChats={pinnedChats}
         setPinnedChats={setPinnedChats}
+        chatActivity={chatActivity}
+        setChatActivity={setChatActivity}
       />
 
       <div className="flex-1 relative">
