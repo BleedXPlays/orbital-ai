@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
 import Sidebar from "./components/Sidebar";
+import CommandPalette from "./components/CommandPalette";
 
 import Home from "./pages/Home";
 import Chat from "./pages/Chat";
@@ -334,19 +335,19 @@ function App() {
         );
 
       case "settings":
-  return (
-    <Settings
-      user={user}
-      chats={chats}
-      projects={projects}
-      projectChats={projectChats}
-      projectNotes={projectNotes}
-      pinnedChats={pinnedChats}
-      archivedChats={archivedChats}
-      archivedProjects={archivedProjects}
-      handleLogout={handleLogout}
-    />
-  );
+        return (
+          <Settings
+            user={user}
+            chats={chats}
+            projects={projects}
+            projectChats={projectChats}
+            projectNotes={projectNotes}
+            pinnedChats={pinnedChats}
+            archivedChats={archivedChats}
+            archivedProjects={archivedProjects}
+            handleLogout={handleLogout}
+          />
+        );
 
       case "help":
         return <Help />;
@@ -408,19 +409,26 @@ function App() {
       />
 
       <div className="flex-1 relative">
-  <div className="absolute top-5 right-6 z-50">
-    <button
-      onClick={handleLogout}
-      className="px-4 py-2 rounded-xl bg-[#101827] border border-[#1B2540] text-white hover:bg-[#141f33]"
-    >
-      Logout
-    </button>
-  </div>
+        <div className="absolute top-5 right-6 z-50">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 rounded-xl bg-[#101827] border border-[#1B2540] text-white hover:bg-[#141f33]"
+          >
+            Logout
+          </button>
+        </div>
 
-  <div className="pr-32">
-    {renderPage()}
-  </div>
-</div>
+        <div className="pr-32">{renderPage()}</div>
+      </div>
+
+      <CommandPalette
+        chats={chats}
+        projects={projects}
+        projectChats={projectChats}
+        setSelectedChat={setSelectedChat}
+        setSelectedProject={setSelectedProject}
+        setPage={setPage}
+      />
     </div>
   );
 }
