@@ -1,6 +1,11 @@
 import { useState } from "react";
+import ProjectChatCard from "../components/ProjectChatCard";
+import ProjectChatMenu from "../components/ProjectChatMenu";
+import ProjectNoteCard from "../components/ProjectNoteCard";
+import { uploadProjectFile } from "../utils/uploadFile";
 
 function Project({
+  user,
   selectedProject,
   projectChats,
   setProjectChats,
@@ -19,16 +24,19 @@ function Project({
   chatActivity,
   setChatActivity,
   setPage,
+  addActivity,
 }) {
   const [activeTab, setActiveTab] = useState("chats");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const rawProjectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
   const notes = projectNotes[selectedProject] || [];
-  const images = files.filter((file) => file.type.startsWith("image"));
+  const images = files.filter((file) => file.type && file.type.startsWith("image"));
 
   const getChatTime = (chat) => {
     return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
@@ -54,8 +62,10 @@ function Project({
   const togglePinChat = (chat) => {
     if (isPinned(chat)) {
       setPinnedChats(pinnedChats.filter((item) => item !== chat));
+      addActivity("pin", "Project chat unpinned", `${chat} • ${selectedProject}`);
     } else {
       setPinnedChats([...pinnedChats, chat]);
+      addActivity("pin", "Project chat pinned", `${chat} • ${selectedProject}`);
     }
   };
 
@@ -75,6 +85,8 @@ function Project({
 
     setSelectedChat(chatName);
     setPage("chat");
+
+    addActivity("chat", "Project chat created", `${chatName} • ${selectedProject}`);
   };
 
   const renameProjectChat = (index) => {
@@ -118,23 +130,23 @@ function Project({
       setSelectedChat(trimmedName);
     }
 
+    addActivity("chat", "Project chat renamed", `${oldName} → ${trimmedName}`);
     setOpenChatMenu(null);
   };
 
   const archiveProjectChat = (index) => {
     const chatToArchive = projectChatList[index];
 
-    const updatedProjectChats = {
+    setProjectChats({
       ...projectChats,
       [selectedProject]: rawProjectChatList.filter(
         (chat) => chat !== chatToArchive
       ),
-    };
+    });
 
     const updatedChatActivity = { ...chatActivity };
     delete updatedChatActivity[chatToArchive];
 
-    setProjectChats(updatedProjectChats);
     setChatActivity(updatedChatActivity);
 
     setArchivedChats([
@@ -151,6 +163,7 @@ function Project({
       setSelectedChat("");
     }
 
+    addActivity("archive", "Project chat archived", `${chatToArchive} • ${selectedProject}`);
     setOpenChatMenu(null);
   };
 
@@ -160,12 +173,12 @@ function Project({
 
     const chatToDelete = projectChatList[index];
 
-    const updatedProjectChats = {
+    setProjectChats({
       ...projectChats,
       [selectedProject]: rawProjectChatList.filter(
         (chat) => chat !== chatToDelete
       ),
-    };
+    });
 
     const updatedChatMessages = { ...chatMessages };
     delete updatedChatMessages[chatToDelete];
@@ -173,7 +186,6 @@ function Project({
     const updatedChatActivity = { ...chatActivity };
     delete updatedChatActivity[chatToDelete];
 
-    setProjectChats(updatedProjectChats);
     setChatMessages(updatedChatMessages);
     setChatActivity(updatedChatActivity);
     setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
@@ -182,35 +194,67 @@ function Project({
       setSelectedChat("");
     }
 
+    addActivity("chat", "Project chat deleted", `${chatToDelete} • ${selectedProject}`);
     setOpenChatMenu(null);
   };
 
-  const handleUpload = (e) => {
-    const uploadedFiles = Array.from(e.target.files);
-
+  const uploadFiles = async (uploadedFiles) => {
     if (uploadedFiles.length === 0) return;
 
-    const newFiles = uploadedFiles.map((file) => ({
-      name: file.name,
-      size: `${Math.round(file.size / 1024)} KB`,
-      type: file.type || "Unknown file",
-    }));
+    if (!user) {
+      alert("You must be logged in to upload files.");
+      return;
+    }
 
-    setProjectFiles({
-      ...projectFiles,
-      [selectedProject]: [...files, ...newFiles],
-    });
+    setIsUploading(true);
 
+    try {
+      const uploadedFileData = await Promise.all(
+        uploadedFiles.map((file) =>
+          uploadProjectFile(user.uid, selectedProject, file)
+        )
+      );
+
+      setProjectFiles({
+        ...projectFiles,
+        [selectedProject]: [...files, ...uploadedFileData],
+      });
+
+      uploadedFileData.forEach((file) => {
+        addActivity("file", "File uploaded", `${file.name} • ${selectedProject}`);
+      });
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsUploading(false);
+      setIsDragging(false);
+    }
+  };
+
+  const handleUpload = async (e) => {
+    const uploadedFiles = Array.from(e.target.files);
+    await uploadFiles(uploadedFiles);
     e.target.value = "";
   };
 
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    await uploadFiles(droppedFiles);
+  };
+
   const deleteFile = (index) => {
+    const fileToDelete = files[index];
     const updatedFiles = files.filter((_, i) => i !== index);
 
     setProjectFiles({
       ...projectFiles,
       [selectedProject]: updatedFiles,
     });
+
+    addActivity("file", "File deleted", `${fileToDelete.name} • ${selectedProject}`);
   };
 
   const addNote = () => {
@@ -227,24 +271,54 @@ function Project({
       [selectedProject]: [...notes, newNote],
     });
 
+    addActivity("note", "Note added", `${newNote.title} • ${selectedProject}`);
+
     setNoteTitle("");
     setNoteBody("");
   };
 
   const deleteNote = (index) => {
+    const noteToDelete = notes[index];
     const updatedNotes = notes.filter((_, i) => i !== index);
 
     setProjectNotes({
       ...projectNotes,
       [selectedProject]: updatedNotes,
     });
+
+    addActivity("note", "Note deleted", `${noteToDelete.title} • ${selectedProject}`);
   };
+
+  const showDropZone = activeTab === "files" || activeTab === "images";
 
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
+      onDragOver={(e) => {
+        if (!showDropZone) return;
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={(e) => {
+        if (!showDropZone) return;
+        e.preventDefault();
+        setIsDragging(false);
+      }}
+      onDrop={showDropZone ? handleDrop : undefined}
       className="flex-1 min-h-screen bg-black text-white px-10 py-8"
     >
+      {showDropZone && isDragging && (
+        <div className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center pointer-events-none">
+          <div className="w-[520px] rounded-3xl border-2 border-dashed border-purple-500 bg-[#08111F] p-10 text-center">
+            <p className="text-4xl mb-4">📁</p>
+            <h2 className="text-3xl font-bold mb-2">Drop files here</h2>
+            <p className="text-gray-400">
+              Files will be uploaded to {selectedProject}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-10">
         <h1 className="text-4xl font-bold">
           📂 {selectedProject || "Untitled Project"}
@@ -289,88 +363,48 @@ function Project({
 
               {projectChatList.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
-                  No chats inside this project yet. Click + New Chat or move a
-                  chat into this project.
+                  No chats inside this project yet. Click + New Chat or move a chat into this project.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {projectChatList.map((chat, index) => (
-                    <div
-                      key={chat}
-                      onClick={() => {
-                        setSelectedChat(chat);
-                        setPage("chat");
-                      }}
-                      className="relative flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
-                    >
-                      <div>
-                        <h3 className="font-semibold">
-                          {isPinned(chat) ? "⭐" : "💬"} {chat}
-                        </h3>
-                        <p className="text-gray-400 text-sm">
-                          {formatUpdatedTime(chat)}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <span className="text-gray-500">Open →</span>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenChatMenu(
-                              openChatMenu === index ? null : index
-                            );
-                          }}
-                          className="text-gray-500 hover:text-white px-2"
-                        >
-                          ⋮
-                        </button>
-                      </div>
+                    <div key={chat} className="relative">
+                      <ProjectChatCard
+                        chat={chat}
+                        isPinned={isPinned(chat)}
+                        formatUpdatedTime={formatUpdatedTime}
+                        onOpen={(e) => {
+                          e.stopPropagation();
+                          setSelectedChat(chat);
+                          setPage("chat");
+                        }}
+                        onMenuClick={(e) => {
+                          e.stopPropagation();
+                          setOpenChatMenu(openChatMenu === index ? null : index);
+                        }}
+                      />
 
                       {openChatMenu === index && (
-                        <div className="absolute right-4 top-14 z-50 w-36 bg-[#08111F] border border-[#1B2540] rounded-xl shadow-xl p-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              renameProjectChat(index);
-                            }}
-                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
-                          >
-                            Rename
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePinChat(chat);
-                              setOpenChatMenu(null);
-                            }}
-                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
-                          >
-                            {isPinned(chat) ? "Unpin" : "Pin"}
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              archiveProjectChat(index);
-                            }}
-                            className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]"
-                          >
-                            Archive
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteProjectChat(index);
-                            }}
-                            className="block w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-[#141f33]"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        <ProjectChatMenu
+                          isPinned={isPinned(chat)}
+                          onRename={(e) => {
+                            e.stopPropagation();
+                            renameProjectChat(index);
+                          }}
+                          onTogglePin={(e) => {
+                            e.stopPropagation();
+                            togglePinChat(chat);
+                            setOpenChatMenu(null);
+                          }}
+                          onArchive={(e) => {
+                            e.stopPropagation();
+                            archiveProjectChat(index);
+                          }}
+                          onDelete={(e) => {
+                            e.stopPropagation();
+                            deleteProjectChat(index);
+                          }}
+                        />
                       )}
                     </div>
                   ))}
@@ -388,7 +422,7 @@ function Project({
                   htmlFor="fileUpload"
                   className="px-4 py-2 rounded-xl bg-purple-600 cursor-pointer hover:bg-purple-700"
                 >
-                  Upload File
+                  {isUploading ? "Uploading..." : "Upload File"}
                 </label>
 
                 <input
@@ -396,8 +430,13 @@ function Project({
                   type="file"
                   multiple
                   hidden
+                  disabled={isUploading}
                   onChange={handleUpload}
                 />
+              </div>
+
+              <div className="border border-dashed border-gray-700 rounded-xl p-4 mb-6 text-gray-400 text-center">
+                Drag and drop files here, or use Upload File.
               </div>
 
               {files.length === 0 ? (
@@ -416,6 +455,18 @@ function Project({
                         <p className="text-gray-400 text-sm">
                           {file.size} • {file.type}
                         </p>
+
+                        {file.url && (
+                          <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm"
+                          >
+                            Open File →
+                          </a>
+                        )}
                       </div>
 
                       <button
@@ -440,7 +491,7 @@ function Project({
                   htmlFor="imageUpload"
                   className="px-4 py-2 rounded-xl bg-purple-600 cursor-pointer hover:bg-purple-700"
                 >
-                  Upload Image
+                  {isUploading ? "Uploading..." : "Upload Image"}
                 </label>
 
                 <input
@@ -449,8 +500,13 @@ function Project({
                   accept="image/*"
                   multiple
                   hidden
+                  disabled={isUploading}
                   onChange={handleUpload}
                 />
+              </div>
+
+              <div className="border border-dashed border-gray-700 rounded-xl p-4 mb-6 text-gray-400 text-center">
+                Drag and drop images here, or use Upload Image.
               </div>
 
               {images.length === 0 ? (
@@ -464,12 +520,31 @@ function Project({
                       key={`${file.name}-${index}`}
                       className="bg-[#101827] border border-gray-800 rounded-xl p-4"
                     >
-                      <div className="h-32 rounded-xl bg-[#151E33] flex items-center justify-center text-4xl mb-4">
-                        🖼️
-                      </div>
+                      {file.url ? (
+                        <img
+                          src={file.url}
+                          alt={file.name}
+                          className="h-32 w-full object-cover rounded-xl mb-4"
+                        />
+                      ) : (
+                        <div className="h-32 rounded-xl bg-[#151E33] flex items-center justify-center text-4xl mb-4">
+                          🖼️
+                        </div>
+                      )}
 
                       <h3 className="font-semibold">{file.name}</h3>
                       <p className="text-gray-400 text-sm">{file.size}</p>
+
+                      {file.url && (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm"
+                        >
+                          Open Image →
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -513,30 +588,11 @@ function Project({
               ) : (
                 <div className="space-y-4">
                   {notes.map((note, index) => (
-                    <div
+                    <ProjectNoteCard
                       key={`${note.title}-${index}`}
-                      className="bg-[#101827] border border-gray-800 rounded-xl p-5"
-                    >
-                      <div className="flex justify-between gap-4">
-                        <div>
-                          <h3 className="text-xl font-bold">{note.title}</h3>
-                          <p className="text-gray-500 text-sm mt-1">
-                            {note.createdAt}
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={() => deleteNote(index)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      </div>
-
-                      <p className="text-gray-300 mt-4 whitespace-pre-wrap">
-                        {note.body}
-                      </p>
-                    </div>
+                      note={note}
+                      onDelete={() => deleteNote(index)}
+                    />
                   ))}
                 </div>
               )}
@@ -568,7 +624,7 @@ function Project({
             htmlFor="sidebarFileUpload"
             className="block text-center w-full mt-6 p-3 rounded-xl border border-purple-600 cursor-pointer hover:bg-[#101827]"
           >
-            Upload File
+            {isUploading ? "Uploading..." : "Upload File"}
           </label>
 
           <input
@@ -576,6 +632,7 @@ function Project({
             type="file"
             multiple
             hidden
+            disabled={isUploading}
             onChange={handleUpload}
           />
         </div>

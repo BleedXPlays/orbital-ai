@@ -40,7 +40,6 @@ function App() {
   const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
 
   const [page, setPage] = useState("home");
-
   const [chats, setChats] = useState([]);
   const [chatMessages, setChatMessages] = useState({});
   const [projects, setProjects] = useState([]);
@@ -53,6 +52,19 @@ function App() {
   const [archivedProjects, setArchivedProjects] = useState([]);
   const [pinnedChats, setPinnedChats] = useState([]);
   const [chatActivity, setChatActivity] = useState({});
+  const [activityLog, setActivityLog] = useState([]);
+
+  const addActivity = (type, title, details = "") => {
+    const item = {
+      id: Date.now(),
+      type,
+      title,
+      details,
+      createdAt: new Date().toISOString(),
+    };
+
+    setActivityLog((prev) => [item, ...prev].slice(0, 50));
+  };
 
   const resetWorkspace = () => {
     setPage("home");
@@ -68,13 +80,12 @@ function App() {
     setArchivedProjects([]);
     setPinnedChats([]);
     setChatActivity({});
+    setActivityLog([]);
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
+      if (saveTimer.current) clearTimeout(saveTimer.current);
 
       setAuthLoading(false);
       setDataLoading(true);
@@ -84,9 +95,7 @@ function App() {
       setUser(currentUser);
       setActiveUserId(currentUser ? currentUser.uid : null);
 
-      if (!currentUser) {
-        setDataLoading(false);
-      }
+      if (!currentUser) setDataLoading(false);
     });
 
     return () => unsubscribe();
@@ -113,14 +122,11 @@ function App() {
         setProjectNotes(data.projectNotes || {});
         setSelectedChat(data.selectedChat || "");
         setSelectedProject(data.selectedProject || "");
-        setArchivedChats(
-          Array.isArray(data.archivedChats) ? data.archivedChats : []
-        );
-        setArchivedProjects(
-          Array.isArray(data.archivedProjects) ? data.archivedProjects : []
-        );
+        setArchivedChats(Array.isArray(data.archivedChats) ? data.archivedChats : []);
+        setArchivedProjects(Array.isArray(data.archivedProjects) ? data.archivedProjects : []);
         setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
         setChatActivity(data.chatActivity || {});
+        setActivityLog(Array.isArray(data.activityLog) ? data.activityLog : []);
       } else {
         const initialData = {
           name: user.displayName || "",
@@ -138,6 +144,7 @@ function App() {
           archivedProjects: [],
           pinnedChats: [],
           chatActivity: {},
+          activityLog: [],
         };
 
         await setDoc(userRef, initialData);
@@ -154,6 +161,7 @@ function App() {
         setArchivedProjects(initialData.archivedProjects);
         setPinnedChats(initialData.pinnedChats);
         setChatActivity(initialData.chatActivity);
+        setActivityLog(initialData.activityLog);
       }
 
       setHasLoadedUserData(true);
@@ -167,9 +175,7 @@ function App() {
     const saveUserData = async () => {
       if (!user || !activeUserId || dataLoading || !hasLoadedUserData) return;
 
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
+      if (saveTimer.current) clearTimeout(saveTimer.current);
 
       saveTimer.current = setTimeout(async () => {
         const userRef = doc(db, "users", activeUserId);
@@ -191,6 +197,7 @@ function App() {
             archivedProjects,
             pinnedChats,
             chatActivity,
+            activityLog,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
@@ -201,9 +208,7 @@ function App() {
     saveUserData();
 
     return () => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
+      if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, [
     user,
@@ -222,6 +227,7 @@ function App() {
     archivedProjects,
     pinnedChats,
     chatActivity,
+    activityLog,
   ]);
 
   useEffect(() => {
@@ -229,9 +235,7 @@ function App() {
   }, [page]);
 
   const handleLogout = async () => {
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-    }
+    if (saveTimer.current) clearTimeout(saveTimer.current);
 
     resetWorkspace();
     setHasLoadedUserData(false);
@@ -257,31 +261,34 @@ function App() {
             setPinnedChats={setPinnedChats}
             chatActivity={chatActivity}
             setChatActivity={setChatActivity}
+            addActivity={addActivity}
           />
         );
 
       case "project":
         return (
           <Project
-            selectedProject={selectedProject}
-            projectChats={projectChats}
-            setProjectChats={setProjectChats}
-            projectFiles={projectFiles}
-            setProjectFiles={setProjectFiles}
-            projectNotes={projectNotes}
-            setProjectNotes={setProjectNotes}
-            selectedChat={selectedChat}
-            setSelectedChat={setSelectedChat}
-            chatMessages={chatMessages}
-            setChatMessages={setChatMessages}
-            archivedChats={archivedChats}
-            setArchivedChats={setArchivedChats}
-            pinnedChats={pinnedChats}
-            setPinnedChats={setPinnedChats}
-            chatActivity={chatActivity}
-            setChatActivity={setChatActivity}
-            setPage={setPage}
-          />
+  user={user}
+  selectedProject={selectedProject}
+  projectChats={projectChats}
+  setProjectChats={setProjectChats}
+  projectFiles={projectFiles}
+  setProjectFiles={setProjectFiles}
+  projectNotes={projectNotes}
+  setProjectNotes={setProjectNotes}
+  selectedChat={selectedChat}
+  setSelectedChat={setSelectedChat}
+  chatMessages={chatMessages}
+  setChatMessages={setChatMessages}
+  archivedChats={archivedChats}
+  setArchivedChats={setArchivedChats}
+  pinnedChats={pinnedChats}
+  setPinnedChats={setPinnedChats}
+  chatActivity={chatActivity}
+  setChatActivity={setChatActivity}
+  setPage={setPage}
+  addActivity={addActivity}
+/>
         );
 
       case "search":
@@ -331,6 +338,7 @@ function App() {
             setArchivedChats={setArchivedChats}
             archivedProjects={archivedProjects}
             setArchivedProjects={setArchivedProjects}
+            addActivity={addActivity}
           />
         );
 
@@ -364,6 +372,7 @@ function App() {
             archivedProjects={archivedProjects}
             pinnedChats={pinnedChats}
             chatActivity={chatActivity}
+            activityLog={activityLog}
             setSelectedChat={setSelectedChat}
             setSelectedProject={setSelectedProject}
             setPage={setPage}
@@ -380,9 +389,7 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <Login />;
-  }
+  if (!user) return <Login />;
 
   return (
     <div className="min-h-screen bg-black flex">
@@ -406,6 +413,7 @@ function App() {
         setPinnedChats={setPinnedChats}
         chatActivity={chatActivity}
         setChatActivity={setChatActivity}
+        addActivity={addActivity}
       />
 
       <div className="flex-1 relative">

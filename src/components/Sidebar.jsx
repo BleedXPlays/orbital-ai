@@ -1,4 +1,9 @@
 import { useState } from "react";
+import ChatCard from "./ChatCard";
+import ProjectCard from "./ProjectCard";
+import ChatMenu from "./ChatMenu";
+import ProjectMenu from "./ProjectMenu";
+import MoveChatModal from "./MoveChatModal";
 
 function Sidebar({
   setPage,
@@ -20,13 +25,12 @@ function Sidebar({
   setPinnedChats,
   chatActivity,
   setChatActivity,
+  addActivity,
 }) {
   const [chatSearch, setChatSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
-
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
-
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [chatToMove, setChatToMove] = useState("");
   const [targetProject, setTargetProject] = useState("");
@@ -45,8 +49,10 @@ function Sidebar({
   const togglePinChat = (chat) => {
     if (isPinned(chat)) {
       setPinnedChats(pinnedChats.filter((item) => item !== chat));
+      addActivity("pin", "Chat unpinned", chat);
     } else {
       setPinnedChats([...pinnedChats, chat]);
+      addActivity("pin", "Chat pinned", chat);
     }
   };
 
@@ -55,27 +61,22 @@ function Sidebar({
     const now = new Date().toISOString();
 
     setChats([...chats, newChatName]);
-    setChatActivity({
-      ...chatActivity,
-      [newChatName]: now,
-    });
-
+    setChatActivity({ ...chatActivity, [newChatName]: now });
     setSelectedChat(newChatName);
     setPage("chat");
+
+    addActivity("chat", "Global chat created", newChatName);
   };
 
   const createProject = () => {
     const newProjectName = `New Project ${projects.length + 1}`;
 
     setProjects([...projects, newProjectName]);
-
-    setProjectChats({
-      ...projectChats,
-      [newProjectName]: [],
-    });
-
+    setProjectChats({ ...projectChats, [newProjectName]: [] });
     setSelectedProject(newProjectName);
     setPage("project");
+
+    addActivity("project", "Project created", newProjectName);
   };
 
   const renameChat = (index) => {
@@ -90,7 +91,6 @@ function Sidebar({
     setChats(updatedChats);
 
     const updatedProjectChats = {};
-
     Object.keys(projectChats).forEach((project) => {
       updatedProjectChats[project] = projectChats[project].map((chat) =>
         chat === oldName ? trimmedName : chat
@@ -113,6 +113,8 @@ function Sidebar({
     if (selectedChat === oldName) {
       setSelectedChat(trimmedName);
     }
+
+    addActivity("chat", "Chat renamed", `${oldName} → ${trimmedName}`);
   };
 
   const renameProject = (index) => {
@@ -135,6 +137,8 @@ function Sidebar({
     if (selectedProject === oldName) {
       setSelectedProject(trimmedName);
     }
+
+    addActivity("project", "Project renamed", `${oldName} → ${trimmedName}`);
   };
 
   const deleteChat = (index) => {
@@ -152,7 +156,6 @@ function Sidebar({
     setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
 
     const updatedProjectChats = {};
-
     Object.keys(projectChats).forEach((project) => {
       updatedProjectChats[project] = projectChats[project].filter(
         (chat) => chat !== chatToDelete
@@ -165,6 +168,8 @@ function Sidebar({
       setSelectedChat(updatedChats[0] || "");
       setPage(updatedChats.length > 0 ? "chat" : "home");
     }
+
+    addActivity("chat", "Chat deleted", chatToDelete);
   };
 
   const deleteProject = (index) => {
@@ -173,14 +178,12 @@ function Sidebar({
 
     const projectToDelete = projects[index];
     const updatedProjects = projects.filter((_, i) => i !== index);
-
-    setProjects(updatedProjects);
-
     const projectChatList = projectChats[projectToDelete] || [];
 
     const updatedChatActivity = { ...chatActivity };
     projectChatList.forEach((chat) => delete updatedChatActivity[chat]);
 
+    setProjects(updatedProjects);
     setChatActivity(updatedChatActivity);
     setPinnedChats(pinnedChats.filter((chat) => !projectChatList.includes(chat)));
 
@@ -192,6 +195,8 @@ function Sidebar({
       setSelectedProject(updatedProjects[0] || "");
       setPage(updatedProjects.length > 0 ? "project" : "home");
     }
+
+    addActivity("project", "Project deleted", projectToDelete);
   };
 
   const archiveChat = (index) => {
@@ -200,10 +205,7 @@ function Sidebar({
 
     setArchivedChats([
       ...archivedChats,
-      {
-        name: chatToArchive,
-        sourceProject: null,
-      },
+      { name: chatToArchive, sourceProject: null },
     ]);
 
     const updatedChatActivity = { ...chatActivity };
@@ -214,7 +216,6 @@ function Sidebar({
     setPinnedChats(pinnedChats.filter((chat) => chat !== chatToArchive));
 
     const updatedProjectChats = {};
-
     Object.keys(projectChats).forEach((project) => {
       updatedProjectChats[project] = projectChats[project].filter(
         (chat) => chat !== chatToArchive
@@ -227,16 +228,17 @@ function Sidebar({
       setSelectedChat(updatedChats[0] || "");
       setPage(updatedChats.length > 0 ? "chat" : "home");
     }
+
+    addActivity("archive", "Chat archived", chatToArchive);
   };
 
   const archiveProject = (index) => {
     const projectToArchive = projects[index];
     const updatedProjects = projects.filter((_, i) => i !== index);
+    const projectChatList = projectChats[projectToArchive] || [];
 
     setArchivedProjects([...archivedProjects, projectToArchive]);
     setProjects(updatedProjects);
-
-    const projectChatList = projectChats[projectToArchive] || [];
 
     const updatedChatActivity = { ...chatActivity };
     projectChatList.forEach((chat) => delete updatedChatActivity[chat]);
@@ -252,6 +254,8 @@ function Sidebar({
       setSelectedProject(updatedProjects[0] || "");
       setPage(updatedProjects.length > 0 ? "project" : "home");
     }
+
+    addActivity("archive", "Project archived", projectToArchive);
   };
 
   const openMoveModal = (chatName) => {
@@ -284,10 +288,15 @@ function Sidebar({
     });
 
     setChats(chats.filter((chat) => chat !== chatToMove));
-
     setSelectedProject(targetProject);
     setSelectedChat(chatToMove);
     setPage("project");
+
+    addActivity(
+      "project",
+      "Chat moved to project",
+      `${chatToMove} → ${targetProject}`
+    );
 
     setShowMoveModal(false);
     setChatToMove("");
@@ -385,63 +394,56 @@ function Sidebar({
             const originalIndex = chats.indexOf(chat);
 
             return (
-              <div
-                key={chat}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedChat(chat);
-                  setPage("chat");
-                  setOpenChatMenu(null);
-                  setOpenProjectMenu(null);
-                }}
-                className={`relative p-3 rounded-lg cursor-pointer ${
-                  selectedChat === chat ? "bg-[#101827]" : "hover:bg-[#101827]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p>💬 {chat}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatUpdatedTime(chat)}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenChatMenu(
-                        openChatMenu === originalIndex ? null : originalIndex
-                      );
-                      setOpenProjectMenu(null);
-                    }}
-                    className="text-gray-500 hover:text-white px-2"
-                  >
-                    ⋮
-                  </button>
-                </div>
+              <div key={chat} className="relative">
+                <ChatCard
+                  chat={chat}
+                  selectedChat={selectedChat}
+                  formatUpdatedTime={formatUpdatedTime}
+                  onOpen={(e) => {
+                    e.stopPropagation();
+                    setSelectedChat(chat);
+                    setPage("chat");
+                    setOpenChatMenu(null);
+                    setOpenProjectMenu(null);
+                  }}
+                  onMenuClick={(e) => {
+                    e.stopPropagation();
+                    setOpenChatMenu(
+                      openChatMenu === originalIndex ? null : originalIndex
+                    );
+                    setOpenProjectMenu(null);
+                  }}
+                />
 
                 {openChatMenu === originalIndex && (
-                  <div className="absolute right-3 top-10 z-50 w-44 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2">
-                    <button onClick={(e) => { e.stopPropagation(); renameChat(originalIndex); setOpenChatMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      Rename
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); openMoveModal(chat); setOpenChatMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      Move to Project
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); togglePinChat(chat); setOpenChatMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      {isPinned(chat) ? "Unpin" : "Pin"}
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); archiveChat(originalIndex); setOpenChatMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      Archive
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); deleteChat(originalIndex); setOpenChatMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-[#141f33]">
-                      Delete
-                    </button>
-                  </div>
+                  <ChatMenu
+                    isPinned={isPinned(chat)}
+                    onRename={(e) => {
+                      e.stopPropagation();
+                      renameChat(originalIndex);
+                      setOpenChatMenu(null);
+                    }}
+                    onMove={(e) => {
+                      e.stopPropagation();
+                      openMoveModal(chat);
+                      setOpenChatMenu(null);
+                    }}
+                    onTogglePin={(e) => {
+                      e.stopPropagation();
+                      togglePinChat(chat);
+                      setOpenChatMenu(null);
+                    }}
+                    onArchive={(e) => {
+                      e.stopPropagation();
+                      archiveChat(originalIndex);
+                      setOpenChatMenu(null);
+                    }}
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      deleteChat(originalIndex);
+                      setOpenChatMenu(null);
+                    }}
+                  />
                 )}
               </div>
             );
@@ -479,54 +481,45 @@ function Sidebar({
             const count = (projectChats[project] || []).length;
 
             return (
-              <div
-                key={project}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedProject(project);
-                  setPage("project");
-                  setOpenChatMenu(null);
-                  setOpenProjectMenu(null);
-                }}
-                className={`relative p-3 rounded-lg cursor-pointer ${
-                  selectedProject === project
-                    ? "bg-[#101827]"
-                    : "hover:bg-[#101827]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>📂 {project}</span>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenProjectMenu(
-                        openProjectMenu === originalIndex ? null : originalIndex
-                      );
-                      setOpenChatMenu(null);
-                    }}
-                    className="text-gray-500 hover:text-white px-2"
-                  >
-                    ⋮
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-500 mt-1">{count} chats</p>
+              <div key={project} className="relative">
+                <ProjectCard
+                  project={project}
+                  count={count}
+                  selectedProject={selectedProject}
+                  onOpen={(e) => {
+                    e.stopPropagation();
+                    setSelectedProject(project);
+                    setPage("project");
+                    setOpenChatMenu(null);
+                    setOpenProjectMenu(null);
+                  }}
+                  onMenuClick={(e) => {
+                    e.stopPropagation();
+                    setOpenProjectMenu(
+                      openProjectMenu === originalIndex ? null : originalIndex
+                    );
+                    setOpenChatMenu(null);
+                  }}
+                />
 
                 {openProjectMenu === originalIndex && (
-                  <div className="absolute right-3 top-10 z-50 w-36 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2">
-                    <button onClick={(e) => { e.stopPropagation(); renameProject(originalIndex); setOpenProjectMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      Rename
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); archiveProject(originalIndex); setOpenProjectMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-[#141f33]">
-                      Archive
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); deleteProject(originalIndex); setOpenProjectMenu(null); }} className="block w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-[#141f33]">
-                      Delete
-                    </button>
-                  </div>
+                  <ProjectMenu
+                    onRename={(e) => {
+                      e.stopPropagation();
+                      renameProject(originalIndex);
+                      setOpenProjectMenu(null);
+                    }}
+                    onArchive={(e) => {
+                      e.stopPropagation();
+                      archiveProject(originalIndex);
+                      setOpenProjectMenu(null);
+                    }}
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      deleteProject(originalIndex);
+                      setOpenProjectMenu(null);
+                    }}
+                  />
                 )}
               </div>
             );
@@ -538,59 +531,71 @@ function Sidebar({
         </div>
 
         <div className="space-y-3 pb-4">
-          <button onClick={(e) => { e.stopPropagation(); setPage("bulk"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">✏️ Edit Items</button>
-          <button onClick={(e) => { e.stopPropagation(); setPage("archived"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">🗄️ Archived Items</button>
-          <button onClick={(e) => { e.stopPropagation(); setPage("settings"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">⚙️ Settings</button>
-          <button onClick={(e) => { e.stopPropagation(); setPage("help"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">❓ Help & Support</button>
-          <button onClick={(e) => { e.stopPropagation(); setPage("workflow"); }} className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]">🤖 AI Workflow</button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("bulk");
+            }}
+            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+          >
+            ✏️ Edit Items
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("archived");
+            }}
+            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+          >
+            🗄️ Archived Items
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("settings");
+            }}
+            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+          >
+            ⚙️ Settings
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("help");
+            }}
+            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+          >
+            ❓ Help & Support
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("workflow");
+            }}
+            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+          >
+            🤖 AI Workflow
+          </button>
         </div>
       </div>
 
       {showMoveModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6 w-[460px] text-white shadow-2xl">
-            <h2 className="text-2xl font-bold mb-3">Move Chat</h2>
-
-            <p className="text-gray-400 mb-2">Chat</p>
-            <p className="font-semibold mb-6">💬 {chatToMove}</p>
-
-            <label className="text-gray-400 mb-2 block">Select Project</label>
-
-            <select
-              value={targetProject}
-              onChange={(e) => setTargetProject(e.target.value)}
-              className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] mb-6 outline-none"
-            >
-              <option value="">Choose a project</option>
-
-              {projects.map((project) => (
-                <option key={project} value={project}>
-                  {project}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowMoveModal(false);
-                  setChatToMove("");
-                  setTargetProject("");
-                }}
-                className="px-5 py-3 rounded-xl bg-[#101827] hover:bg-[#141f33]"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={moveChatToProject}
-                className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700"
-              >
-                Move Chat
-              </button>
-            </div>
-          </div>
-        </div>
+        <MoveChatModal
+          projects={projects}
+          chatToMove={chatToMove}
+          targetProject={targetProject}
+          setTargetProject={setTargetProject}
+          onCancel={() => {
+            setShowMoveModal(false);
+            setChatToMove("");
+            setTargetProject("");
+          }}
+          onMove={moveChatToProject}
+        />
       )}
     </>
   );

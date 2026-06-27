@@ -13,6 +13,7 @@ function Chat({
   setPinnedChats,
   chatActivity,
   setChatActivity,
+  addActivity,
 }) {
   const [input, setInput] = useState("");
 
@@ -22,73 +23,35 @@ function Chat({
     const lowerText = text.toLowerCase();
     const detectedTasks = [];
 
-    if (
-      lowerText.includes("research") ||
-      lowerText.includes("information") ||
-      lowerText.includes("facts") ||
-      lowerText.includes("sources")
-    ) {
+    if (lowerText.includes("research") || lowerText.includes("information") || lowerText.includes("facts") || lowerText.includes("sources")) {
       detectedTasks.push({ task: "Research", ai: "Claude" });
     }
 
-    if (
-      lowerText.includes("write") ||
-      lowerText.includes("essay") ||
-      lowerText.includes("report") ||
-      lowerText.includes("content") ||
-      lowerText.includes("explain")
-    ) {
+    if (lowerText.includes("write") || lowerText.includes("essay") || lowerText.includes("report") || lowerText.includes("content") || lowerText.includes("explain")) {
       detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
     }
 
-    if (
-      lowerText.includes("image") ||
-      lowerText.includes("poster") ||
-      lowerText.includes("diagram") ||
-      lowerText.includes("logo") ||
-      lowerText.includes("visual")
-    ) {
+    if (lowerText.includes("image") || lowerText.includes("poster") || lowerText.includes("diagram") || lowerText.includes("logo") || lowerText.includes("visual")) {
       detectedTasks.push({ task: "Images", ai: "Gemini" });
     }
 
-    if (
-      lowerText.includes("website") ||
-      lowerText.includes("code") ||
-      lowerText.includes("app") ||
-      lowerText.includes("react")
-    ) {
+    if (lowerText.includes("website") || lowerText.includes("code") || lowerText.includes("app") || lowerText.includes("react")) {
       detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
     }
 
-    if (
-      lowerText.includes("presentation") ||
-      lowerText.includes("ppt") ||
-      lowerText.includes("slides")
-    ) {
+    if (lowerText.includes("presentation") || lowerText.includes("ppt") || lowerText.includes("slides")) {
       detectedTasks.push({ task: "Presentation", ai: "Gamma" });
     }
 
-    if (
-      lowerText.includes("video") ||
-      lowerText.includes("reel") ||
-      lowerText.includes("youtube")
-    ) {
+    if (lowerText.includes("video") || lowerText.includes("reel") || lowerText.includes("youtube")) {
       detectedTasks.push({ task: "Video", ai: "Runway" });
     }
 
-    if (
-      lowerText.includes("translate") ||
-      lowerText.includes("translation") ||
-      lowerText.includes("language")
-    ) {
+    if (lowerText.includes("translate") || lowerText.includes("translation") || lowerText.includes("language")) {
       detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
     }
 
-    if (
-      lowerText.includes("voice") ||
-      lowerText.includes("audio") ||
-      lowerText.includes("speech")
-    ) {
+    if (lowerText.includes("voice") || lowerText.includes("audio") || lowerText.includes("speech")) {
       detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
     }
 
@@ -192,6 +155,9 @@ function Chat({
       setPinnedChats(updatedPinnedChats);
       setChatActivity(updatedChatActivity);
       setSelectedChat(newTitle);
+
+      addActivity("chat", "Chat renamed automatically", newTitle);
+
       setInput("");
       return;
     }
@@ -202,6 +168,8 @@ function Chat({
       ...chatActivity,
       [selectedChat]: now,
     });
+
+    addActivity("message", "Message sent", selectedChat);
 
     setInput("");
   };

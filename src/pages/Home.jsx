@@ -8,6 +8,7 @@ function Home({
   archivedProjects,
   pinnedChats,
   chatActivity,
+  activityLog,
   setSelectedChat,
   setSelectedProject,
   setPage,
@@ -33,6 +34,10 @@ function Home({
     return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
   };
 
+  const formatActivityTime = (date) => {
+    return new Date(date).toLocaleString();
+  };
+
   const globalRecentChats = chats.map((chat) => ({
     name: chat,
     source: "Global Chat",
@@ -54,6 +59,8 @@ function Home({
     .slice(0, 5);
 
   const recentProjects = [...projects].slice(-5).reverse();
+
+  const recentActivity = (activityLog || []).slice(0, 8);
 
   const openChat = (chat) => {
     setSelectedChat(chat.name);
@@ -141,8 +148,74 @@ function Home({
           </div>
 
           <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Pinned Chats</p>
-            <h2 className="text-4xl font-bold mt-3">{pinnedChats.length}</h2>
+            <p className="text-gray-400">Activities</p>
+            <h2 className="text-4xl font-bold mt-3">{activityLog.length}</h2>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-8 mb-12">
+          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
+            <h2 className="text-2xl font-bold mb-5">Recent Activity</h2>
+
+            {recentActivity.length === 0 ? (
+              <p className="text-gray-500">No recent activity yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-[#101827] border border-gray-800 rounded-xl p-4"
+                  >
+                    <p className="font-semibold">
+                      {item.type === "chat" && "💬 "}
+                      {item.type === "message" && "✉️ "}
+                      {item.type === "project" && "📂 "}
+                      {item.type === "note" && "📝 "}
+                      {item.type === "file" && "📄 "}
+                      {item.type === "archive" && "🗄️ "}
+                      {item.type === "pin" && "⭐ "}
+                      {item.title}
+                    </p>
+
+                    {item.details && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        {item.details}
+                      </p>
+                    )}
+
+                    <p className="text-gray-500 text-xs mt-2">
+                      {formatActivityTime(item.createdAt)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
+            <h2 className="text-2xl font-bold mb-5">Recent Chats</h2>
+
+            {recentChats.length === 0 ? (
+              <p className="text-gray-500">No chats yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentChats.map((chat, index) => (
+                  <button
+                    key={`${chat.name}-${index}`}
+                    onClick={() => openChat(chat)}
+                    className="w-full text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
+                  >
+                    <h3 className="font-semibold">
+                      {pinnedChats.includes(chat.name) ? "⭐" : "💬"} {chat.name}
+                    </h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {chat.project ? `Project: ${chat.project}` : chat.source} •{" "}
+                      {formatUpdatedTime(chat.name)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -169,60 +242,7 @@ function Home({
 
         <div className="grid grid-cols-2 gap-8 mb-12">
           <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-2xl font-bold">Recent Chats</h2>
-
-              <button
-                onClick={() => setPage("search")}
-                className="text-purple-400 hover:text-purple-300"
-              >
-                View All →
-              </button>
-            </div>
-
-            {recentChats.length === 0 ? (
-              <p className="text-gray-500">No chats yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {recentChats.map((chat, index) => (
-                  <button
-                    key={`${chat.name}-${index}`}
-                    onClick={() => openChat(chat)}
-                    className="w-full text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-semibold">
-                          {pinnedChats.includes(chat.name) ? "⭐" : "💬"}{" "}
-                          {chat.name}
-                        </h3>
-                        <p className="text-gray-400 text-sm mt-1">
-                          {chat.project
-                            ? `Project: ${chat.project}`
-                            : chat.source}{" "}
-                          • {formatUpdatedTime(chat.name)}
-                        </p>
-                      </div>
-
-                      <span className="text-gray-500">Open →</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-2xl font-bold">Recent Projects</h2>
-
-              <button
-                onClick={() => setPage("project")}
-                className="text-purple-400 hover:text-purple-300"
-              >
-                Open Projects →
-              </button>
-            </div>
+            <h2 className="text-2xl font-bold mb-5">Recent Projects</h2>
 
             {recentProjects.length === 0 ? (
               <p className="text-gray-500">No projects yet.</p>
@@ -234,49 +254,41 @@ function Home({
                     onClick={() => openProject(project)}
                     className="w-full text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-semibold">📂 {project}</h3>
-                        <p className="text-gray-400 text-sm mt-1">
-                          {(projectChats[project] || []).length} chats •{" "}
-                          {(projectFiles[project] || []).length} files •{" "}
-                          {(projectNotes[project] || []).length} notes
-                        </p>
-                      </div>
-
-                      <span className="text-gray-500">Open →</span>
-                    </div>
+                    <h3 className="font-semibold">📂 {project}</h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {(projectChats[project] || []).length} chats •{" "}
+                      {(projectFiles[project] || []).length} files •{" "}
+                      {(projectNotes[project] || []).length} notes
+                    </p>
                   </button>
                 ))}
               </div>
             )}
           </div>
-        </div>
 
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-5">Quick Actions</h2>
+          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
+            <h2 className="text-2xl font-bold mb-5">Quick Actions</h2>
 
-          <div className="flex gap-6">
-            <div
-              onClick={() => setPage("project")}
-              className="w-80 p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
-            >
-              <h3 className="font-semibold mb-2">Create a project</h3>
+            <div className="space-y-4">
+              <div
+                onClick={() => setPage("project")}
+                className="p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
+              >
+                <h3 className="font-semibold mb-2">Create a project</h3>
+                <p className="text-gray-400 text-sm">
+                  Create a project with chats, files, notes and images.
+                </p>
+              </div>
 
-              <p className="text-gray-400 text-sm">
-                Create a project with chats, files, notes and images.
-              </p>
-            </div>
-
-            <div
-              onClick={() => setPage("chat")}
-              className="w-80 p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
-            >
-              <h3 className="font-semibold mb-2">Ask OrbitalAI</h3>
-
-              <p className="text-gray-400 text-sm">
-                Research, code, write and generate outputs instantly.
-              </p>
+              <div
+                onClick={() => setPage("chat")}
+                className="p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
+              >
+                <h3 className="font-semibold mb-2">Ask OrbitalAI</h3>
+                <p className="text-gray-400 text-sm">
+                  Research, code, write and generate outputs instantly.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ function Archived({
   setArchivedChats,
   archivedProjects,
   setArchivedProjects,
+  addActivity,
 }) {
   const getChatName = (chat) => {
     return typeof chat === "string" ? chat : chat.name;
@@ -32,17 +33,25 @@ function Archived({
           ? currentProjectChats
           : [...currentProjectChats, chatName],
       });
+
+      addActivity("archive", "Chat restored to project", `${chatName} • ${sourceProject}`);
     } else {
       if (!chats.includes(chatName)) {
         setChats([...chats, chatName]);
       }
+
+      addActivity("archive", "Global chat restored", chatName);
     }
 
     setArchivedChats(archivedChats.filter((_, i) => i !== index));
   };
 
   const deleteArchivedChat = (index) => {
+    const archivedChat = archivedChats[index];
+    const chatName = getChatName(archivedChat);
+
     setArchivedChats(archivedChats.filter((_, i) => i !== index));
+    addActivity("archive", "Archived chat permanently deleted", chatName);
   };
 
   const restoreProject = (index) => {
@@ -60,10 +69,14 @@ function Archived({
     }
 
     setArchivedProjects(archivedProjects.filter((_, i) => i !== index));
+    addActivity("archive", "Project restored", project);
   };
 
   const deleteArchivedProject = (index) => {
+    const project = archivedProjects[index];
+
     setArchivedProjects(archivedProjects.filter((_, i) => i !== index));
+    addActivity("archive", "Archived project permanently deleted", project);
   };
 
   return (
