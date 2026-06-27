@@ -36,7 +36,9 @@ function Project({
   const rawProjectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
   const notes = projectNotes[selectedProject] || [];
-  const images = files.filter((file) => file.type && file.type.startsWith("image"));
+  const images = files.filter(
+    (file) => file.type && file.type.startsWith("image")
+  );
 
   const getChatTime = (chat) => {
     return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
@@ -163,7 +165,11 @@ function Project({
       setSelectedChat("");
     }
 
-    addActivity("archive", "Project chat archived", `${chatToArchive} • ${selectedProject}`);
+    addActivity(
+      "archive",
+      "Project chat archived",
+      `${chatToArchive} • ${selectedProject}`
+    );
     setOpenChatMenu(null);
   };
 
@@ -194,7 +200,11 @@ function Project({
       setSelectedChat("");
     }
 
-    addActivity("chat", "Project chat deleted", `${chatToDelete} • ${selectedProject}`);
+    addActivity(
+      "chat",
+      "Project chat deleted",
+      `${chatToDelete} • ${selectedProject}`
+    );
     setOpenChatMenu(null);
   };
 
@@ -241,7 +251,12 @@ function Project({
     e.preventDefault();
     e.stopPropagation();
 
+    setIsDragging(false);
+
     const droppedFiles = Array.from(e.dataTransfer.files);
+
+    if (droppedFiles.length === 0) return;
+
     await uploadFiles(droppedFiles);
   };
 
@@ -294,27 +309,49 @@ function Project({
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
+      onDragEnter={(e) => {
+        if (!showDropZone) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+      }}
       onDragOver={(e) => {
         if (!showDropZone) return;
         e.preventDefault();
+        e.stopPropagation();
         setIsDragging(true);
-      }}
-      onDragLeave={(e) => {
-        if (!showDropZone) return;
-        e.preventDefault();
-        setIsDragging(false);
       }}
       onDrop={showDropZone ? handleDrop : undefined}
       className="flex-1 min-h-screen bg-black text-white px-10 py-8"
     >
       {showDropZone && isDragging && (
-        <div className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center pointer-events-none">
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={handleDrop}
+          onClick={() => setIsDragging(false)}
+          className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center"
+        >
           <div className="w-[520px] rounded-3xl border-2 border-dashed border-purple-500 bg-[#08111F] p-10 text-center">
             <p className="text-4xl mb-4">📁</p>
+
             <h2 className="text-3xl font-bold mb-2">Drop files here</h2>
+
             <p className="text-gray-400">
               Files will be uploaded to {selectedProject}
             </p>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDragging(false);
+              }}
+              className="mt-6 px-5 py-3 rounded-xl bg-[#101827] border border-[#1B2540] hover:bg-[#141f33]"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -452,6 +489,7 @@ function Project({
                     >
                       <div>
                         <h3 className="font-semibold">📄 {file.name}</h3>
+
                         <p className="text-gray-400 text-sm">
                           {file.size} • {file.type}
                         </p>
@@ -533,6 +571,7 @@ function Project({
                       )}
 
                       <h3 className="font-semibold">{file.name}</h3>
+
                       <p className="text-gray-400 text-sm">{file.size}</p>
 
                       {file.url && (
