@@ -84,6 +84,23 @@ function App() {
   };
 
   useEffect(() => {
+    const preventDefaults = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    window.addEventListener("dragenter", preventDefaults);
+    window.addEventListener("dragover", preventDefaults);
+    window.addEventListener("drop", preventDefaults);
+
+    return () => {
+      window.removeEventListener("dragenter", preventDefaults);
+      window.removeEventListener("dragover", preventDefaults);
+      window.removeEventListener("drop", preventDefaults);
+    };
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
 
@@ -268,27 +285,27 @@ function App() {
       case "project":
         return (
           <Project
-  user={user}
-  selectedProject={selectedProject}
-  projectChats={projectChats}
-  setProjectChats={setProjectChats}
-  projectFiles={projectFiles}
-  setProjectFiles={setProjectFiles}
-  projectNotes={projectNotes}
-  setProjectNotes={setProjectNotes}
-  selectedChat={selectedChat}
-  setSelectedChat={setSelectedChat}
-  chatMessages={chatMessages}
-  setChatMessages={setChatMessages}
-  archivedChats={archivedChats}
-  setArchivedChats={setArchivedChats}
-  pinnedChats={pinnedChats}
-  setPinnedChats={setPinnedChats}
-  chatActivity={chatActivity}
-  setChatActivity={setChatActivity}
-  setPage={setPage}
-  addActivity={addActivity}
-/>
+            user={user}
+            selectedProject={selectedProject}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
+            projectFiles={projectFiles}
+            setProjectFiles={setProjectFiles}
+            projectNotes={projectNotes}
+            setProjectNotes={setProjectNotes}
+            selectedChat={selectedChat}
+            setSelectedChat={setSelectedChat}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
+            archivedChats={archivedChats}
+            setArchivedChats={setArchivedChats}
+            pinnedChats={pinnedChats}
+            setPinnedChats={setPinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
+            setPage={setPage}
+            addActivity={addActivity}
+          />
         );
 
       case "search":
