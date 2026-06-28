@@ -84,21 +84,20 @@ function App() {
   };
 
   useEffect(() => {
-    const preventDefaults = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
+  const preventDefaults = (e) => {
+    e.preventDefault();
+  };
 
-    window.addEventListener("dragenter", preventDefaults);
-    window.addEventListener("dragover", preventDefaults);
-    window.addEventListener("drop", preventDefaults);
+  window.addEventListener("dragenter", preventDefaults);
+  window.addEventListener("dragover", preventDefaults);
+  window.addEventListener("drop", preventDefaults);
 
-    return () => {
-      window.removeEventListener("dragenter", preventDefaults);
-      window.removeEventListener("dragover", preventDefaults);
-      window.removeEventListener("drop", preventDefaults);
-    };
-  }, []);
+  return () => {
+    window.removeEventListener("dragenter", preventDefaults);
+    window.removeEventListener("dragover", preventDefaults);
+    window.removeEventListener("drop", preventDefaults);
+  };
+}, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
