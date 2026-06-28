@@ -84,20 +84,26 @@ function App() {
   };
 
   useEffect(() => {
-  const preventDefaults = (e) => {
-    e.preventDefault();
-  };
+    const preventDefaults = (e) => {
+      const isProjectDropZone = e.target.closest(
+        "[data-project-drop-zone='true']"
+      );
 
-  window.addEventListener("dragenter", preventDefaults);
-  window.addEventListener("dragover", preventDefaults);
-  window.addEventListener("drop", preventDefaults);
+      if (isProjectDropZone) return;
 
-  return () => {
-    window.removeEventListener("dragenter", preventDefaults);
-    window.removeEventListener("dragover", preventDefaults);
-    window.removeEventListener("drop", preventDefaults);
-  };
-}, []);
+      e.preventDefault();
+    };
+
+    window.addEventListener("dragenter", preventDefaults);
+    window.addEventListener("dragover", preventDefaults);
+    window.addEventListener("drop", preventDefaults);
+
+    return () => {
+      window.removeEventListener("dragenter", preventDefaults);
+      window.removeEventListener("dragover", preventDefaults);
+      window.removeEventListener("drop", preventDefaults);
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -138,8 +144,12 @@ function App() {
         setProjectNotes(data.projectNotes || {});
         setSelectedChat(data.selectedChat || "");
         setSelectedProject(data.selectedProject || "");
-        setArchivedChats(Array.isArray(data.archivedChats) ? data.archivedChats : []);
-        setArchivedProjects(Array.isArray(data.archivedProjects) ? data.archivedProjects : []);
+        setArchivedChats(
+          Array.isArray(data.archivedChats) ? data.archivedChats : []
+        );
+        setArchivedProjects(
+          Array.isArray(data.archivedProjects) ? data.archivedProjects : []
+        );
         setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
         setChatActivity(data.chatActivity || {});
         setActivityLog(Array.isArray(data.activityLog) ? data.activityLog : []);
