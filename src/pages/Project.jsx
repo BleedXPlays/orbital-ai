@@ -472,9 +472,21 @@ function Project({
                 />
               </div>
 
-              <div className="border border-dashed border-gray-700 rounded-xl p-4 mb-6 text-gray-400 text-center">
-                Drag and drop files here, or use Upload File.
-              </div>
+              <div
+  onDragOver={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }}
+  onDrop={handleDrop}
+  className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
+    isDragging
+      ? "border-purple-500 bg-purple-950/20 text-purple-300"
+      : "border-gray-700 text-gray-400"
+  }`}
+>
+  Drop files here to upload
+</div>
 
               {files.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
@@ -543,9 +555,21 @@ function Project({
                 />
               </div>
 
-              <div className="border border-dashed border-gray-700 rounded-xl p-4 mb-6 text-gray-400 text-center">
-                Drag and drop images here, or use Upload Image.
-              </div>
+              <div
+  onDragOver={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }}
+  onDrop={handleDrop}
+  className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
+    isDragging
+      ? "border-purple-500 bg-purple-950/20 text-purple-300"
+      : "border-gray-700 text-gray-400"
+  }`}
+>
+  Drop images here to upload
+</div>
 
               {images.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
