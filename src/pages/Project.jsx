@@ -309,52 +309,8 @@ function Project({
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
-      onDragEnter={(e) => {
-        if (!showDropZone) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-      }}
-      onDragOver={(e) => {
-        if (!showDropZone) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-      }}
-      onDrop={showDropZone ? handleDrop : undefined}
       className="flex-1 min-h-screen bg-black text-white px-10 py-8"
     >
-      {showDropZone && isDragging && (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onDrop={handleDrop}
-          onClick={() => setIsDragging(false)}
-          className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center"
-        >
-          <div className="w-[520px] rounded-3xl border-2 border-dashed border-purple-500 bg-[#08111F] p-10 text-center">
-            <p className="text-4xl mb-4">📁</p>
-
-            <h2 className="text-3xl font-bold mb-2">Drop files here</h2>
-
-            <p className="text-gray-400">
-              Files will be uploaded to {selectedProject}
-            </p>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDragging(false);
-              }}
-              className="mt-6 px-5 py-3 rounded-xl bg-[#101827] border border-[#1B2540] hover:bg-[#141f33]"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="mb-10">
         <h1 className="text-4xl font-bold">
