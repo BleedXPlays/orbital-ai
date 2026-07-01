@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
+import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService";
 
 import Sidebar from "./components/Sidebar";
 import CommandPalette from "./components/CommandPalette";
@@ -18,23 +18,9 @@ import Help from "./pages/Help";
 import Login from "./pages/Login";
 
 function App() {
-  const defaultChats = [
-    "Global Warming Project",
-    "Chandrayaan-3 Research",
-    "Python Coding Help",
-    "Solar Energy Website",
-  ];
-
-  const defaultProjects = [
-    "OrbitalAI",
-    "Science Exhibition",
-    "Solar Energy Website",
-  ];
-
   const saveTimer = useRef(null);
 
   const [user, setUser] = useState(null);
-  const [activeUserId, setActiveUserId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
   const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
@@ -115,9 +101,10 @@ function App() {
 
       resetWorkspace();
       setUser(currentUser);
-      setActiveUserId(currentUser ? currentUser.uid : null);
 
-      if (!currentUser) setDataLoading(false);
+      if (!currentUser) {
+        setDataLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -125,16 +112,13 @@ function App() {
 
   useEffect(() => {
     const loadUserData = async () => {
-      if (!user || !activeUserId) return;
+      if (!user) return;
 
       setDataLoading(true);
       setHasLoadedUserData(false);
 
-      const userRef = doc(db, "users", activeUserId);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const data = userSnap.data();
+      try {
+        const data = await getOrCreateWorkspace(user);
 
         setChats(Array.isArray(data.chats) ? data.chats : []);
         setChatMessages(data.chatMessages || {});
@@ -153,41 +137,8 @@ function App() {
         setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
         setChatActivity(data.chatActivity || {});
         setActivityLog(Array.isArray(data.activityLog) ? data.activityLog : []);
-      } else {
-        const initialData = {
-          name: user.displayName || "",
-          email: user.email,
-          createdAt: new Date().toISOString(),
-          chats: defaultChats,
-          chatMessages: {},
-          projects: defaultProjects,
-          projectChats: {},
-          projectFiles: {},
-          projectNotes: {},
-          selectedChat: defaultChats[0],
-          selectedProject: defaultProjects[0],
-          archivedChats: [],
-          archivedProjects: [],
-          pinnedChats: [],
-          chatActivity: {},
-          activityLog: [],
-        };
-
-        await setDoc(userRef, initialData);
-
-        setChats(initialData.chats);
-        setChatMessages(initialData.chatMessages);
-        setProjects(initialData.projects);
-        setProjectChats(initialData.projectChats);
-        setProjectFiles(initialData.projectFiles);
-        setProjectNotes(initialData.projectNotes);
-        setSelectedChat(initialData.selectedChat);
-        setSelectedProject(initialData.selectedProject);
-        setArchivedChats(initialData.archivedChats);
-        setArchivedProjects(initialData.archivedProjects);
-        setPinnedChats(initialData.pinnedChats);
-        setChatActivity(initialData.chatActivity);
-        setActivityLog(initialData.activityLog);
+      } catch (error) {
+        alert(error.message);
       }
 
       setHasLoadedUserData(true);
@@ -195,22 +146,17 @@ function App() {
     };
 
     loadUserData();
-  }, [user, activeUserId]);
+  }, [user]);
 
   useEffect(() => {
     const saveUserData = async () => {
-      if (!user || !activeUserId || dataLoading || !hasLoadedUserData) return;
+      if (!user || dataLoading || !hasLoadedUserData) return;
 
       if (saveTimer.current) clearTimeout(saveTimer.current);
 
       saveTimer.current = setTimeout(async () => {
-        const userRef = doc(db, "users", activeUserId);
-
-        await setDoc(
-          userRef,
-          {
-            name: user.displayName || "",
-            email: user.email,
+        try {
+          await saveWorkspace(user, {
             chats,
             chatMessages,
             projects,
@@ -224,10 +170,10 @@ function App() {
             pinnedChats,
             chatActivity,
             activityLog,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
+          });
+        } catch (error) {
+          console.error("Failed to save workspace:", error.message);
+        }
       }, 600);
     };
 
@@ -238,7 +184,6 @@ function App() {
     };
   }, [
     user,
-    activeUserId,
     dataLoading,
     hasLoadedUserData,
     chats,

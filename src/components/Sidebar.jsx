@@ -4,6 +4,7 @@ import ProjectCard from "./ProjectCard";
 import ChatMenu from "./ChatMenu";
 import ProjectMenu from "./ProjectMenu";
 import MoveChatModal from "./MoveChatModal";
+import RenameModal from "./RenameModal";
 
 function Sidebar({
   setPage,
@@ -31,9 +32,15 @@ function Sidebar({
   const [projectSearch, setProjectSearch] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
+
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [chatToMove, setChatToMove] = useState("");
   const [targetProject, setTargetProject] = useState("");
+
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameType, setRenameType] = useState("");
+  const [renameIndex, setRenameIndex] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const isPinned = (chat) => pinnedChats.includes(chat);
 
@@ -44,6 +51,36 @@ function Sidebar({
   const formatUpdatedTime = (chat) => {
     if (!chatActivity[chat]) return "No activity yet";
     return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
+  };
+
+  const openRenameModal = (type, index, currentName) => {
+    setRenameType(type);
+    setRenameIndex(index);
+    setRenameValue(currentName);
+    setRenameModalOpen(true);
+    setOpenChatMenu(null);
+    setOpenProjectMenu(null);
+  };
+
+  const closeRenameModal = () => {
+    setRenameModalOpen(false);
+    setRenameType("");
+    setRenameIndex(null);
+    setRenameValue("");
+  };
+
+  const saveRename = () => {
+    if (!renameValue.trim() || renameIndex === null) return;
+
+    if (renameType === "chat") {
+      renameChat(renameIndex, renameValue.trim());
+    }
+
+    if (renameType === "project") {
+      renameProject(renameIndex, renameValue.trim());
+    }
+
+    closeRenameModal();
   };
 
   const togglePinChat = (chat) => {
@@ -79,12 +116,11 @@ function Sidebar({
     addActivity("project", "Project created", newProjectName);
   };
 
-  const renameChat = (index) => {
-    const newName = prompt("Enter new chat name:", chats[index]);
-    if (!newName || !newName.trim()) return;
-
+  const renameChat = (index, newName) => {
     const oldName = chats[index];
     const trimmedName = newName.trim();
+
+    if (!oldName || !trimmedName) return;
 
     const updatedChats = [...chats];
     updatedChats[index] = trimmedName;
@@ -117,12 +153,11 @@ function Sidebar({
     addActivity("chat", "Chat renamed", `${oldName} → ${trimmedName}`);
   };
 
-  const renameProject = (index) => {
-    const newName = prompt("Enter new project name:", projects[index]);
-    if (!newName || !newName.trim()) return;
-
+  const renameProject = (index, newName) => {
     const oldName = projects[index];
     const trimmedName = newName.trim();
+
+    if (!oldName || !trimmedName) return;
 
     const updatedProjects = [...projects];
     updatedProjects[index] = trimmedName;
@@ -313,37 +348,37 @@ function Sidebar({
 
   return (
     <>
-      <div
+      <aside
         onClick={() => {
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="w-80 min-h-screen bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-5 py-6"
+        className="w-80 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-5 py-5 overflow-hidden"
       >
-        <div className="mb-8">
+        <div className="shrink-0">
           <h1
             onClick={() => setPage("home")}
-            className="text-4xl font-bold cursor-pointer"
+            className="text-4xl font-bold cursor-pointer mb-5"
           >
             Orbital<span className="text-purple-500">AI</span>
           </h1>
+
+          <input
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("search");
+            }}
+            type="text"
+            placeholder="🔍 Global Search"
+            className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-5 cursor-pointer"
+          />
         </div>
 
-        <input
-          onClick={(e) => {
-            e.stopPropagation();
-            setPage("search");
-          }}
-          type="text"
-          placeholder="🔍 Global Search"
-          className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-8 cursor-pointer"
-        />
-
         {pinnedChats.length > 0 && (
-          <>
-            <h2 className="text-yellow-400 font-semibold mb-3">PINNED</h2>
+          <div className="shrink-0 mb-4">
+            <h2 className="text-yellow-400 font-semibold mb-2">PINNED</h2>
 
-            <div className="space-y-3 mb-8">
+            <div className="space-y-2 max-h-28 overflow-y-auto pr-1">
               {pinnedChats.map((chat) => (
                 <div
                   key={chat}
@@ -358,185 +393,195 @@ function Sidebar({
                       : "bg-[#101827] border-gray-800 hover:border-purple-700"
                   }`}
                 >
-                  <p>⭐ {chat}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="truncate">⭐ {chat}</p>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
                     {formatUpdatedTime(chat)}
                   </p>
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
-        <h2 className="text-purple-400 font-semibold mb-3">CHATS</h2>
+        <div className="grid grid-rows-[1fr_1fr] gap-4 min-h-0 flex-1">
+          <section className="min-h-0 flex flex-col">
+            <h2 className="text-purple-400 font-semibold mb-2 shrink-0">
+              CHATS
+            </h2>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            createChat();
-          }}
-          className="w-full bg-[#101827] p-4 rounded-xl mb-3 text-left hover:bg-[#141f33]"
-        >
-          + New Chat
-        </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                createChat();
+              }}
+              className="w-full bg-[#101827] p-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0"
+            >
+              + New Chat
+            </button>
 
-        <input
-          onClick={(e) => e.stopPropagation()}
-          type="text"
-          placeholder="Search chats..."
-          value={chatSearch}
-          onChange={(e) => setChatSearch(e.target.value)}
-          className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-5"
-        />
+            <input
+              onClick={(e) => e.stopPropagation()}
+              type="text"
+              placeholder="Search chats..."
+              value={chatSearch}
+              onChange={(e) => setChatSearch(e.target.value)}
+              className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 shrink-0"
+            />
 
-        <div className="space-y-3 mb-8">
-          {filteredChats.map((chat) => {
-            const originalIndex = chats.indexOf(chat);
+            <div className="space-y-2 overflow-y-auto pr-1 min-h-0">
+              {filteredChats.map((chat) => {
+                const originalIndex = chats.indexOf(chat);
 
-            return (
-              <div key={chat} className="relative">
-                <ChatCard
-                  chat={chat}
-                  selectedChat={selectedChat}
-                  formatUpdatedTime={formatUpdatedTime}
-                  onOpen={(e) => {
-                    e.stopPropagation();
-                    setSelectedChat(chat);
-                    setPage("chat");
-                    setOpenChatMenu(null);
-                    setOpenProjectMenu(null);
-                  }}
-                  onMenuClick={(e) => {
-                    e.stopPropagation();
-                    setOpenChatMenu(
-                      openChatMenu === originalIndex ? null : originalIndex
-                    );
-                    setOpenProjectMenu(null);
-                  }}
-                />
+                return (
+                  <div key={chat} className="relative">
+                    <ChatCard
+                      chat={chat}
+                      selectedChat={selectedChat}
+                      formatUpdatedTime={formatUpdatedTime}
+                      onOpen={(e) => {
+                        e.stopPropagation();
+                        setSelectedChat(chat);
+                        setPage("chat");
+                        setOpenChatMenu(null);
+                        setOpenProjectMenu(null);
+                      }}
+                      onMenuClick={(e) => {
+                        e.stopPropagation();
+                        setOpenChatMenu(
+                          openChatMenu === originalIndex ? null : originalIndex
+                        );
+                        setOpenProjectMenu(null);
+                      }}
+                    />
 
-                {openChatMenu === originalIndex && (
-                  <ChatMenu
-                    isPinned={isPinned(chat)}
-                    onRename={(e) => {
-                      e.stopPropagation();
-                      renameChat(originalIndex);
-                      setOpenChatMenu(null);
-                    }}
-                    onMove={(e) => {
-                      e.stopPropagation();
-                      openMoveModal(chat);
-                      setOpenChatMenu(null);
-                    }}
-                    onTogglePin={(e) => {
-                      e.stopPropagation();
-                      togglePinChat(chat);
-                      setOpenChatMenu(null);
-                    }}
-                    onArchive={(e) => {
-                      e.stopPropagation();
-                      archiveChat(originalIndex);
-                      setOpenChatMenu(null);
-                    }}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      deleteChat(originalIndex);
-                      setOpenChatMenu(null);
-                    }}
-                  />
-                )}
-              </div>
-            );
-          })}
+                    {openChatMenu === originalIndex && (
+                      <ChatMenu
+                        isPinned={isPinned(chat)}
+                        onRename={(e) => {
+                          e.stopPropagation();
+                          openRenameModal("chat", originalIndex, chat);
+                        }}
+                        onMove={(e) => {
+                          e.stopPropagation();
+                          openMoveModal(chat);
+                          setOpenChatMenu(null);
+                        }}
+                        onTogglePin={(e) => {
+                          e.stopPropagation();
+                          togglePinChat(chat);
+                          setOpenChatMenu(null);
+                        }}
+                        onArchive={(e) => {
+                          e.stopPropagation();
+                          archiveChat(originalIndex);
+                          setOpenChatMenu(null);
+                        }}
+                        onDelete={(e) => {
+                          e.stopPropagation();
+                          deleteChat(originalIndex);
+                          setOpenChatMenu(null);
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
 
-          {filteredChats.length === 0 && (
-            <p className="text-gray-500 text-sm">No chats found.</p>
-          )}
+              {filteredChats.length === 0 && (
+                <p className="text-gray-500 text-sm">No chats found.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="min-h-0 flex flex-col">
+            <h2 className="text-purple-400 font-semibold mb-2 shrink-0">
+              PROJECTS
+            </h2>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                createProject();
+              }}
+              className="w-full bg-[#101827] p-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0"
+            >
+              + New Project
+            </button>
+
+            <input
+              onClick={(e) => e.stopPropagation()}
+              type="text"
+              placeholder="Search projects..."
+              value={projectSearch}
+              onChange={(e) => setProjectSearch(e.target.value)}
+              className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 shrink-0"
+            />
+
+            <div className="space-y-2 overflow-y-auto pr-1 min-h-0">
+              {filteredProjects.map((project) => {
+                const originalIndex = projects.indexOf(project);
+                const count = (projectChats[project] || []).length;
+
+                return (
+                  <div key={project} className="relative">
+                    <ProjectCard
+                      project={project}
+                      count={count}
+                      selectedProject={selectedProject}
+                      onOpen={(e) => {
+                        e.stopPropagation();
+                        setSelectedProject(project);
+                        setPage("project");
+                        setOpenChatMenu(null);
+                        setOpenProjectMenu(null);
+                      }}
+                      onMenuClick={(e) => {
+                        e.stopPropagation();
+                        setOpenProjectMenu(
+                          openProjectMenu === originalIndex
+                            ? null
+                            : originalIndex
+                        );
+                        setOpenChatMenu(null);
+                      }}
+                    />
+
+                    {openProjectMenu === originalIndex && (
+                      <ProjectMenu
+                        onRename={(e) => {
+                          e.stopPropagation();
+                          openRenameModal("project", originalIndex, project);
+                        }}
+                        onArchive={(e) => {
+                          e.stopPropagation();
+                          archiveProject(originalIndex);
+                          setOpenProjectMenu(null);
+                        }}
+                        onDelete={(e) => {
+                          e.stopPropagation();
+                          deleteProject(originalIndex);
+                          setOpenProjectMenu(null);
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+
+              {filteredProjects.length === 0 && (
+                <p className="text-gray-500 text-sm">No projects found.</p>
+              )}
+            </div>
+          </section>
         </div>
 
-        <h2 className="text-purple-400 font-semibold mb-3">PROJECTS</h2>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            createProject();
-          }}
-          className="w-full bg-[#101827] p-4 rounded-xl mb-4 text-left hover:bg-[#141f33]"
-        >
-          + New Project
-        </button>
-
-        <input
-          onClick={(e) => e.stopPropagation()}
-          type="text"
-          placeholder="Search projects..."
-          value={projectSearch}
-          onChange={(e) => setProjectSearch(e.target.value)}
-          className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-5"
-        />
-
-        <div className="space-y-3 mb-8">
-          {filteredProjects.map((project) => {
-            const originalIndex = projects.indexOf(project);
-            const count = (projectChats[project] || []).length;
-
-            return (
-              <div key={project} className="relative">
-                <ProjectCard
-                  project={project}
-                  count={count}
-                  selectedProject={selectedProject}
-                  onOpen={(e) => {
-                    e.stopPropagation();
-                    setSelectedProject(project);
-                    setPage("project");
-                    setOpenChatMenu(null);
-                    setOpenProjectMenu(null);
-                  }}
-                  onMenuClick={(e) => {
-                    e.stopPropagation();
-                    setOpenProjectMenu(
-                      openProjectMenu === originalIndex ? null : originalIndex
-                    );
-                    setOpenChatMenu(null);
-                  }}
-                />
-
-                {openProjectMenu === originalIndex && (
-                  <ProjectMenu
-                    onRename={(e) => {
-                      e.stopPropagation();
-                      renameProject(originalIndex);
-                      setOpenProjectMenu(null);
-                    }}
-                    onArchive={(e) => {
-                      e.stopPropagation();
-                      archiveProject(originalIndex);
-                      setOpenProjectMenu(null);
-                    }}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      deleteProject(originalIndex);
-                      setOpenProjectMenu(null);
-                    }}
-                  />
-                )}
-              </div>
-            );
-          })}
-
-          {filteredProjects.length === 0 && (
-            <p className="text-gray-500 text-sm">No projects found.</p>
-          )}
-        </div>
-
-        <div className="space-y-3 pb-4">
+        <div className="shrink-0 border-t border-[#1B2540] pt-3 mt-4 space-y-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
           >
             ✏️ Edit Items
           </button>
@@ -546,7 +591,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
           >
             🗄️ Archived Items
           </button>
@@ -556,32 +601,21 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
           >
             ⚙️ Settings
           </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("help");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
-            ❓ Help & Support
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("workflow");
-            }}
-            className="w-full bg-[#101827] p-4 rounded-xl text-left hover:bg-[#141f33]"
-          >
-            🤖 AI Workflow
-          </button>
         </div>
-      </div>
+      </aside>
+
+      <RenameModal
+        isOpen={renameModalOpen}
+        title={renameType === "project" ? "Rename Project" : "Rename Chat"}
+        value={renameValue}
+        setValue={setRenameValue}
+        onCancel={closeRenameModal}
+        onSave={saveRename}
+      />
 
       {showMoveModal && (
         <MoveChatModal
