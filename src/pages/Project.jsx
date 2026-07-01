@@ -2,6 +2,7 @@ import { useState } from "react";
 import ProjectChatCard from "../components/ProjectChatCard";
 import ProjectChatMenu from "../components/ProjectChatMenu";
 import ProjectNoteCard from "../components/ProjectNoteCard";
+import FilePreviewModal from "../components/FilePreviewModal";
 import { uploadProjectFile } from "../utils/uploadFile";
 
 function Project({
@@ -32,6 +33,7 @@ function Project({
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedFilePreview, setSelectedFilePreview] = useState(null);
 
   const rawProjectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
@@ -170,6 +172,7 @@ function Project({
       "Project chat archived",
       `${chatToArchive} • ${selectedProject}`
     );
+
     setOpenChatMenu(null);
   };
 
@@ -205,6 +208,7 @@ function Project({
       "Project chat deleted",
       `${chatToDelete} • ${selectedProject}`
     );
+
     setOpenChatMenu(null);
   };
 
@@ -304,14 +308,11 @@ function Project({
     addActivity("note", "Note deleted", `${noteToDelete.title} • ${selectedProject}`);
   };
 
-  const showDropZone = activeTab === "files" || activeTab === "images";
-
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
       className="flex-1 min-h-screen bg-black text-white px-10 py-8"
     >
-
       <div className="mb-10">
         <h1 className="text-4xl font-bold">
           📂 {selectedProject || "Untitled Project"}
@@ -429,20 +430,21 @@ function Project({
               </div>
 
               <div
-  onDragOver={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }}
-  onDrop={handleDrop}
-  className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
-    isDragging
-      ? "border-purple-500 bg-purple-950/20 text-purple-300"
-      : "border-gray-700 text-gray-400"
-  }`}
->
-  Drop files here to upload
-</div>
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
+                  isDragging
+                    ? "border-purple-500 bg-purple-950/20 text-purple-300"
+                    : "border-gray-700 text-gray-400"
+                }`}
+              >
+                Drop files here to upload
+              </div>
 
               {files.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
@@ -453,7 +455,8 @@ function Project({
                   {files.map((file, index) => (
                     <div
                       key={`${file.name}-${index}`}
-                      className="flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4"
+                      onClick={() => setSelectedFilePreview({ file, index })}
+                      className="flex justify-between items-center bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
                     >
                       <div>
                         <h3 className="font-semibold">📄 {file.name}</h3>
@@ -463,20 +466,17 @@ function Project({
                         </p>
 
                         {file.url && (
-                          <a
-                            href={file.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm"
-                          >
-                            Open File →
-                          </a>
+                          <button className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm">
+                            Preview File →
+                          </button>
                         )}
                       </div>
 
                       <button
-                        onClick={() => deleteFile(index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteFile(index);
+                        }}
                         className="text-red-400 hover:text-red-300"
                       >
                         Delete
@@ -512,20 +512,21 @@ function Project({
               </div>
 
               <div
-  onDragOver={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }}
-  onDrop={handleDrop}
-  className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
-    isDragging
-      ? "border-purple-500 bg-purple-950/20 text-purple-300"
-      : "border-gray-700 text-gray-400"
-  }`}
->
-  Drop images here to upload
-</div>
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                className={`border border-dashed rounded-xl p-8 mb-6 text-center ${
+                  isDragging
+                    ? "border-purple-500 bg-purple-950/20 text-purple-300"
+                    : "border-gray-700 text-gray-400"
+                }`}
+              >
+                Drop images here to upload
+              </div>
 
               {images.length === 0 ? (
                 <div className="bg-[#101827] border border-gray-800 rounded-xl p-6 text-gray-400">
@@ -533,39 +534,46 @@ function Project({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  {images.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="bg-[#101827] border border-gray-800 rounded-xl p-4"
-                    >
-                      {file.url ? (
-                        <img
-                          src={file.url}
-                          alt={file.name}
-                          className="h-32 w-full object-cover rounded-xl mb-4"
-                        />
-                      ) : (
-                        <div className="h-32 rounded-xl bg-[#151E33] flex items-center justify-center text-4xl mb-4">
-                          🖼️
-                        </div>
-                      )}
+                  {images.map((file, imageIndex) => {
+                    const originalIndex = files.findIndex(
+                      (item) =>
+                        item.name === file.name &&
+                        item.uploadedAt === file.uploadedAt
+                    );
 
-                      <h3 className="font-semibold">{file.name}</h3>
+                    return (
+                      <div
+                        key={`${file.name}-${imageIndex}`}
+                        onClick={() =>
+                          setSelectedFilePreview({
+                            file,
+                            index: originalIndex === -1 ? imageIndex : originalIndex,
+                          })
+                        }
+                        className="bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-purple-700"
+                      >
+                        {file.url ? (
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="h-32 w-full object-cover rounded-xl mb-4"
+                          />
+                        ) : (
+                          <div className="h-32 rounded-xl bg-[#151E33] flex items-center justify-center text-4xl mb-4">
+                            🖼️
+                          </div>
+                        )}
 
-                      <p className="text-gray-400 text-sm">{file.size}</p>
+                        <h3 className="font-semibold">{file.name}</h3>
 
-                      {file.url && (
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm"
-                        >
-                          Open Image →
-                        </a>
-                      )}
-                    </div>
-                  ))}
+                        <p className="text-gray-400 text-sm">{file.size}</p>
+
+                        <button className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm">
+                          Preview Image →
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </>
@@ -656,6 +664,17 @@ function Project({
           />
         </div>
       </div>
+
+      <FilePreviewModal
+        file={selectedFilePreview?.file}
+        onClose={() => setSelectedFilePreview(null)}
+        onDelete={() => {
+          if (selectedFilePreview) {
+            deleteFile(selectedFilePreview.index);
+            setSelectedFilePreview(null);
+          }
+        }}
+      />
     </div>
   );
 }
