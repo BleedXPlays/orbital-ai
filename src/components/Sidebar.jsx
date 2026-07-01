@@ -5,6 +5,7 @@ import ChatMenu from "./ChatMenu";
 import ProjectMenu from "./ProjectMenu";
 import MoveChatModal from "./MoveChatModal";
 import RenameModal from "./RenameModal";
+import logo from "../assets/orbital-logo.png";
 
 function Sidebar({
   setPage,
@@ -353,15 +354,19 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="w-80 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-5 py-5 overflow-hidden"
+        className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-4 py-4 overflow-hidden"
       >
         <div className="shrink-0">
-          <h1
-            onClick={() => setPage("home")}
-            className="text-4xl font-bold cursor-pointer mb-5"
-          >
-            Orbital<span className="text-purple-500">AI</span>
-          </h1>
+          <div
+  onClick={() => setPage("home")}
+  className="cursor-pointer mb-3"
+>
+  <img
+    src={logo}
+    alt="OrbitalAI"
+    className="h-12 w-auto object-contain"
+  />
+</div>
 
           <input
             onClick={(e) => {
@@ -370,15 +375,17 @@ function Sidebar({
             }}
             type="text"
             placeholder="🔍 Global Search"
-            className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-5 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 cursor-pointer text-sm"
           />
         </div>
 
         {pinnedChats.length > 0 && (
-          <div className="shrink-0 mb-4">
-            <h2 className="text-yellow-400 font-semibold mb-2">PINNED</h2>
+          <div className="shrink-0 mb-3">
+            <h2 className="text-yellow-400 font-semibold mb-2 text-xs tracking-wide">
+              PINNED
+            </h2>
 
-            <div className="space-y-2 max-h-28 overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
               {pinnedChats.map((chat) => (
                 <div
                   key={chat}
@@ -387,14 +394,14 @@ function Sidebar({
                     setSelectedChat(chat);
                     setPage("chat");
                   }}
-                  className={`p-3 rounded-lg cursor-pointer border ${
+                  className={`px-3 py-2 rounded-lg cursor-pointer border ${
                     selectedChat === chat
                       ? "bg-[#101827] border-purple-700"
                       : "bg-[#101827] border-gray-800 hover:border-purple-700"
                   }`}
                 >
-                  <p className="truncate">⭐ {chat}</p>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
+                  <p className="truncate text-sm">⭐ {chat}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5 truncate">
                     {formatUpdatedTime(chat)}
                   </p>
                 </div>
@@ -403,9 +410,9 @@ function Sidebar({
           </div>
         )}
 
-        <div className="grid grid-rows-[1fr_1fr] gap-4 min-h-0 flex-1">
+        <div className="grid grid-rows-[1fr_1fr] gap-3 min-h-0 flex-1">
           <section className="min-h-0 flex flex-col">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0">
+            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
               CHATS
             </h2>
 
@@ -414,7 +421,7 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="w-full bg-[#101827] p-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0"
+              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
             >
               + New Chat
             </button>
@@ -425,10 +432,10 @@ function Sidebar({
               placeholder="Search chats..."
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 shrink-0"
+              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-2 overflow-y-auto pr-1 min-h-0">
+            <div className="space-y-1.5 overflow-y-auto pr-1 min-h-0">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -488,13 +495,13 @@ function Sidebar({
               })}
 
               {filteredChats.length === 0 && (
-                <p className="text-gray-500 text-sm">No chats found.</p>
+                <p className="text-gray-500 text-xs">No chats found.</p>
               )}
             </div>
           </section>
 
           <section className="min-h-0 flex flex-col">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0">
+            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
               PROJECTS
             </h2>
 
@@ -503,7 +510,7 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="w-full bg-[#101827] p-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0"
+              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
             >
               + New Project
             </button>
@@ -514,10 +521,10 @@ function Sidebar({
               placeholder="Search projects..."
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              className="w-full p-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 shrink-0"
+              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-2 overflow-y-auto pr-1 min-h-0">
+            <div className="space-y-1.5 overflow-y-auto pr-1 min-h-0">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;
@@ -569,19 +576,19 @@ function Sidebar({
               })}
 
               {filteredProjects.length === 0 && (
-                <p className="text-gray-500 text-sm">No projects found.</p>
+                <p className="text-gray-500 text-xs">No projects found.</p>
               )}
             </div>
           </section>
         </div>
 
-        <div className="shrink-0 border-t border-[#1B2540] pt-3 mt-4 space-y-2">
+        <div className="shrink-0 border-t border-[#1B2540] pt-2 mt-3 space-y-1.5">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
           >
             ✏️ Edit Items
           </button>
@@ -591,7 +598,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
           >
             🗄️ Archived Items
           </button>
@@ -601,7 +608,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="w-full bg-[#101827] p-3 rounded-xl text-left hover:bg-[#141f33]"
+            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
           >
             ⚙️ Settings
           </button>
