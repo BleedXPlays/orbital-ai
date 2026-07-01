@@ -362,8 +362,8 @@ function App() {
 
   if (!user) return <Login />;
 
-  return (
-    <div className="min-h-screen bg-black flex">
+ return (
+  <div className="h-screen bg-black flex overflow-hidden">
       <Sidebar
         setPage={setPage}
         chats={chats}
@@ -387,7 +387,7 @@ function App() {
         addActivity={addActivity}
       />
 
-      <div className="flex-1 relative">
+      <div className="flex-1 relative h-screen overflow-y-auto">
         <div className="absolute top-5 right-6 z-50">
           <button
             onClick={handleLogout}
