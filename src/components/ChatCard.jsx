@@ -1,28 +1,17 @@
-function ChatCard({
-  chat,
-  selectedChat,
-  formatUpdatedTime,
-  onOpen,
-  onMenuClick,
-}) {
+function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
   return (
     <div
       onClick={onOpen}
-      className={`relative p-3 rounded-lg cursor-pointer ${
+      className={`relative px-3 py-2 rounded-lg cursor-pointer ${
         selectedChat === chat ? "bg-[#101827]" : "hover:bg-[#101827]"
       }`}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <p>💬 {chat}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {formatUpdatedTime(chat)}
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium truncate">💬 {chat}</p>
 
         <button
           onClick={onMenuClick}
-          className="text-gray-500 hover:text-white px-2"
+          className="text-gray-500 hover:text-white px-1"
         >
           ⋮
         </button>

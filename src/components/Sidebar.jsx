@@ -49,11 +49,6 @@ function Sidebar({
     return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
   };
 
-  const formatUpdatedTime = (chat) => {
-    if (!chatActivity[chat]) return "No activity yet";
-    return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
-  };
-
   const openRenameModal = (type, index, currentName) => {
     setRenameType(type);
     setRenameIndex(index);
@@ -73,13 +68,8 @@ function Sidebar({
   const saveRename = () => {
     if (!renameValue.trim() || renameIndex === null) return;
 
-    if (renameType === "chat") {
-      renameChat(renameIndex, renameValue.trim());
-    }
-
-    if (renameType === "project") {
-      renameProject(renameIndex, renameValue.trim());
-    }
+    if (renameType === "chat") renameChat(renameIndex, renameValue.trim());
+    if (renameType === "project") renameProject(renameIndex, renameValue.trim());
 
     closeRenameModal();
   };
@@ -358,15 +348,18 @@ function Sidebar({
       >
         <div className="shrink-0">
           <div
-  onClick={() => setPage("home")}
-  className="cursor-pointer mb-3"
->
-  <img
-    src={logo}
-    alt="OrbitalAI"
-    className="h-12 w-auto object-contain"
-  />
-</div>
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("home");
+            }}
+            className="cursor-pointer mb-3 flex items-center"
+          >
+            <img
+              src={logo}
+              alt="OrbitalAI"
+              className="h-20 w-auto object-contain"
+            />
+          </div>
 
           <input
             onClick={(e) => {
@@ -401,9 +394,6 @@ function Sidebar({
                   }`}
                 >
                   <p className="truncate text-sm">⭐ {chat}</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5 truncate">
-                    {formatUpdatedTime(chat)}
-                  </p>
                 </div>
               ))}
             </div>
@@ -444,7 +434,6 @@ function Sidebar({
                     <ChatCard
                       chat={chat}
                       selectedChat={selectedChat}
-                      formatUpdatedTime={formatUpdatedTime}
                       onOpen={(e) => {
                         e.stopPropagation();
                         setSelectedChat(chat);
