@@ -397,7 +397,7 @@ function App() {
           </button>
         </div>
 
-        <div className="pr-32">{renderPage()}</div>
+        <div className="w-full">{renderPage()}</div>
       </div>
 
       <CommandPalette

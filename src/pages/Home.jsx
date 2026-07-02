@@ -139,27 +139,9 @@ function Home({
         </p>
       </div>
 
-      <div className="absolute right-10 bottom-14 w-72 rounded-3xl bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/20 p-6">
-        <div className="flex items-center gap-3">
-          <div className="text-3xl text-purple-400">✣</div>
-          <h2 className="text-lg font-semibold">Memory</h2>
-        </div>
-
-        <p className="text-gray-400 text-sm leading-relaxed mt-5">
-          Your preferences & history are up to date.
-        </p>
-
-        <button
-          onClick={() => setPage("settings")}
-          className="mt-6 w-full h-12 rounded-xl bg-[#101827] border border-[#1B2540] hover:bg-[#141f33] flex items-center justify-between px-5"
-        >
-          <span>View Memory</span>
-          <span className="text-2xl">→</span>
-        </button>
-      </div>
+      
     </div>
   );
 }
-
 
 export default Home;
