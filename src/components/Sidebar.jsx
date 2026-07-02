@@ -35,7 +35,10 @@ function Sidebar({
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
 
   const [chatMenuPosition, setChatMenuPosition] = useState({ top: 0, left: 0 });
-  const [projectMenuPosition, setProjectMenuPosition] = useState({ top: 0, left: 0 });
+  const [projectMenuPosition, setProjectMenuPosition] = useState({
+    top: 0,
+    left: 0,
+  });
 
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [chatToMove, setChatToMove] = useState("");
@@ -46,9 +49,6 @@ function Sidebar({
   const [renameIndex, setRenameIndex] = useState(null);
   const [renameValue, setRenameValue] = useState("");
 
-  // Close any open popup menu on outside click or on scroll (of any
-  // scrollable ancestor), since the menus are now portaled to <body>
-  // and positioned with fixed coordinates tied to the trigger button.
   useEffect(() => {
     if (openChatMenu === null && openProjectMenu === null) return;
 
@@ -70,6 +70,28 @@ function Sidebar({
 
   const getChatTime = (chat) => {
     return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
+  };
+
+  const getMenuPosition = (event, menuWidth, menuHeight) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const gap = 6;
+
+    let top = rect.bottom + gap;
+    let left = rect.right - menuWidth;
+
+    if (top + menuHeight > window.innerHeight) {
+      top = rect.top - menuHeight - gap;
+    }
+
+    if (left < 8) {
+      left = 8;
+    }
+
+    if (left + menuWidth > window.innerWidth - 8) {
+      left = window.innerWidth - menuWidth - 8;
+    }
+
+    return { top, left };
   };
 
   const openRenameModal = (type, index, currentName) => {
@@ -375,12 +397,12 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="cursor-pointer mb-3 flex items-center"
+            className="cursor-pointer mb-3 flex items-center h-16 overflow-visible"
           >
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-36 w-auto object-contain"
+              className="h-24 w-auto object-contain scale-125 origin-left"
             />
           </div>
 
@@ -466,28 +488,9 @@ function Sidebar({
                       }}
                       onMenuClick={(e) => {
                         e.stopPropagation();
-                        const rect = e.currentTarget.getBoundingClientRect();
 
-const menuWidth = 176; // w-44
-const menuHeight = 224; // approx height of ChatMenu
-const gap = 6;
+                        setChatMenuPosition(getMenuPosition(e, 176, 224));
 
-let top = rect.bottom + gap;
-let left = rect.right - menuWidth;
-
-if (top + menuHeight > window.innerHeight) {
-  top = rect.top - menuHeight - gap;
-}
-
-if (left < 8) {
-  left = 8;
-}
-
-if (left + menuWidth > window.innerWidth - 8) {
-  left = window.innerWidth - menuWidth - 8;
-}
-
-setChatMenuPosition({ top, left });
                         setOpenChatMenu(
                           openChatMenu === originalIndex ? null : originalIndex
                         );
@@ -579,28 +582,9 @@ setChatMenuPosition({ top, left });
                       }}
                       onMenuClick={(e) => {
                         e.stopPropagation();
-                        const rect = e.currentTarget.getBoundingClientRect();
 
-const menuWidth = 144; // w-36
-const menuHeight = 144; // approx height of ProjectMenu
-const gap = 6;
+                        setProjectMenuPosition(getMenuPosition(e, 144, 144));
 
-let top = rect.bottom + gap;
-let left = rect.right - menuWidth;
-
-if (top + menuHeight > window.innerHeight) {
-  top = rect.top - menuHeight - gap;
-}
-
-if (left < 8) {
-  left = 8;
-}
-
-if (left + menuWidth > window.innerWidth - 8) {
-  left = window.innerWidth - menuWidth - 8;
-}
-
-setProjectMenuPosition({ top, left });
                         setOpenProjectMenu(
                           openProjectMenu === originalIndex
                             ? null
