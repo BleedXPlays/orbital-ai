@@ -17,7 +17,7 @@ function ChatMenu({
         top: position.top,
         left: position.left,
       }}
-      cclassName="z-[9999] w-44 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2 text-white"
+      className="z-[9999] w-44 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2 text-white"
     >
       <button
         onClick={onRename}
