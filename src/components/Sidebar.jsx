@@ -402,7 +402,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-24 w-auto object-contain scale-[1.5] origin-left"
+              className="h-24 w-auto object-contain scale-[1.5] translate-y-2 origin-left"
             />
           </div>
 
