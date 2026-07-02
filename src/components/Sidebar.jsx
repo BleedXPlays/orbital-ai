@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatCard from "./ChatCard";
 import ProjectCard from "./ProjectCard";
 import ChatMenu from "./ChatMenu";
@@ -34,6 +34,9 @@ function Sidebar({
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
 
+  const [chatMenuPosition, setChatMenuPosition] = useState({ top: 0, left: 0 });
+  const [projectMenuPosition, setProjectMenuPosition] = useState({ top: 0, left: 0 });
+
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [chatToMove, setChatToMove] = useState("");
   const [targetProject, setTargetProject] = useState("");
@@ -42,6 +45,26 @@ function Sidebar({
   const [renameType, setRenameType] = useState("");
   const [renameIndex, setRenameIndex] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+
+  // Close any open popup menu on outside click or on scroll (of any
+  // scrollable ancestor), since the menus are now portaled to <body>
+  // and positioned with fixed coordinates tied to the trigger button.
+  useEffect(() => {
+    if (openChatMenu === null && openProjectMenu === null) return;
+
+    const closeMenus = () => {
+      setOpenChatMenu(null);
+      setOpenProjectMenu(null);
+    };
+
+    document.addEventListener("click", closeMenus);
+    window.addEventListener("scroll", closeMenus, true);
+
+    return () => {
+      document.removeEventListener("click", closeMenus);
+      window.removeEventListener("scroll", closeMenus, true);
+    };
+  }, [openChatMenu, openProjectMenu]);
 
   const isPinned = (chat) => pinnedChats.includes(chat);
 
@@ -344,7 +367,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-4 py-4 overflow-hidden"
+        className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-4 py-4 overflow-visible"
       >
         <div className="shrink-0">
           <div
@@ -425,7 +448,7 @@ function Sidebar({
               className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto pr-1 min-h-0">
+            <div className="space-y-1.5 overflow-y-auto overflow-x-visible pr-1 min-h-0">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -443,6 +466,11 @@ function Sidebar({
                       }}
                       onMenuClick={(e) => {
                         e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setChatMenuPosition({
+                          top: rect.bottom + 4,
+                          left: rect.right - 176, // 176px = w-44
+                        });
                         setOpenChatMenu(
                           openChatMenu === originalIndex ? null : originalIndex
                         );
@@ -452,6 +480,7 @@ function Sidebar({
 
                     {openChatMenu === originalIndex && (
                       <ChatMenu
+                        position={chatMenuPosition}
                         isPinned={isPinned(chat)}
                         onRename={(e) => {
                           e.stopPropagation();
@@ -533,6 +562,11 @@ function Sidebar({
                       }}
                       onMenuClick={(e) => {
                         e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setProjectMenuPosition({
+                          top: rect.bottom + 4,
+                          left: rect.right - 144, // 144px = w-36
+                        });
                         setOpenProjectMenu(
                           openProjectMenu === originalIndex
                             ? null
@@ -544,6 +578,7 @@ function Sidebar({
 
                     {openProjectMenu === originalIndex && (
                       <ProjectMenu
+                        position={projectMenuPosition}
                         onRename={(e) => {
                           e.stopPropagation();
                           openRenameModal("project", originalIndex, project);
