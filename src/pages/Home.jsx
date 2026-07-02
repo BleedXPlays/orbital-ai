@@ -1,3 +1,5 @@
+import logo from "../assets/orbital-logo.png";
+
 function Home({
   chats,
   projects,
@@ -13,308 +15,147 @@ function Home({
   setSelectedProject,
   setPage,
 }) {
-  const projectChatCount = Object.values(projectChats || {}).flat().length;
-  const fileCount = Object.values(projectFiles || {}).flat().length;
-
-  const imageCount = Object.values(projectFiles || {})
-    .flat()
-    .filter((file) => file.type && file.type.startsWith("image")).length;
-
-  const noteCount = Object.values(projectNotes || {}).flat().length;
-
-  const archivedCount = archivedChats.length + archivedProjects.length;
-  const totalChats = chats.length + projectChatCount;
-
-  const getChatTime = (chat) => {
-    return chatActivity[chat] ? new Date(chatActivity[chat]).getTime() : 0;
-  };
-
-  const formatUpdatedTime = (chat) => {
-    if (!chatActivity[chat]) return "No activity yet";
-    return `Updated ${new Date(chatActivity[chat]).toLocaleString()}`;
-  };
-
-  const formatActivityTime = (date) => {
-    return new Date(date).toLocaleString();
-  };
-
-  const globalRecentChats = chats.map((chat) => ({
-    name: chat,
-    source: "Global Chat",
-    project: null,
-  }));
-
-  const projectRecentChats = Object.keys(projectChats || {}).flatMap((project) =>
-    (projectChats[project] || []).map((chat) => ({
-      name: chat,
-      source: "Project Chat",
-      project,
-    }))
-  );
-
-  const allChats = [...globalRecentChats, ...projectRecentChats];
-
-  const recentChats = [...allChats]
-    .sort((a, b) => getChatTime(b.name) - getChatTime(a.name))
-    .slice(0, 5);
-
-  const recentProjects = [...projects].slice(-5).reverse();
-
-  const recentActivity = (activityLog || []).slice(0, 8);
-
-  const openChat = (chat) => {
-    setSelectedChat(chat.name);
-
-    if (chat.project) {
-      setSelectedProject(chat.project);
-    }
-
-    setPage("chat");
-  };
-
-  const openPinnedChat = (chatName) => {
-    const matchedProject = Object.keys(projectChats || {}).find((project) =>
-      (projectChats[project] || []).includes(chatName)
-    );
-
+  const openSuggestionChat = (chatName) => {
     setSelectedChat(chatName);
-
-    if (matchedProject) {
-      setSelectedProject(matchedProject);
-    }
-
     setPage("chat");
   };
 
-  const openProject = (project) => {
-    setSelectedProject(project);
+  const openSuggestionProject = (projectName) => {
+    setSelectedProject(projectName);
     setPage("project");
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-black text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-black to-purple-950/20"></div>
+    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.16),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.16),transparent_35%)]" />
 
-      <div className="relative px-10 py-10">
-        <div className="mb-12">
-          <h1 className="text-5xl font-bold mb-3">
+      <div className="relative min-h-screen flex flex-col items-center justify-center px-10 pb-40">
+        <div className="text-center mt-8">
+          <h1 className="text-5xl font-extrabold tracking-tight">
             Welcome to{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
               OrbitalAI
             </span>
           </h1>
 
-          <p className="text-xl text-gray-400">
-            One Request. Multiple AI Experts.
+          <p className="mt-4 text-xl text-gray-300">
+            One request. Multiple AI experts.
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-10">
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Total Chats</p>
-            <h2 className="text-4xl font-bold mt-3">{totalChats}</h2>
-          </div>
+        <div className="mt-12 relative flex items-center justify-center">
+          <div className="absolute w-[420px] h-[110px] rounded-full border border-purple-500/30 rotate-[-4deg]" />
+          <div className="absolute w-[360px] h-[90px] rounded-full border border-blue-500/20 rotate-[6deg]" />
+          <div className="absolute w-3 h-3 rounded-full bg-purple-500 top-[-18px] right-8" />
+          <div className="absolute w-2.5 h-2.5 rounded-full bg-blue-500 bottom-[-12px] left-12" />
+          <div className="absolute w-2 h-2 rounded-full bg-purple-400 top-6 left-[-18px]" />
+          <div className="absolute w-2 h-2 rounded-full bg-blue-400 bottom-7 right-[-20px]" />
 
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Projects</p>
-            <h2 className="text-4xl font-bold mt-3">{projects.length}</h2>
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Files</p>
-            <h2 className="text-4xl font-bold mt-3">{fileCount}</h2>
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Notes</p>
-            <h2 className="text-4xl font-bold mt-3">{noteCount}</h2>
-          </div>
+          <img
+            src={logo}
+            alt="OrbitalAI"
+            className="relative h-32 w-auto object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.45)]"
+          />
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-12">
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Images</p>
-            <h2 className="text-4xl font-bold mt-3">{imageCount}</h2>
-          </div>
+        <div className="mt-16 text-center">
+          <p className="text-xl text-gray-200">
+            What would you like to do today?
+          </p>
 
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Archived</p>
-            <h2 className="text-4xl font-bold mt-3">{archivedCount}</h2>
-          </div>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[760px]">
+            <button
+              onClick={() => openSuggestionProject("Chandrayaan-3 Research")}
+              className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-2xl">
+                  ▣
+                </div>
 
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Project Chats</p>
-            <h2 className="text-4xl font-bold mt-3">{projectChatCount}</h2>
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <p className="text-gray-400">Activities</p>
-            <h2 className="text-4xl font-bold mt-3">{activityLog.length}</h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-8 mb-12">
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <h2 className="text-2xl font-bold mb-5">Recent Activity</h2>
-
-            {recentActivity.length === 0 ? (
-              <p className="text-gray-500">No recent activity yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {recentActivity.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#101827] border border-gray-800 rounded-xl p-4"
-                  >
-                    <p className="font-semibold">
-                      {item.type === "chat" && "💬 "}
-                      {item.type === "message" && "✉️ "}
-                      {item.type === "project" && "📂 "}
-                      {item.type === "note" && "📝 "}
-                      {item.type === "file" && "📄 "}
-                      {item.type === "archive" && "🗄️ "}
-                      {item.type === "pin" && "⭐ "}
-                      {item.title}
-                    </p>
-
-                    {item.details && (
-                      <p className="text-gray-400 text-sm mt-1">
-                        {item.details}
-                      </p>
-                    )}
-
-                    <p className="text-gray-500 text-xs mt-2">
-                      {formatActivityTime(item.createdAt)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <h2 className="text-2xl font-bold mb-5">Recent Chats</h2>
-
-            {recentChats.length === 0 ? (
-              <p className="text-gray-500">No chats yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {recentChats.map((chat, index) => (
-                  <button
-                    key={`${chat.name}-${index}`}
-                    onClick={() => openChat(chat)}
-                    className="w-full text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
-                  >
-                    <h3 className="font-semibold">
-                      {pinnedChats.includes(chat.name) ? "⭐" : "💬"} {chat.name}
-                    </h3>
-                    <p className="text-gray-400 text-sm mt-1">
-                      {chat.project ? `Project: ${chat.project}` : chat.source} •{" "}
-                      {formatUpdatedTime(chat.name)}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {pinnedChats.length > 0 && (
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6 mb-12">
-            <h2 className="text-2xl font-bold mb-5">Pinned Chats</h2>
-
-            <div className="grid grid-cols-3 gap-4">
-              {pinnedChats.map((chat) => (
-                <button
-                  key={chat}
-                  onClick={() => openPinnedChat(chat)}
-                  className="text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
-                >
-                  <h3 className="font-semibold">⭐ {chat}</h3>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {formatUpdatedTime(chat)}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-8 mb-12">
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <h2 className="text-2xl font-bold mb-5">Recent Projects</h2>
-
-            {recentProjects.length === 0 ? (
-              <p className="text-gray-500">No projects yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {recentProjects.map((project, index) => (
-                  <button
-                    key={`${project}-${index}`}
-                    onClick={() => openProject(project)}
-                    className="w-full text-left bg-[#101827] border border-gray-800 rounded-xl p-4 hover:border-purple-700"
-                  >
-                    <h3 className="font-semibold">📂 {project}</h3>
-                    <p className="text-gray-400 text-sm mt-1">
-                      {(projectChats[project] || []).length} chats •{" "}
-                      {(projectFiles[project] || []).length} files •{" "}
-                      {(projectNotes[project] || []).length} notes
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-            <h2 className="text-2xl font-bold mb-5">Quick Actions</h2>
-
-            <div className="space-y-4">
-              <div
-                onClick={() => setPage("project")}
-                className="p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
-              >
-                <h3 className="font-semibold mb-2">Create a project</h3>
-                <p className="text-gray-400 text-sm">
-                  Create a project with chats, files, notes and images.
+                <p className="text-base leading-relaxed text-gray-100">
+                  Create a project on
+                  <br />
+                  Chandrayaan-3 with images
                 </p>
               </div>
 
-              <div
-                onClick={() => setPage("chat")}
-                className="p-6 rounded-2xl bg-[#101827] border border-gray-800 hover:border-purple-500 cursor-pointer"
-              >
-                <h3 className="font-semibold mb-2">Ask OrbitalAI</h3>
-                <p className="text-gray-400 text-sm">
-                  Research, code, write and generate outputs instantly.
+              <span className="text-3xl text-purple-400 group-hover:translate-x-1 transition">
+                →
+              </span>
+            </button>
+
+            <button
+              onClick={() => openSuggestionChat("Global Warming Project")}
+              className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-2xl">
+                  ✎
+                </div>
+
+                <p className="text-base leading-relaxed text-gray-100">
+                  Write an essay on
+                  <br />
+                  global warming
                 </p>
               </div>
-            </div>
+
+              <span className="text-3xl text-purple-400 group-hover:translate-x-1 transition">
+                →
+              </span>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div className="max-w-4xl bg-[#101827] border border-purple-900/60 rounded-2xl p-4 flex items-center gap-4">
-          <button className="w-12 h-12 rounded-xl bg-[#151E33] text-3xl">
+      <div className="absolute left-1/2 bottom-14 -translate-x-1/2 w-[760px] max-w-[calc(100vw-420px)]">
+        <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/20 rounded-3xl p-4 flex items-center gap-4">
+          <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
             +
           </button>
 
-          <button className="w-12 h-12 rounded-xl bg-[#151E33] text-xl">
-            🎤
+          <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
+            🎙️
           </button>
 
           <input
             type="text"
             placeholder="Ask OrbitalAI anything..."
-            className="flex-1 bg-transparent outline-none text-gray-300"
+            onFocus={() => setPage("chat")}
+            className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
           />
 
           <button
             onClick={() => setPage("chat")}
-            className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600"
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
           >
-            ➤
+            ✈
           </button>
         </div>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new line
+        </p>
+      </div>
+
+      <div className="absolute right-10 bottom-14 w-72 rounded-3xl bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/20 p-6">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl text-purple-400">✣</div>
+          <h2 className="text-lg font-semibold">Memory</h2>
+        </div>
+
+        <p className="text-gray-400 text-sm leading-relaxed mt-5">
+          Your preferences & history are up to date.
+        </p>
+
+        <button
+          onClick={() => setPage("settings")}
+          className="mt-6 w-full h-12 rounded-xl bg-[#101827] border border-[#1B2540] hover:bg-[#141f33] flex items-center justify-between px-5"
+        >
+          <span>View Memory</span>
+          <span className="text-2xl">→</span>
+        </button>
       </div>
     </div>
   );
