@@ -380,7 +380,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-32 w-auto object-contain"
+              className="h-36 w-auto object-contain"
             />
           </div>
 
