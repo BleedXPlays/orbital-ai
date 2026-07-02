@@ -23,35 +23,73 @@ function Chat({
     const lowerText = text.toLowerCase();
     const detectedTasks = [];
 
-    if (lowerText.includes("research") || lowerText.includes("information") || lowerText.includes("facts") || lowerText.includes("sources")) {
+    if (
+      lowerText.includes("research") ||
+      lowerText.includes("information") ||
+      lowerText.includes("facts") ||
+      lowerText.includes("sources")
+    ) {
       detectedTasks.push({ task: "Research", ai: "Claude" });
     }
 
-    if (lowerText.includes("write") || lowerText.includes("essay") || lowerText.includes("report") || lowerText.includes("content") || lowerText.includes("explain")) {
+    if (
+      lowerText.includes("write") ||
+      lowerText.includes("essay") ||
+      lowerText.includes("report") ||
+      lowerText.includes("content") ||
+      lowerText.includes("explain")
+    ) {
       detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
     }
 
-    if (lowerText.includes("image") || lowerText.includes("poster") || lowerText.includes("diagram") || lowerText.includes("logo") || lowerText.includes("visual")) {
+    if (
+      lowerText.includes("image") ||
+      lowerText.includes("poster") ||
+      lowerText.includes("diagram") ||
+      lowerText.includes("logo") ||
+      lowerText.includes("visual")
+    ) {
       detectedTasks.push({ task: "Images", ai: "Gemini" });
     }
 
-    if (lowerText.includes("website") || lowerText.includes("code") || lowerText.includes("app") || lowerText.includes("react")) {
+    if (
+      lowerText.includes("website") ||
+      lowerText.includes("code") ||
+      lowerText.includes("app") ||
+      lowerText.includes("react")
+    ) {
       detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
     }
 
-    if (lowerText.includes("presentation") || lowerText.includes("ppt") || lowerText.includes("slides")) {
+    if (
+      lowerText.includes("presentation") ||
+      lowerText.includes("ppt") ||
+      lowerText.includes("slides")
+    ) {
       detectedTasks.push({ task: "Presentation", ai: "Gamma" });
     }
 
-    if (lowerText.includes("video") || lowerText.includes("reel") || lowerText.includes("youtube")) {
+    if (
+      lowerText.includes("video") ||
+      lowerText.includes("reel") ||
+      lowerText.includes("youtube")
+    ) {
       detectedTasks.push({ task: "Video", ai: "Runway" });
     }
 
-    if (lowerText.includes("translate") || lowerText.includes("translation") || lowerText.includes("language")) {
+    if (
+      lowerText.includes("translate") ||
+      lowerText.includes("translation") ||
+      lowerText.includes("language")
+    ) {
       detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
     }
 
-    if (lowerText.includes("voice") || lowerText.includes("audio") || lowerText.includes("speech")) {
+    if (
+      lowerText.includes("voice") ||
+      lowerText.includes("audio") ||
+      lowerText.includes("speech")
+    ) {
       detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
     }
 
@@ -66,15 +104,24 @@ function Chat({
     const outputs = [];
 
     tasks.forEach((item) => {
-      if (item.task === "Research") outputs.push(["📚", "Research Notes", "Detailed sources"]);
-      if (item.task === "Writing") outputs.push(["📄", "Written Content", "Essay / report"]);
-      if (item.task === "Images") outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
-      if (item.task === "Coding") outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
-      if (item.task === "Presentation") outputs.push(["📊", "Presentation", "Slides"]);
-      if (item.task === "Video") outputs.push(["🎬", "Video Plan", "Scene prompts"]);
-      if (item.task === "Translation") outputs.push(["🌍", "Translation", "Translated output"]);
-      if (item.task === "Voice Input") outputs.push(["🎙️", "Transcript", "Voice to text"]);
-      if (item.task === "General Answer") outputs.push(["💬", "Answer", "General response"]);
+      if (item.task === "Research")
+        outputs.push(["📚", "Research Notes", "Detailed sources"]);
+      if (item.task === "Writing")
+        outputs.push(["📄", "Written Content", "Essay / report"]);
+      if (item.task === "Images")
+        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
+      if (item.task === "Coding")
+        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
+      if (item.task === "Presentation")
+        outputs.push(["📊", "Presentation", "Slides"]);
+      if (item.task === "Video")
+        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
+      if (item.task === "Translation")
+        outputs.push(["🌍", "Translation", "Translated output"]);
+      if (item.task === "Voice Input")
+        outputs.push(["🎙️", "Transcript", "Voice to text"]);
+      if (item.task === "General Answer")
+        outputs.push(["💬", "Answer", "General response"]);
     });
 
     return outputs;
@@ -175,132 +222,212 @@ function Chat({
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-black text-white px-10 py-8 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-black to-purple-950/20"></div>
+    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
-      <div className="relative min-h-screen pb-40">
-        <div className="flex justify-between items-start mb-10">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {selectedChat || "Untitled Chat"}
-            </h1>
+      <div className="relative min-h-screen flex flex-col">
+        <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/50 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_16px_rgba(74,222,128,0.8)]" />
+                <p className="text-sm text-green-300">
+                  Multi-AI collaboration active
+                </p>
+              </div>
 
-            <p className="text-green-400 mt-1">
-              ● Multi-AI collaboration active
-            </p>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {selectedChat || "Untitled Chat"}
+              </h1>
+            </div>
+
+            <div className="flex gap-3">
+              <button className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]">
+                Share
+              </button>
+
+              <button className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]">
+                Export
+              </button>
+            </div>
           </div>
+        </header>
 
-          <div className="flex gap-4">
-            <button className="px-5 py-3 rounded-xl border border-gray-700 bg-[#101827]">
-              Share
-            </button>
-
-            <button className="px-5 py-3 rounded-xl border border-gray-700 bg-[#101827]">
-              Export
-            </button>
-          </div>
-        </div>
-
-        {messages.length === 0 && (
-          <div className="text-center text-gray-500 mt-32 mb-32">
-            <h2 className="text-3xl font-bold mb-3 text-gray-300">
-              Start a new conversation
-            </h2>
-            <p>Ask OrbitalAI anything.</p>
-          </div>
-        )}
-
-        <div className="space-y-6 max-w-6xl mx-auto">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {message.role === "user" ? (
-                <div className="bg-gradient-to-br from-purple-900 to-blue-900 p-6 rounded-2xl w-[560px]">
-                  <p className="font-semibold mb-2">You</p>
-                  <p>{message.text}</p>
+        <main className="flex-1 overflow-y-auto px-10 pt-8 pb-36">
+          {messages.length === 0 && (
+            <div className="min-h-[520px] flex flex-col items-center justify-center text-center">
+              <div className="relative mb-10">
+                <div className="absolute inset-0 blur-3xl bg-purple-600/20 rounded-full" />
+                <div className="relative w-24 h-24 rounded-3xl bg-[#07101F] border border-[#1B2540] flex items-center justify-center text-4xl shadow-2xl shadow-purple-950/30">
+                  ✦
                 </div>
-              ) : (
-                <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-8 max-w-5xl">
-                  <p className="text-xl font-semibold mb-4">{message.text}</p>
+              </div>
 
-                  {message.tasks && message.tasks.length > 0 && (
-                    <>
-                      <p className="text-gray-400 mb-8">
-                        OrbitalAI automatically assigned the best AI model for each task.
+              <h2 className="text-4xl font-bold tracking-tight">
+                Start a new conversation
+              </h2>
+
+              <p className="mt-4 text-gray-400 text-lg">
+                Ask once. OrbitalAI routes the work to the right AI experts.
+              </p>
+
+              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl">
+                <button
+                  onClick={() =>
+                    setInput("Research Chandrayaan-3 and create key notes")
+                  }
+                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                >
+                  <p className="text-lg mb-2">📚 Research</p>
+                  <p className="text-sm text-gray-400">
+                    Build notes with useful facts and sources.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() =>
+                    setInput("Write an essay on global warming")
+                  }
+                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                >
+                  <p className="text-lg mb-2">📄 Writing</p>
+                  <p className="text-sm text-gray-400">
+                    Draft essays, reports, summaries and explanations.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() =>
+                    setInput("Create a project idea with visuals and code")
+                  }
+                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                >
+                  <p className="text-lg mb-2">✦ Multi-output</p>
+                  <p className="text-sm text-gray-400">
+                    Combine writing, images, code and presentations.
+                  </p>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-7 max-w-6xl mx-auto">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                {message.role === "user" ? (
+                  <div className="max-w-[620px] rounded-3xl rounded-tr-md bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 p-[1px] shadow-xl shadow-purple-950/30">
+                    <div className="rounded-3xl rounded-tr-md bg-[#111A2E]/90 p-6">
+                      <p className="text-sm text-purple-200 mb-2">You</p>
+                      <p className="text-gray-100 leading-relaxed">
+                        {message.text}
                       </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-5xl rounded-3xl rounded-tl-md bg-[#07101F]/95 border border-[#1B2540] p-7 shadow-xl shadow-purple-950/10">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-11 h-11 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center">
+                        ✦
+                      </div>
 
+                      <div>
+                        <p className="text-xl font-semibold">
+                          {message.text}
+                        </p>
+
+                        {message.tasks && message.tasks.length > 0 && (
+                          <p className="text-gray-400 mt-2">
+                            The request was routed across the best-fit AI roles.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {message.tasks && message.tasks.length > 0 && (
                       <div className="flex flex-wrap gap-3 mb-8">
                         {message.tasks.map((item, taskIndex) => (
                           <span
                             key={taskIndex}
-                            className="px-3 py-2 rounded-lg bg-[#101827] border border-gray-700"
+                            className="px-4 py-2 rounded-full bg-[#101827] border border-[#1B2540] text-sm text-gray-200"
                           >
                             {item.ai} → {item.task}
                           </span>
                         ))}
                       </div>
-                    </>
-                  )}
+                    )}
 
-                  {message.outputs && message.outputs.length > 0 && (
-                    <>
-                      <h2 className="text-2xl font-bold mb-6">
-                        Generated Outputs
-                      </h2>
+                    {message.outputs && message.outputs.length > 0 && (
+                      <>
+                        <h2 className="text-2xl font-bold mb-5">
+                          Generated Outputs
+                        </h2>
 
-                      <div className="grid grid-cols-3 gap-5">
-                        {message.outputs.map((output, outputIndex) => (
-                          <div
-                            key={outputIndex}
-                            className="bg-[#101827] border border-gray-800 rounded-xl p-5"
-                          >
-                            <h3 className="font-bold text-lg mb-2">
-                              {output[0]} {output[1]}
-                            </h3>
-                            <p className="text-gray-400 text-sm">{output[2]}</p>
-                          </div>
-                        ))}
-                      </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {message.outputs.map((output, outputIndex) => (
+                            <div
+                              key={outputIndex}
+                              className="bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 transition"
+                            >
+                              <h3 className="font-bold text-lg mb-2">
+                                {output[0]} {output[1]}
+                              </h3>
+                              <p className="text-gray-400 text-sm">
+                                {output[2]}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
 
-                      <button className="mt-8 text-purple-400 font-semibold hover:text-purple-300">
-                        Open All Files →
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                        <button className="mt-7 text-purple-300 font-semibold hover:text-purple-200">
+                          Open all files →
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </main>
 
-        <div className="mt-16 mx-auto w-[760px] bg-[#101827] border border-purple-900/60 rounded-2xl p-4 flex items-center gap-4">
-          <button className="w-12 h-12 rounded-xl bg-[#151E33] text-3xl">
-            +
-          </button>
+        <div className="absolute left-1/2 bottom-8 -translate-x-1/2 w-[820px] max-w-[calc(100vw-360px)]">
+          <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl">
+            <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
+              +
+            </button>
 
-          <button className="w-12 h-12 rounded-xl bg-[#151E33]">🎤</button>
+            <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
+              🎤
+            </button>
 
-          <input
-            type="text"
-            value={input}
-            placeholder="Ask OrbitalAI anything..."
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") sendMessage();
-            }}
-            className="flex-1 bg-transparent outline-none text-gray-300"
-          />
+            <input
+              type="text"
+              value={input}
+              placeholder="Ask OrbitalAI anything..."
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendMessage();
+              }}
+              className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+            />
 
-          <button
-            onClick={sendMessage}
-            className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600"
-          >
-            ➤
-          </button>
+            <button
+              onClick={sendMessage}
+              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+            >
+              ➤
+            </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new
+            line
+          </p>
         </div>
       </div>
     </div>
