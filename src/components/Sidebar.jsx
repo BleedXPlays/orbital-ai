@@ -467,10 +467,27 @@ function Sidebar({
                       onMenuClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setChatMenuPosition({
-                          top: rect.bottom + 4,
-                          left: rect.right - 176, // 176px = w-44
-                        });
+
+const menuWidth = 176; // w-44
+const menuHeight = 224; // approx height of ChatMenu
+const gap = 6;
+
+let top = rect.bottom + gap;
+let left = rect.right - menuWidth;
+
+if (top + menuHeight > window.innerHeight) {
+  top = rect.top - menuHeight - gap;
+}
+
+if (left < 8) {
+  left = 8;
+}
+
+if (left + menuWidth > window.innerWidth - 8) {
+  left = window.innerWidth - menuWidth - 8;
+}
+
+setChatMenuPosition({ top, left });
                         setOpenChatMenu(
                           openChatMenu === originalIndex ? null : originalIndex
                         );
@@ -563,10 +580,27 @@ function Sidebar({
                       onMenuClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setProjectMenuPosition({
-                          top: rect.bottom + 4,
-                          left: rect.right - 144, // 144px = w-36
-                        });
+
+const menuWidth = 144; // w-36
+const menuHeight = 144; // approx height of ProjectMenu
+const gap = 6;
+
+let top = rect.bottom + gap;
+let left = rect.right - menuWidth;
+
+if (top + menuHeight > window.innerHeight) {
+  top = rect.top - menuHeight - gap;
+}
+
+if (left < 8) {
+  left = 8;
+}
+
+if (left + menuWidth > window.innerWidth - 8) {
+  left = window.innerWidth - menuWidth - 8;
+}
+
+setProjectMenuPosition({ top, left });
                         setOpenProjectMenu(
                           openProjectMenu === originalIndex
                             ? null

@@ -16,7 +16,6 @@ import Archived from "./pages/Archived";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import Login from "./pages/Login";
-import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService";
 
 function App() {
   const saveTimer = useRef(null);
