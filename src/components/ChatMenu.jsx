@@ -11,12 +11,13 @@ function ChatMenu({
 }) {
   return createPortal(
     <div
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
         top: position.top,
         left: position.left,
       }}
-      className="z-[9999] w-44 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2"
+      cclassName="z-[9999] w-44 bg-[#101827] border border-[#1B2540] rounded-xl shadow-xl p-2 text-white"
     >
       <button
         onClick={onRename}
