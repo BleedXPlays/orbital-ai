@@ -17,6 +17,7 @@ function Chat({
 }) {
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
 
   const mainScrollRef = useRef(null);
 
@@ -179,6 +180,44 @@ function Chat({
     return updatedProjectChats;
   };
 
+  const createEmptyChat = () => {
+    let newChatName = `New Chat ${chats.length + 1}`;
+
+    while (chats.includes(newChatName)) {
+      newChatName = `New Chat ${Date.now()}`;
+    }
+
+    const now = new Date().toISOString();
+
+    setChats([...chats, newChatName]);
+
+    setChatActivity({
+      ...chatActivity,
+      [newChatName]: now,
+    });
+
+    setSelectedChat(newChatName);
+    setActionMenuOpen(false);
+    setInput("");
+
+    addActivity("chat", "New chat created", newChatName);
+    showNotice("New chat created.");
+  };
+
+  const handleAttachFile = () => {
+    setActionMenuOpen(false);
+    showNotice("File attachment will be added next.");
+  };
+
+  const handleCreateProject = () => {
+    setActionMenuOpen(false);
+    showNotice("Use the sidebar to create a project for now.");
+  };
+
+  const handleVoiceInput = () => {
+    showNotice("Voice input will be added next.");
+  };
+
   const formatChatForExport = () => {
     const title = selectedChat || "Untitled Chat";
 
@@ -257,6 +296,8 @@ function Chat({
   const sendMessage = () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
+
+    setActionMenuOpen(false);
 
     const now = new Date().toISOString();
     const tasks = analyzeTask(trimmedInput);
@@ -351,7 +392,10 @@ function Chat({
   };
 
   return (
-    <div className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden">
+    <div
+      onClick={() => setActionMenuOpen(false)}
+      className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
+    >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
       {notice && (
@@ -378,14 +422,20 @@ function Chat({
 
             <div className="flex gap-3 shrink-0">
               <button
-                onClick={handleShare}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare();
+                }}
                 className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
               >
                 Share
               </button>
 
               <button
-                onClick={handleExport}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleExport();
+                }}
                 className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
               >
                 Export
@@ -539,32 +589,71 @@ function Chat({
 
         <div className="shrink-0 px-10 pb-8 pt-4 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent">
           <div className="mx-auto w-[820px] max-w-full">
-            <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl">
-              <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
-                +
-              </button>
+            <div className="relative">
+              {actionMenuOpen && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute left-0 bottom-[92px] w-64 rounded-2xl bg-[#07101F] border border-[#1B2540] shadow-2xl shadow-purple-950/30 p-2 z-[9999]"
+                >
+                  <button
+                    onClick={handleAttachFile}
+                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
+                  >
+                    📎 Attach File
+                  </button>
 
-              <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
-                🎤
-              </button>
+                  <button
+                    onClick={createEmptyChat}
+                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
+                  >
+                    💬 Create New Chat
+                  </button>
 
-              <input
-                type="text"
-                value={input}
-                placeholder="Ask OrbitalAI anything..."
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") sendMessage();
-                }}
-                className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
-              />
+                  <button
+                    onClick={handleCreateProject}
+                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
+                  >
+                    📂 Create Project
+                  </button>
+                </div>
+              )}
 
-              <button
-                onClick={sendMessage}
-                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl"
               >
-                ➤
-              </button>
+                <button
+                  onClick={() => setActionMenuOpen(!actionMenuOpen)}
+                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]"
+                >
+                  +
+                </button>
+
+                <button
+                  onClick={handleVoiceInput}
+                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]"
+                >
+                  🎤
+                </button>
+
+                <input
+                  type="text"
+                  value={input}
+                  placeholder="Ask OrbitalAI anything..."
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendMessage();
+                  }}
+                  className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+                />
+
+                <button
+                  onClick={sendMessage}
+                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+                >
+                  ➤
+                </button>
+              </div>
             </div>
 
             <p className="text-center text-sm text-gray-500 mt-4">
