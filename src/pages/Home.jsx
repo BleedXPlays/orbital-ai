@@ -1,28 +1,227 @@
+import { useState } from "react";
 import logo from "../assets/orbital-logo.png";
 
 function Home({
   chats,
+  setChats,
   projects,
+  setProjects,
   projectChats,
+  setProjectChats,
   projectFiles,
   projectNotes,
   archivedChats,
   archivedProjects,
   pinnedChats,
   chatActivity,
+  setChatActivity,
   activityLog,
+  chatMessages,
+  setChatMessages,
   setSelectedChat,
   setSelectedProject,
   setPage,
+  addActivity,
 }) {
-  const openSuggestionChat = (chatName) => {
-    setSelectedChat(chatName);
-    setPage("chat");
+  const [homeInput, setHomeInput] = useState("");
+
+  const analyzeTask = (text) => {
+    const lowerText = text.toLowerCase();
+    const detectedTasks = [];
+
+    if (
+      lowerText.includes("research") ||
+      lowerText.includes("information") ||
+      lowerText.includes("facts") ||
+      lowerText.includes("sources")
+    ) {
+      detectedTasks.push({ task: "Research", ai: "Claude" });
+    }
+
+    if (
+      lowerText.includes("write") ||
+      lowerText.includes("essay") ||
+      lowerText.includes("report") ||
+      lowerText.includes("content") ||
+      lowerText.includes("explain")
+    ) {
+      detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
+    }
+
+    if (
+      lowerText.includes("image") ||
+      lowerText.includes("poster") ||
+      lowerText.includes("diagram") ||
+      lowerText.includes("logo") ||
+      lowerText.includes("visual")
+    ) {
+      detectedTasks.push({ task: "Images", ai: "Gemini" });
+    }
+
+    if (
+      lowerText.includes("website") ||
+      lowerText.includes("code") ||
+      lowerText.includes("app") ||
+      lowerText.includes("react")
+    ) {
+      detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
+    }
+
+    if (
+      lowerText.includes("presentation") ||
+      lowerText.includes("ppt") ||
+      lowerText.includes("slides")
+    ) {
+      detectedTasks.push({ task: "Presentation", ai: "Gamma" });
+    }
+
+    if (
+      lowerText.includes("video") ||
+      lowerText.includes("reel") ||
+      lowerText.includes("youtube")
+    ) {
+      detectedTasks.push({ task: "Video", ai: "Runway" });
+    }
+
+    if (
+      lowerText.includes("translate") ||
+      lowerText.includes("translation") ||
+      lowerText.includes("language")
+    ) {
+      detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
+    }
+
+    if (
+      lowerText.includes("voice") ||
+      lowerText.includes("audio") ||
+      lowerText.includes("speech")
+    ) {
+      detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
+    }
+
+    if (detectedTasks.length === 0) {
+      detectedTasks.push({ task: "General Answer", ai: "ChatGPT" });
+    }
+
+    return detectedTasks;
   };
 
-  const openSuggestionProject = (projectName) => {
+  const getOutputs = (tasks) => {
+    const outputs = [];
+
+    tasks.forEach((item) => {
+      if (item.task === "Research")
+        outputs.push(["📚", "Research Notes", "Detailed sources"]);
+      if (item.task === "Writing")
+        outputs.push(["📄", "Written Content", "Essay / report"]);
+      if (item.task === "Images")
+        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
+      if (item.task === "Coding")
+        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
+      if (item.task === "Presentation")
+        outputs.push(["📊", "Presentation", "Slides"]);
+      if (item.task === "Video")
+        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
+      if (item.task === "Translation")
+        outputs.push(["🌍", "Translation", "Translated output"]);
+      if (item.task === "Voice Input")
+        outputs.push(["🎙️", "Transcript", "Voice to text"]);
+      if (item.task === "General Answer")
+        outputs.push(["💬", "Answer", "General response"]);
+    });
+
+    return outputs;
+  };
+
+  const generateChatTitle = (text) => {
+    const words = text
+      .replace(/[^\w\s]/gi, "")
+      .split(" ")
+      .filter((word) => word.length > 3)
+      .slice(0, 4);
+
+    if (words.length === 0) return `New Chat ${chats.length + 1}`;
+
+    let title = words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    if (chats.includes(title)) {
+      title = `${title} ${chats.length + 1}`;
+    }
+
+    return title;
+  };
+
+  const createChatWithPrompt = (promptText) => {
+    const trimmedPrompt = promptText.trim();
+    if (!trimmedPrompt) return;
+
+    const now = new Date().toISOString();
+    const chatTitle = generateChatTitle(trimmedPrompt);
+    const tasks = analyzeTask(trimmedPrompt);
+
+    const userMessage = {
+      role: "user",
+      text: trimmedPrompt,
+    };
+
+    const aiMessage = {
+      role: "ai",
+      text: "OrbitalAI analyzed your request and assigned the best AI models.",
+      tasks,
+      outputs: getOutputs(tasks),
+    };
+
+    setChats([...chats, chatTitle]);
+
+    setChatMessages({
+      ...chatMessages,
+      [chatTitle]: [userMessage, aiMessage],
+    });
+
+    setChatActivity({
+      ...chatActivity,
+      [chatTitle]: now,
+    });
+
+    setSelectedChat(chatTitle);
+    setPage("chat");
+
+    if (addActivity) {
+      addActivity("chat", "Chat created from home", chatTitle);
+    }
+
+    setHomeInput("");
+  };
+
+  const createProjectFromSuggestion = () => {
+    const projectName = projects.includes("Chandrayaan-3 Research")
+      ? `Chandrayaan-3 Research ${projects.length + 1}`
+      : "Chandrayaan-3 Research";
+
+    const chatName = "Chandrayaan-3 Research Notes";
+    const now = new Date().toISOString();
+
+    setProjects([...projects, projectName]);
+
+    setProjectChats({
+      ...projectChats,
+      [projectName]: [chatName],
+    });
+
+    setChatActivity({
+      ...chatActivity,
+      [chatName]: now,
+    });
+
     setSelectedProject(projectName);
+    setSelectedChat(chatName);
     setPage("project");
+
+    if (addActivity) {
+      addActivity("project", "Project created from home", projectName);
+    }
   };
 
   return (
@@ -65,7 +264,7 @@ function Home({
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[760px]">
             <button
-              onClick={() => openSuggestionProject("Chandrayaan-3 Research")}
+              onClick={createProjectFromSuggestion}
               className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
             >
               <div className="flex items-center gap-5">
@@ -86,7 +285,9 @@ function Home({
             </button>
 
             <button
-              onClick={() => openSuggestionChat("Global Warming Project")}
+              onClick={() =>
+                createChatWithPrompt("Write an essay on global warming")
+              }
               className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
             >
               <div className="flex items-center gap-5">
@@ -122,12 +323,16 @@ function Home({
           <input
             type="text"
             placeholder="Ask OrbitalAI anything..."
-            onFocus={() => setPage("chat")}
+            value={homeInput}
+            onChange={(e) => setHomeInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") createChatWithPrompt(homeInput);
+            }}
             className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
           />
 
           <button
-            onClick={() => setPage("chat")}
+            onClick={() => createChatWithPrompt(homeInput)}
             className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
           >
             ✈
@@ -138,8 +343,6 @@ function Home({
           Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new line
         </p>
       </div>
-
-      
     </div>
   );
 }

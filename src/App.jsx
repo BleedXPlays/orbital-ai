@@ -334,20 +334,27 @@ function App() {
       default:
         return (
           <Home
-            chats={chats}
-            projects={projects}
-            projectChats={projectChats}
-            projectFiles={projectFiles}
-            projectNotes={projectNotes}
-            archivedChats={archivedChats}
-            archivedProjects={archivedProjects}
-            pinnedChats={pinnedChats}
-            chatActivity={chatActivity}
-            activityLog={activityLog}
-            setSelectedChat={setSelectedChat}
-            setSelectedProject={setSelectedProject}
-            setPage={setPage}
-          />
+  chats={chats}
+  setChats={setChats}
+  projects={projects}
+  setProjects={setProjects}
+  projectChats={projectChats}
+  setProjectChats={setProjectChats}
+  projectFiles={projectFiles}
+  projectNotes={projectNotes}
+  archivedChats={archivedChats}
+  archivedProjects={archivedProjects}
+  pinnedChats={pinnedChats}
+  chatActivity={chatActivity}
+  setChatActivity={setChatActivity}
+  activityLog={activityLog}
+  chatMessages={chatMessages}
+  setChatMessages={setChatMessages}
+  setSelectedChat={setSelectedChat}
+  setSelectedProject={setSelectedProject}
+  setPage={setPage}
+  addActivity={addActivity}
+/>
         );
     }
   };
