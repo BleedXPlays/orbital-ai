@@ -17,7 +17,7 @@ function Chat({
 }) {
   const [input, setInput] = useState("");
 
-  const messages = chatMessages[selectedChat] || [];
+  const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
 
   const analyzeTask = (text) => {
     const lowerText = text.toLowerCase();
@@ -134,29 +134,41 @@ function Chat({
       .filter((word) => word.length > 3)
       .slice(0, 4);
 
-    if (words.length === 0) return "Untitled Chat";
+    if (words.length === 0) return `New Chat ${chats.length + 1}`;
 
-    return words
+    let title = words
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+
+    if (chats.includes(title)) {
+      title = `${title} ${chats.length + 1}`;
+    }
+
+    return title;
   };
 
-  const setMessagesForCurrentChat = (newMessages) => {
-    setChatMessages({
-      ...chatMessages,
-      [selectedChat]: newMessages,
+  const updateProjectChatNames = (oldName, newName) => {
+    const updatedProjectChats = {};
+
+    Object.keys(projectChats).forEach((project) => {
+      updatedProjectChats[project] = projectChats[project].map((chat) =>
+        chat === oldName ? newName : chat
+      );
     });
+
+    return updatedProjectChats;
   };
 
   const sendMessage = () => {
-    if (!input.trim()) return;
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
 
     const now = new Date().toISOString();
-    const tasks = analyzeTask(input);
+    const tasks = analyzeTask(trimmedInput);
 
     const userMessage = {
       role: "user",
-      text: input,
+      text: trimmedInput,
     };
 
     const aiMessage = {
@@ -166,24 +178,43 @@ function Chat({
       outputs: getOutputs(tasks),
     };
 
+    const newMessages = [userMessage, aiMessage];
+
+    if (!selectedChat) {
+      const newTitle = generateChatTitle(trimmedInput);
+
+      setChats([...chats, newTitle]);
+
+      setChatMessages({
+        ...chatMessages,
+        [newTitle]: newMessages,
+      });
+
+      setChatActivity({
+        ...chatActivity,
+        [newTitle]: now,
+      });
+
+      setSelectedChat(newTitle);
+
+      addActivity("chat", "Chat created", newTitle);
+
+      setInput("");
+      return;
+    }
+
     if (selectedChat.startsWith("New Chat") && messages.length === 0) {
-      const newTitle = generateChatTitle(input);
+      const newTitle = generateChatTitle(trimmedInput);
 
       const updatedChats = chats.map((chat) =>
         chat === selectedChat ? newTitle : chat
       );
 
-      const updatedProjectChats = {};
-
-      Object.keys(projectChats).forEach((project) => {
-        updatedProjectChats[project] = projectChats[project].map((chat) =>
-          chat === selectedChat ? newTitle : chat
-        );
-      });
+      const updatedProjectChats = updateProjectChatNames(selectedChat, newTitle);
 
       const updatedChatMessages = {
         ...chatMessages,
-        [newTitle]: [userMessage, aiMessage],
+        [newTitle]: newMessages,
       };
 
       delete updatedChatMessages[selectedChat];
@@ -209,7 +240,10 @@ function Chat({
       return;
     }
 
-    setMessagesForCurrentChat([...messages, userMessage, aiMessage]);
+    setChatMessages({
+      ...chatMessages,
+      [selectedChat]: [...messages, userMessage, aiMessage],
+    });
 
     setChatActivity({
       ...chatActivity,
@@ -228,7 +262,7 @@ function Chat({
       <div className="relative min-h-screen flex flex-col">
         <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/50 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-6">
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_16px_rgba(74,222,128,0.8)]" />
                 <p className="text-sm text-green-300">
@@ -236,12 +270,12 @@ function Chat({
                 </p>
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-3xl font-bold tracking-tight truncate">
                 {selectedChat || "Untitled Chat"}
               </h1>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 shrink-0">
               <button className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]">
                 Share
               </button>
@@ -285,9 +319,7 @@ function Chat({
                 </button>
 
                 <button
-                  onClick={() =>
-                    setInput("Write an essay on global warming")
-                  }
+                  onClick={() => setInput("Write an essay on global warming")}
                   className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
                 >
                   <p className="text-lg mb-2">📄 Writing</p>
@@ -331,11 +363,11 @@ function Chat({
                 ) : (
                   <div className="max-w-5xl rounded-3xl rounded-tl-md bg-[#07101F]/95 border border-[#1B2540] p-7 shadow-xl shadow-purple-950/10">
                     <div className="flex items-start gap-4 mb-6">
-                      <div className="w-11 h-11 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center">
+                      <div className="w-11 h-11 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
                         ✦
                       </div>
 
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xl font-semibold">
                           {message.text}
                         </p>
