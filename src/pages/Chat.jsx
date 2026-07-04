@@ -16,8 +16,17 @@ function Chat({
   addActivity,
 }) {
   const [input, setInput] = useState("");
+  const [notice, setNotice] = useState("");
 
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
+
+  const showNotice = (message) => {
+    setNotice(message);
+
+    setTimeout(() => {
+      setNotice("");
+    }, 2500);
+  };
 
   const analyzeTask = (text) => {
     const lowerText = text.toLowerCase();
@@ -159,6 +168,81 @@ function Chat({
     return updatedProjectChats;
   };
 
+  const formatChatForExport = () => {
+    const title = selectedChat || "Untitled Chat";
+
+    const formattedMessages = messages
+      .map((message) => {
+        if (message.role === "user") {
+          return `You:\n${message.text}`;
+        }
+
+        const taskText =
+          message.tasks && message.tasks.length > 0
+            ? `\n\nAssigned AI Models:\n${message.tasks
+                .map((item) => `- ${item.ai} → ${item.task}`)
+                .join("\n")}`
+            : "";
+
+        const outputText =
+          message.outputs && message.outputs.length > 0
+            ? `\n\nGenerated Outputs:\n${message.outputs
+                .map((output) => `- ${output[0]} ${output[1]}: ${output[2]}`)
+                .join("\n")}`
+            : "";
+
+        return `OrbitalAI:\n${message.text}${taskText}${outputText}`;
+      })
+      .join("\n\n------------------------------\n\n");
+
+    return `OrbitalAI Chat Export\n\nChat: ${title}\nExported: ${new Date().toLocaleString()}\n\n==============================\n\n${formattedMessages}`;
+  };
+
+  const handleShare = async () => {
+    if (!selectedChat) {
+      showNotice("Create or open a chat first.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showNotice("Chat link copied.");
+      addActivity("share", "Chat link copied", selectedChat);
+    } catch (error) {
+      showNotice("Could not copy link.");
+    }
+  };
+
+  const handleExport = () => {
+    if (!selectedChat || messages.length === 0) {
+      showNotice("No chat messages to export.");
+      return;
+    }
+
+    const exportText = formatChatForExport();
+    const blob = new Blob([exportText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const safeFileName = selectedChat
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${safeFileName || "orbitalai-chat"}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    showNotice("Chat exported.");
+    addActivity("export", "Chat exported", selectedChat);
+  };
+
   const sendMessage = () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
@@ -259,6 +343,12 @@ function Chat({
     <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
+      {notice && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-200 px-5 py-3 text-sm shadow-2xl shadow-purple-950/20">
+          {notice}
+        </div>
+      )}
+
       <div className="relative min-h-screen flex flex-col">
         <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/50 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-6">
@@ -276,11 +366,17 @@ function Chat({
             </div>
 
             <div className="flex gap-3 shrink-0">
-              <button className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]">
+              <button
+                onClick={handleShare}
+                className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
+              >
                 Share
               </button>
 
-              <button className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]">
+              <button
+                onClick={handleExport}
+                className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
+              >
                 Export
               </button>
             </div>
