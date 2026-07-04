@@ -402,7 +402,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-24 w-auto object-contain scale-[1.5] translate-y-4 origin-left"
+              className="h-24 w-auto object-contain scale-[1.5] translate-y-4 origin-left pointer-events-none"
             />
           </div>
 
@@ -413,7 +413,7 @@ function Sidebar({
             }}
             type="text"
             placeholder="🔍 Global Search"
-            className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 cursor-pointer text-sm"
+            className="relative z-10 w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 cursor-pointer text-sm"
           />
         </div>
 
