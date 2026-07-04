@@ -36,9 +36,7 @@ function BulkEdit({
     setArchivedProjects([...archivedProjects, ...selectedProjects]);
 
     setChats(chats.filter((chat) => !selectedChats.includes(chat)));
-    setProjects(
-      projects.filter((project) => !selectedProjects.includes(project))
-    );
+    setProjects(projects.filter((project) => !selectedProjects.includes(project)));
 
     const updatedProjectChats = {};
 
@@ -51,7 +49,6 @@ function BulkEdit({
     });
 
     setProjectChats(updatedProjectChats);
-
     setSelectedChats([]);
     setSelectedProjects([]);
   };
@@ -61,9 +58,7 @@ function BulkEdit({
     if (!confirmDelete) return;
 
     setChats(chats.filter((chat) => !selectedChats.includes(chat)));
-    setProjects(
-      projects.filter((project) => !selectedProjects.includes(project))
-    );
+    setProjects(projects.filter((project) => !selectedProjects.includes(project)));
 
     const updatedProjectChats = {};
 
@@ -76,16 +71,13 @@ function BulkEdit({
     });
 
     setProjectChats(updatedProjectChats);
-
     setSelectedChats([]);
     setSelectedProjects([]);
   };
 
   const duplicateSelected = () => {
     const duplicatedChats = selectedChats.map((chat) => `${chat} Copy`);
-    const duplicatedProjects = selectedProjects.map(
-      (project) => `${project} Copy`
-    );
+    const duplicatedProjects = selectedProjects.map((project) => `${project} Copy`);
 
     setChats([...chats, ...duplicatedChats]);
     setProjects([...projects, ...duplicatedProjects]);
@@ -93,13 +85,10 @@ function BulkEdit({
     const updatedProjectChats = { ...projectChats };
 
     selectedProjects.forEach((project) => {
-      updatedProjectChats[`${project} Copy`] = [
-        ...(projectChats[project] || []),
-      ];
+      updatedProjectChats[`${project} Copy`] = [...(projectChats[project] || [])];
     });
 
     setProjectChats(updatedProjectChats);
-
     setSelectedChats([]);
     setSelectedProjects([]);
   };
@@ -139,105 +128,192 @@ function BulkEdit({
     setSelectedChats([]);
   };
 
+  const clearSelection = () => {
+    setSelectedChats([]);
+    setSelectedProjects([]);
+  };
+
   const totalSelected = selectedChats.length + selectedProjects.length;
 
   return (
-    <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
-      <h1 className="text-4xl font-bold mb-4">Bulk Edit Mode</h1>
-      <p className="text-gray-400 mb-8">
-        Select multiple chats or projects and manage them together.
-      </p>
+    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-          <h2 className="text-2xl font-bold mb-5 text-purple-400">Chats</h2>
-
-          <div className="space-y-3">
-            {chats.map((chat) => (
-              <label
-                key={chat}
-                className="flex items-center gap-4 bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedChats.includes(chat)}
-                  onChange={() => toggleChat(chat)}
-                />
-                <span>💬 {chat}</span>
-              </label>
-            ))}
+      <div className="relative px-10 py-8 pb-16">
+        <header className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
+            <span>✏️</span>
+            <span>Bulk Edit</span>
           </div>
-        </div>
 
-        <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-          <h2 className="text-2xl font-bold mb-5 text-purple-400">Projects</h2>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Bulk Edit Mode
+          </h1>
 
-          <div className="space-y-3">
-            {projects.map((project) => (
-              <label
-                key={project}
-                className="flex items-center gap-4 bg-[#101827] border border-gray-800 rounded-xl p-4 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedProjects.includes(project)}
-                  onChange={() => toggleProject(project)}
-                />
-                <span>📂 {project}</span>
-              </label>
-            ))}
+          <p className="text-gray-400 mt-3 max-w-2xl">
+            Select multiple chats or projects and manage them together.
+          </p>
+        </header>
+
+        <section className="grid grid-cols-3 gap-4 mb-8">
+          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+            <p className="text-gray-400 text-sm">Selected items</p>
+            <h2 className="text-3xl font-bold mt-2">{totalSelected}</h2>
           </div>
-        </div>
-      </div>
 
-      <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6">
-        <h2 className="text-2xl font-bold mb-5">
-          {totalSelected} items selected
-        </h2>
+          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+            <p className="text-gray-400 text-sm">Selected chats</p>
+            <h2 className="text-3xl font-bold mt-2">{selectedChats.length}</h2>
+          </div>
 
-        <div className="grid grid-cols-5 gap-5">
-          <button
-            onClick={duplicateSelected}
-            disabled={totalSelected === 0}
-            className="bg-[#101827] border border-gray-800 rounded-xl p-5 disabled:opacity-40"
-          >
-            📑 Duplicate
-          </button>
+          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+            <p className="text-gray-400 text-sm">Selected projects</p>
+            <h2 className="text-3xl font-bold mt-2">
+              {selectedProjects.length}
+            </h2>
+          </div>
+        </section>
 
-          <button
-            onClick={moveSelectedChatsToProject}
-            disabled={selectedChats.length === 0}
-            className="bg-[#101827] border border-gray-800 rounded-xl p-5 disabled:opacity-40"
-          >
-            📁 Move Chats
-          </button>
+        <div className="grid grid-cols-[1fr_340px] gap-6">
+          <main className="grid grid-cols-2 gap-6">
+            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
+              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
+                <h2 className="text-2xl font-bold">Chats</h2>
+                <p className="text-gray-400 text-sm mt-1">
+                  Select global chats for bulk actions.
+                </p>
+              </div>
 
-          <button
-            onClick={archiveSelected}
-            disabled={totalSelected === 0}
-            className="bg-[#101827] border border-gray-800 rounded-xl p-5 disabled:opacity-40"
-          >
-            🗄️ Archive
-          </button>
+              <div className="p-6">
+                {chats.length === 0 ? (
+                  <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-8 text-gray-400 text-center">
+                    No global chats available.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {chats.map((chat) => {
+                      const selected = selectedChats.includes(chat);
 
-          <button
-            onClick={deleteSelected}
-            disabled={totalSelected === 0}
-            className="bg-[#101827] border border-red-900 rounded-xl p-5 text-red-400 disabled:opacity-40"
-          >
-            🗑️ Delete
-          </button>
+                      return (
+                        <label
+                          key={chat}
+                          className={`flex items-center gap-4 rounded-2xl p-4 cursor-pointer border transition ${
+                            selected
+                              ? "bg-purple-600/15 border-purple-500/50"
+                              : "bg-[#101827] border-[#1B2540] hover:border-purple-500/40"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleChat(chat)}
+                            className="accent-purple-600"
+                          />
 
-          <button
-            onClick={() => {
-              setSelectedChats([]);
-              setSelectedProjects([]);
-            }}
-            disabled={totalSelected === 0}
-            className="bg-[#101827] border border-gray-800 rounded-xl p-5 disabled:opacity-40"
-          >
-            Cancel
-          </button>
+                          <span className="truncate">💬 {chat}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
+              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
+                <h2 className="text-2xl font-bold">Projects</h2>
+                <p className="text-gray-400 text-sm mt-1">
+                  Select project workspaces for bulk actions.
+                </p>
+              </div>
+
+              <div className="p-6">
+                {projects.length === 0 ? (
+                  <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-8 text-gray-400 text-center">
+                    No projects available.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {projects.map((project) => {
+                      const selected = selectedProjects.includes(project);
+
+                      return (
+                        <label
+                          key={project}
+                          className={`flex items-center gap-4 rounded-2xl p-4 cursor-pointer border transition ${
+                            selected
+                              ? "bg-purple-600/15 border-purple-500/50"
+                              : "bg-[#101827] border-[#1B2540] hover:border-purple-500/40"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleProject(project)}
+                            className="accent-purple-600"
+                          />
+
+                          <span className="truncate">📂 {project}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+          </main>
+
+          <aside className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-6 h-fit shadow-2xl shadow-purple-950/10">
+            <h2 className="text-xl font-bold mb-2">
+              {totalSelected} items selected
+            </h2>
+
+            <p className="text-gray-400 text-sm mb-6">
+              Choose an action to apply to the selected chats and projects.
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={duplicateSelected}
+                disabled={totalSelected === 0}
+                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+              >
+                📑 Duplicate
+              </button>
+
+              <button
+                onClick={moveSelectedChatsToProject}
+                disabled={selectedChats.length === 0}
+                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+              >
+                📁 Move selected chats
+              </button>
+
+              <button
+                onClick={archiveSelected}
+                disabled={totalSelected === 0}
+                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+              >
+                🗄️ Archive
+              </button>
+
+              <button
+                onClick={deleteSelected}
+                disabled={totalSelected === 0}
+                className="w-full bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-left text-red-300 disabled:opacity-40 hover:bg-red-500/20"
+              >
+                🗑️ Delete
+              </button>
+
+              <button
+                onClick={clearSelection}
+                disabled={totalSelected === 0}
+                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+              >
+                Clear selection
+              </button>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
