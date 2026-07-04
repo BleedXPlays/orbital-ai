@@ -434,7 +434,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-       className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-3 py-4 overflow-visible"
+       className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-3 py-4 overflow-hidden"
       >
         {notice && (
           <div className="fixed top-5 left-72 z-[10000] max-w-sm rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
@@ -453,7 +453,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-24 w-auto object-contain scale-[1.5] translate-y-4 origin-left pointer-events-none"
+              className="h-24 w-auto object-contain scale-[1.5] translate-y-4 -translate-x-2 origin-left pointer-events-none"
             />
           </div>
 
@@ -521,7 +521,7 @@ function Sidebar({
               className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto overflow-x-visible pr-1 min-h-0">
+            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -613,7 +613,7 @@ function Sidebar({
               className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto pr-1 min-h-0">
+            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;
