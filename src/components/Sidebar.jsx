@@ -5,6 +5,7 @@ import ChatMenu from "./ChatMenu";
 import ProjectMenu from "./ProjectMenu";
 import MoveChatModal from "./MoveChatModal";
 import RenameModal from "./RenameModal";
+import ConfirmModal from "./ConfirmModal";
 import logo from "../assets/orbital-logo.png";
 
 function Sidebar({
@@ -48,6 +49,34 @@ function Sidebar({
   const [renameType, setRenameType] = useState("");
   const [renameIndex, setRenameIndex] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+
+  const [notice, setNotice] = useState("");
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Delete",
+    onConfirm: null,
+  });
+
+  const closeConfirmModal = () => {
+    setConfirmModal({
+      isOpen: false,
+      title: "",
+      message: "",
+      confirmText: "Delete",
+      onConfirm: null,
+    });
+  };
+
+  const showNotice = (message) => {
+    setNotice(message);
+
+    setTimeout(() => {
+      setNotice("");
+    }, 3000);
+  };
 
   useEffect(() => {
     if (openChatMenu === null && openProjectMenu === null) return;
@@ -213,61 +242,77 @@ function Sidebar({
   };
 
   const deleteChat = (index) => {
-    const confirmDelete = confirm("Delete this chat?");
-    if (!confirmDelete) return;
-
     const chatToDelete = chats[index];
-    const updatedChats = chats.filter((_, i) => i !== index);
 
-    const updatedChatActivity = { ...chatActivity };
-    delete updatedChatActivity[chatToDelete];
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete chat?",
+      message: `This will permanently delete "${chatToDelete}". This action cannot be undone.`,
+      confirmText: "Delete chat",
+      onConfirm: () => {
+        const updatedChats = chats.filter((_, i) => i !== index);
 
-    setChats(updatedChats);
-    setChatActivity(updatedChatActivity);
-    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
+        const updatedChatActivity = { ...chatActivity };
+        delete updatedChatActivity[chatToDelete];
 
-    const updatedProjectChats = {};
-    Object.keys(projectChats).forEach((project) => {
-      updatedProjectChats[project] = projectChats[project].filter(
-        (chat) => chat !== chatToDelete
-      );
+        setChats(updatedChats);
+        setChatActivity(updatedChatActivity);
+        setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
+
+        const updatedProjectChats = {};
+        Object.keys(projectChats).forEach((project) => {
+          updatedProjectChats[project] = projectChats[project].filter(
+            (chat) => chat !== chatToDelete
+          );
+        });
+
+        setProjectChats(updatedProjectChats);
+
+        if (selectedChat === chatToDelete) {
+          setSelectedChat(updatedChats[0] || "");
+          setPage(updatedChats.length > 0 ? "chat" : "home");
+        }
+
+        addActivity("chat", "Chat deleted", chatToDelete);
+        closeConfirmModal();
+      },
     });
-
-    setProjectChats(updatedProjectChats);
-
-    if (selectedChat === chatToDelete) {
-      setSelectedChat(updatedChats[0] || "");
-      setPage(updatedChats.length > 0 ? "chat" : "home");
-    }
-
-    addActivity("chat", "Chat deleted", chatToDelete);
   };
 
   const deleteProject = (index) => {
-    const confirmDelete = confirm("Delete this project?");
-    if (!confirmDelete) return;
-
     const projectToDelete = projects[index];
-    const updatedProjects = projects.filter((_, i) => i !== index);
-    const projectChatList = projectChats[projectToDelete] || [];
 
-    const updatedChatActivity = { ...chatActivity };
-    projectChatList.forEach((chat) => delete updatedChatActivity[chat]);
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete project?",
+      message: `This will permanently delete "${projectToDelete}" and remove its project chats from this workspace. This action cannot be undone.`,
+      confirmText: "Delete project",
+      onConfirm: () => {
+        const updatedProjects = projects.filter((_, i) => i !== index);
+        const projectChatList = projectChats[projectToDelete] || [];
 
-    setProjects(updatedProjects);
-    setChatActivity(updatedChatActivity);
-    setPinnedChats(pinnedChats.filter((chat) => !projectChatList.includes(chat)));
+        const updatedChatActivity = { ...chatActivity };
+        projectChatList.forEach((chat) => delete updatedChatActivity[chat]);
 
-    const updatedProjectChats = { ...projectChats };
-    delete updatedProjectChats[projectToDelete];
-    setProjectChats(updatedProjectChats);
+        setProjects(updatedProjects);
+        setChatActivity(updatedChatActivity);
+        setPinnedChats(
+          pinnedChats.filter((chat) => !projectChatList.includes(chat))
+        );
 
-    if (selectedProject === projectToDelete) {
-      setSelectedProject(updatedProjects[0] || "");
-      setPage(updatedProjects.length > 0 ? "project" : "home");
-    }
+        const updatedProjectChats = { ...projectChats };
+        delete updatedProjectChats[projectToDelete];
+        setProjectChats(updatedProjectChats);
 
-    addActivity("project", "Project deleted", projectToDelete);
+        if (selectedProject === projectToDelete) {
+          setSelectedProject(updatedProjects[0] || "");
+          setPage(updatedProjects.length > 0 ? "project" : "home");
+        }
+
+        addActivity("project", "Project deleted", projectToDelete);
+        closeConfirmModal();
+      },
+    });
   };
 
   const archiveChat = (index) => {
@@ -331,7 +376,7 @@ function Sidebar({
 
   const openMoveModal = (chatName) => {
     if (projects.length === 0) {
-      alert("Create a project first.");
+      showNotice("Create a project first.");
       return;
     }
 
@@ -342,14 +387,14 @@ function Sidebar({
 
   const moveChatToProject = () => {
     if (!targetProject) {
-      alert("Please select a project.");
+      showNotice("Please select a project.");
       return;
     }
 
     const currentProjectChats = projectChats[targetProject] || [];
 
     if (currentProjectChats.includes(chatToMove)) {
-      alert("This chat is already inside that project.");
+      showNotice("This chat is already inside that project.");
       return;
     }
 
@@ -391,6 +436,12 @@ function Sidebar({
         }}
         className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-4 py-4 overflow-visible"
       >
+        {notice && (
+          <div className="fixed top-5 left-72 z-[10000] max-w-sm rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+            {notice}
+          </div>
+        )}
+
         <div className="shrink-0">
           <div
             onClick={(e) => {
@@ -680,6 +731,18 @@ function Sidebar({
           onMove={moveChatToProject}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        danger={true}
+        onCancel={closeConfirmModal}
+        onConfirm={() => {
+          if (confirmModal.onConfirm) confirmModal.onConfirm();
+        }}
+      />
     </>
   );
 }

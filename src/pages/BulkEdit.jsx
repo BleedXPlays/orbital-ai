@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
 
 function BulkEdit({
   chats,
@@ -14,6 +15,18 @@ function BulkEdit({
 }) {
   const [selectedChats, setSelectedChats] = useState([]);
   const [selectedProjects, setSelectedProjects] = useState([]);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
+  const [targetProject, setTargetProject] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const showNotice = (message) => {
+    setNotice(message);
+
+    setTimeout(() => {
+      setNotice("");
+    }, 3000);
+  };
 
   const toggleChat = (chat) => {
     if (selectedChats.includes(chat)) {
@@ -54,9 +67,11 @@ function BulkEdit({
   };
 
   const deleteSelected = () => {
-    const confirmDelete = confirm("Delete selected items?");
-    if (!confirmDelete) return;
+    if (totalSelected === 0) return;
+    setConfirmModalOpen(true);
+  };
 
+  const confirmDeleteSelected = () => {
     setChats(chats.filter((chat) => !selectedChats.includes(chat)));
     setProjects(projects.filter((project) => !selectedProjects.includes(project)));
 
@@ -73,6 +88,7 @@ function BulkEdit({
     setProjectChats(updatedProjectChats);
     setSelectedChats([]);
     setSelectedProjects([]);
+    setConfirmModalOpen(false);
   };
 
   const duplicateSelected = () => {
@@ -93,28 +109,28 @@ function BulkEdit({
     setSelectedProjects([]);
   };
 
-  const moveSelectedChatsToProject = () => {
+  const openMoveSelectedChatsModal = () => {
     if (selectedChats.length === 0) {
-      alert("Select at least one chat to move.");
+      showNotice("Select at least one chat to move.");
       return;
     }
 
-    const projectName = prompt(
-      `Move selected chats to which project?\n\nAvailable projects:\n${projects.join(
-        "\n"
-      )}`
-    );
-
-    if (!projectName || !projectName.trim()) return;
-
-    const trimmedProjectName = projectName.trim();
-
-    if (!projects.includes(trimmedProjectName)) {
-      alert("Project not found. Please type the exact project name.");
+    if (projects.length === 0) {
+      showNotice("Create a project first.");
       return;
     }
 
-    const currentChats = projectChats[trimmedProjectName] || [];
+    setTargetProject(projects[0] || "");
+    setMoveModalOpen(true);
+  };
+
+  const moveSelectedChatsToProject = () => {
+    if (!targetProject) {
+      showNotice("Please select a project.");
+      return;
+    }
+
+    const currentChats = projectChats[targetProject] || [];
 
     const newChatsToAdd = selectedChats.filter(
       (chat) => !currentChats.includes(chat)
@@ -122,10 +138,12 @@ function BulkEdit({
 
     setProjectChats({
       ...projectChats,
-      [trimmedProjectName]: [...currentChats, ...newChatsToAdd],
+      [targetProject]: [...currentChats, ...newChatsToAdd],
     });
 
     setSelectedChats([]);
+    setTargetProject("");
+    setMoveModalOpen(false);
   };
 
   const clearSelection = () => {
@@ -138,6 +156,12 @@ function BulkEdit({
   return (
     <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
+
+      {notice && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-md rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+          {notice}
+        </div>
+      )}
 
       <div className="relative px-10 py-8 pb-16">
         <header className="mb-8">
@@ -282,7 +306,7 @@ function BulkEdit({
               </button>
 
               <button
-                onClick={moveSelectedChatsToProject}
+                onClick={openMoveSelectedChatsModal}
                 disabled={selectedChats.length === 0}
                 className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
               >
@@ -316,6 +340,62 @@ function BulkEdit({
           </aside>
         </div>
       </div>
+
+      {moveModalOpen && (
+        <div className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-3xl bg-[#07101F] border border-[#1B2540] shadow-2xl shadow-purple-950/30 p-6 text-white">
+            <h2 className="text-2xl font-bold mb-3">Move selected chats</h2>
+
+            <p className="text-gray-400 leading-relaxed mb-6">
+              Choose the project where you want to move {selectedChats.length} selected chat
+              {selectedChats.length === 1 ? "" : "s"}.
+            </p>
+
+            <select
+              value={targetProject}
+              onChange={(e) => setTargetProject(e.target.value)}
+              className="w-full p-4 rounded-xl bg-[#101827] border border-[#1B2540] outline-none text-white mb-6"
+            >
+              {projects.map((project) => (
+                <option key={project} value={project}>
+                  {project}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setMoveModalOpen(false);
+                  setTargetProject("");
+                }}
+                className="px-5 py-3 rounded-xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:bg-[#141f33]"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={moveSelectedChatsToProject}
+                className="px-5 py-3 rounded-xl bg-purple-600 border border-purple-500 text-white hover:bg-purple-700"
+              >
+                Move chats
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Delete selected items?"
+        message={`This will permanently delete ${totalSelected} selected item${
+          totalSelected === 1 ? "" : "s"
+        }. This action cannot be undone.`}
+        confirmText="Delete selected"
+        danger={true}
+        onCancel={() => setConfirmModalOpen(false)}
+        onConfirm={confirmDeleteSelected}
+      />
     </div>
   );
 }

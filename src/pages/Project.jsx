@@ -3,6 +3,8 @@ import ProjectChatCard from "../components/ProjectChatCard";
 import ProjectChatMenu from "../components/ProjectChatMenu";
 import ProjectNoteCard from "../components/ProjectNoteCard";
 import FilePreviewModal from "../components/FilePreviewModal";
+import ConfirmModal from "../components/ConfirmModal";
+import RenameModal from "../components/RenameModal";
 import { uploadProjectFile } from "../utils/uploadFile";
 
 function Project({
@@ -34,6 +36,37 @@ function Project({
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFilePreview, setSelectedFilePreview] = useState(null);
+  const [notice, setNotice] = useState("");
+
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameIndex, setRenameIndex] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Delete",
+    onConfirm: null,
+  });
+
+  const closeConfirmModal = () => {
+    setConfirmModal({
+      isOpen: false,
+      title: "",
+      message: "",
+      confirmText: "Delete",
+      onConfirm: null,
+    });
+  };
+
+  const showNotice = (message) => {
+    setNotice(message);
+
+    setTimeout(() => {
+      setNotice("");
+    }, 3000);
+  };
 
   const rawProjectChatList = projectChats[selectedProject] || [];
   const files = projectFiles[selectedProject] || [];
@@ -93,13 +126,31 @@ function Project({
     addActivity("chat", "Project chat created", `${chatName} • ${selectedProject}`);
   };
 
-  const renameProjectChat = (index) => {
+  const openRenameProjectChat = (index) => {
     const oldName = projectChatList[index];
-    const newName = prompt("Enter new chat name:", oldName);
 
-    if (!newName || !newName.trim()) return;
+    setRenameIndex(index);
+    setRenameValue(oldName);
+    setRenameModalOpen(true);
+    setOpenChatMenu(null);
+  };
 
-    const trimmedName = newName.trim();
+  const closeRenameModal = () => {
+    setRenameModalOpen(false);
+    setRenameIndex(null);
+    setRenameValue("");
+  };
+
+  const saveRenameProjectChat = () => {
+    if (renameIndex === null || !renameValue.trim()) return;
+
+    const oldName = projectChatList[renameIndex];
+    const trimmedName = renameValue.trim();
+
+    if (oldName === trimmedName) {
+      closeRenameModal();
+      return;
+    }
 
     const updatedProjectChats = {
       ...projectChats,
@@ -135,7 +186,7 @@ function Project({
     }
 
     addActivity("chat", "Project chat renamed", `${oldName} → ${trimmedName}`);
-    setOpenChatMenu(null);
+    closeRenameModal();
   };
 
   const archiveProjectChat = (index) => {
@@ -177,46 +228,52 @@ function Project({
   };
 
   const deleteProjectChat = (index) => {
-    const confirmDelete = confirm("Delete this project chat?");
-    if (!confirmDelete) return;
-
     const chatToDelete = projectChatList[index];
 
-    setProjectChats({
-      ...projectChats,
-      [selectedProject]: rawProjectChatList.filter(
-        (chat) => chat !== chatToDelete
-      ),
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete project chat?",
+      message: `This will permanently delete "${chatToDelete}" from "${selectedProject}". This action cannot be undone.`,
+      confirmText: "Delete chat",
+      onConfirm: () => {
+        setProjectChats({
+          ...projectChats,
+          [selectedProject]: rawProjectChatList.filter(
+            (chat) => chat !== chatToDelete
+          ),
+        });
+
+        const updatedChatMessages = { ...chatMessages };
+        delete updatedChatMessages[chatToDelete];
+
+        const updatedChatActivity = { ...chatActivity };
+        delete updatedChatActivity[chatToDelete];
+
+        setChatMessages(updatedChatMessages);
+        setChatActivity(updatedChatActivity);
+        setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
+
+        if (selectedChat === chatToDelete) {
+          setSelectedChat("");
+        }
+
+        addActivity(
+          "chat",
+          "Project chat deleted",
+          `${chatToDelete} • ${selectedProject}`
+        );
+
+        setOpenChatMenu(null);
+        closeConfirmModal();
+      },
     });
-
-    const updatedChatMessages = { ...chatMessages };
-    delete updatedChatMessages[chatToDelete];
-
-    const updatedChatActivity = { ...chatActivity };
-    delete updatedChatActivity[chatToDelete];
-
-    setChatMessages(updatedChatMessages);
-    setChatActivity(updatedChatActivity);
-    setPinnedChats(pinnedChats.filter((chat) => chat !== chatToDelete));
-
-    if (selectedChat === chatToDelete) {
-      setSelectedChat("");
-    }
-
-    addActivity(
-      "chat",
-      "Project chat deleted",
-      `${chatToDelete} • ${selectedProject}`
-    );
-
-    setOpenChatMenu(null);
   };
 
   const uploadFiles = async (uploadedFiles) => {
     if (uploadedFiles.length === 0) return;
 
     if (!user) {
-      alert("You must be logged in to upload files.");
+      showNotice("You must be logged in to upload files.");
       return;
     }
 
@@ -238,7 +295,7 @@ function Project({
         addActivity("file", "File uploaded", `${file.name} • ${selectedProject}`);
       });
     } catch (error) {
-      alert(error.message);
+      showNotice(error.message || "File upload failed.");
     } finally {
       setIsUploading(false);
       setIsDragging(false);
@@ -321,6 +378,12 @@ function Project({
       className="relative min-h-screen bg-[#020817] text-white overflow-hidden"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
+
+      {notice && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-md rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+          {notice}
+        </div>
+      )}
 
       <div className="relative px-10 py-8 pb-16">
         <header className="mb-8">
@@ -464,7 +527,7 @@ function Project({
                               isPinned={isPinned(chat)}
                               onRename={(e) => {
                                 e.stopPropagation();
-                                renameProjectChat(index);
+                                openRenameProjectChat(index);
                               }}
                               onTogglePin={(e) => {
                                 e.stopPropagation();
@@ -516,6 +579,7 @@ function Project({
                   </div>
 
                   <div
+                    data-project-drop-zone="true"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -609,6 +673,7 @@ function Project({
                   </div>
 
                   <div
+                    data-project-drop-zone="true"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -807,6 +872,27 @@ function Project({
             deleteFile(selectedFilePreview.index);
             setSelectedFilePreview(null);
           }
+        }}
+      />
+
+      <RenameModal
+        isOpen={renameModalOpen}
+        title="Rename Project Chat"
+        value={renameValue}
+        setValue={setRenameValue}
+        onCancel={closeRenameModal}
+        onSave={saveRenameProjectChat}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        danger={true}
+        onCancel={closeConfirmModal}
+        onConfirm={() => {
+          if (confirmModal.onConfirm) confirmModal.onConfirm();
         }}
       />
     </div>
