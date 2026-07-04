@@ -1,3 +1,11 @@
+import { useState } from "react";
+import {
+  updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
+
 function Settings({
   user,
   chats,
@@ -9,9 +17,101 @@ function Settings({
   archivedProjects,
   handleLogout,
 }) {
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [nameMessage, setNameMessage] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+
   const totalProjectChats = Object.values(projectChats || {}).flat().length;
   const totalNotes = Object.values(projectNotes || {}).flat().length;
   const archivedTotal = archivedChats.length + archivedProjects.length;
+
+  const saveDisplayName = async () => {
+    const trimmedName = displayName.trim();
+
+    if (!trimmedName) {
+      setNameMessage("Name cannot be empty.");
+      return;
+    }
+
+    if (!user) {
+      setNameMessage("User not found.");
+      return;
+    }
+
+    setIsSavingName(true);
+    setNameMessage("");
+
+    try {
+      await updateProfile(user, {
+        displayName: trimmedName,
+      });
+
+      setNameMessage("Name updated successfully. Refresh if it does not update instantly.");
+    } catch (error) {
+      setNameMessage(error.message || "Failed to update name.");
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const changePassword = async () => {
+    setPasswordMessage("");
+
+    if (!user?.email) {
+      setPasswordMessage("Email account not found.");
+      return;
+    }
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordMessage("Please fill all password fields.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordMessage("New password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage("New password and confirmation do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setPasswordMessage("Password changed successfully.");
+    } catch (error) {
+      if (error.code === "auth/wrong-password") {
+        setPasswordMessage("Current password is incorrect.");
+      } else if (error.code === "auth/weak-password") {
+        setPasswordMessage("New password is too weak.");
+      } else if (error.code === "auth/requires-recent-login") {
+        setPasswordMessage("Please logout, login again, and then change your password.");
+      } else {
+        setPasswordMessage(error.message || "Failed to change password.");
+      }
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
@@ -68,9 +168,26 @@ function Settings({
               <div className="p-6 grid grid-cols-2 gap-5">
                 <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
                   <p className="text-gray-400 text-sm mb-2">Full name</p>
-                  <p className="text-lg font-semibold">
-                    {user?.displayName || "Not set"}
-                  </p>
+
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full bg-[#07101F] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                  />
+
+                  <button
+                    onClick={saveDisplayName}
+                    disabled={isSavingName}
+                    className="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {isSavingName ? "Saving..." : "Save name"}
+                  </button>
+
+                  {nameMessage && (
+                    <p className="text-sm text-gray-400 mt-3">{nameMessage}</p>
+                  )}
                 </div>
 
                 <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
@@ -86,6 +203,53 @@ function Settings({
                     {user?.uid || "Not available"}
                   </p>
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
+              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
+                <h2 className="text-2xl font-bold">Change password</h2>
+                <p className="text-gray-400 text-sm mt-1">
+                  Enter your current password first, then set a new password.
+                </p>
+              </div>
+
+              <div className="p-6 grid grid-cols-1 gap-4 max-w-2xl">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Current password"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                />
+
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                />
+
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                />
+
+                <button
+                  onClick={changePassword}
+                  disabled={isChangingPassword}
+                  className="w-fit px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isChangingPassword ? "Changing..." : "Change password"}
+                </button>
+
+                {passwordMessage && (
+                  <p className="text-sm text-gray-400">{passwordMessage}</p>
+                )}
               </div>
             </section>
 
