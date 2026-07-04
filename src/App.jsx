@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService";
@@ -19,11 +20,15 @@ import Login from "./pages/Login";
 
 function App() {
   const saveTimer = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
   const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
+  const [routeReady, setRouteReady] = useState(false);
+  const [appError, setAppError] = useState("");
 
   const [page, setPage] = useState("home");
   const [chats, setChats] = useState([]);
@@ -40,6 +45,43 @@ function App() {
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
 
+  const slugify = (value) => {
+    return String(value || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+  };
+
+  const findItemBySlug = (items, slug) => {
+    return items.find((item) => slugify(item) === slug) || "";
+  };
+
+  const getAllChatNames = () => {
+    const projectChatNames = Object.values(projectChats).flat();
+    return [...chats, ...projectChatNames];
+  };
+
+  const getPathFromState = () => {
+    if (page === "chat") {
+      return selectedChat ? `/chat/${slugify(selectedChat)}` : "/chat";
+    }
+
+    if (page === "project") {
+      return selectedProject ? `/project/${slugify(selectedProject)}` : "/project";
+    }
+
+    if (page === "search") return "/search";
+    if (page === "bulk") return "/bulk-edit";
+    if (page === "workflow") return "/ai-workflow";
+    if (page === "archived") return "/archived";
+    if (page === "settings") return "/settings";
+    if (page === "help") return "/help";
+
+    return "/";
+  };
+
   const addActivity = (type, title, details = "") => {
     const item = {
       id: Date.now(),
@@ -53,6 +95,7 @@ function App() {
   };
 
   const resetWorkspace = () => {
+    setRouteReady(false);
     setPage("home");
     setChats([]);
     setChatMessages({});
@@ -67,6 +110,7 @@ function App() {
     setPinnedChats([]);
     setChatActivity({});
     setActivityLog([]);
+    setAppError("");
   };
 
   useEffect(() => {
@@ -98,12 +142,14 @@ function App() {
       setAuthLoading(false);
       setDataLoading(true);
       setHasLoadedUserData(false);
+      setRouteReady(false);
 
       resetWorkspace();
       setUser(currentUser);
 
       if (!currentUser) {
         setDataLoading(false);
+        setRouteReady(true);
       }
     });
 
@@ -116,6 +162,8 @@ function App() {
 
       setDataLoading(true);
       setHasLoadedUserData(false);
+      setRouteReady(false);
+      setAppError("");
 
       try {
         const data = await getOrCreateWorkspace(user);
@@ -138,7 +186,7 @@ function App() {
         setChatActivity(data.chatActivity || {});
         setActivityLog(Array.isArray(data.activityLog) ? data.activityLog : []);
       } catch (error) {
-        alert(error.message);
+        setAppError(error.message || "Failed to load workspace.");
       }
 
       setHasLoadedUserData(true);
@@ -147,6 +195,109 @@ function App() {
 
     loadUserData();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || dataLoading || !hasLoadedUserData) return;
+
+    const path = location.pathname;
+    const parts = path.split("/").filter(Boolean);
+    const firstPart = parts[0] || "";
+    const secondPart = parts[1] || "";
+
+    if (path === "/") {
+      setPage("home");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "chat") {
+      const matchedChat = secondPart
+        ? findItemBySlug(getAllChatNames(), secondPart)
+        : "";
+
+      setSelectedChat(matchedChat);
+      setSelectedProject("");
+      setPage("chat");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "project") {
+      const matchedProject = secondPart
+        ? findItemBySlug(projects, secondPart)
+        : "";
+
+      setSelectedProject(matchedProject);
+      setPage("project");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "search") {
+      setPage("search");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "bulk-edit") {
+      setPage("bulk");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "ai-workflow") {
+      setPage("workflow");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "archived") {
+      setPage("archived");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "settings") {
+      setPage("settings");
+      setRouteReady(true);
+      return;
+    }
+
+    if (firstPart === "help") {
+      setPage("help");
+      setRouteReady(true);
+      return;
+    }
+
+    setPage("home");
+    setRouteReady(true);
+  }, [
+    location.pathname,
+    user,
+    dataLoading,
+    hasLoadedUserData,
+    chats,
+    projects,
+    projectChats,
+  ]);
+
+  useEffect(() => {
+    if (!user || dataLoading || !hasLoadedUserData || !routeReady) return;
+
+    const nextPath = getPathFromState();
+
+    if (location.pathname !== nextPath) {
+      navigate(nextPath);
+    }
+  }, [
+    page,
+    selectedChat,
+    selectedProject,
+    user,
+    dataLoading,
+    hasLoadedUserData,
+    routeReady,
+  ]);
 
   useEffect(() => {
     const saveUserData = async () => {
@@ -334,27 +485,27 @@ function App() {
       default:
         return (
           <Home
-  chats={chats}
-  setChats={setChats}
-  projects={projects}
-  setProjects={setProjects}
-  projectChats={projectChats}
-  setProjectChats={setProjectChats}
-  projectFiles={projectFiles}
-  projectNotes={projectNotes}
-  archivedChats={archivedChats}
-  archivedProjects={archivedProjects}
-  pinnedChats={pinnedChats}
-  chatActivity={chatActivity}
-  setChatActivity={setChatActivity}
-  activityLog={activityLog}
-  chatMessages={chatMessages}
-  setChatMessages={setChatMessages}
-  setSelectedChat={setSelectedChat}
-  setSelectedProject={setSelectedProject}
-  setPage={setPage}
-  addActivity={addActivity}
-/>
+            chats={chats}
+            setChats={setChats}
+            projects={projects}
+            setProjects={setProjects}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
+            projectFiles={projectFiles}
+            projectNotes={projectNotes}
+            archivedChats={archivedChats}
+            archivedProjects={archivedProjects}
+            pinnedChats={pinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
+            activityLog={activityLog}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
+            setSelectedChat={setSelectedChat}
+            setSelectedProject={setSelectedProject}
+            setPage={setPage}
+            addActivity={addActivity}
+          />
         );
     }
   };
@@ -369,8 +520,14 @@ function App() {
 
   if (!user) return <Login />;
 
- return (
-  <div className="h-screen bg-black flex overflow-hidden">
+  return (
+    <div className="h-screen bg-black flex overflow-hidden">
+      {appError && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
+          {appError}
+        </div>
+      )}
+
       <Sidebar
         setPage={setPage}
         chats={chats}
