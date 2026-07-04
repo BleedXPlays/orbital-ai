@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function Chat({
   selectedChat,
@@ -18,7 +18,18 @@ function Chat({
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
 
+  const mainScrollRef = useRef(null);
+
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
+
+  useEffect(() => {
+    if (!mainScrollRef.current) return;
+
+    mainScrollRef.current.scrollTo({
+      top: mainScrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages.length]);
 
   const showNotice = (message) => {
     setNotice(message);
@@ -340,7 +351,7 @@ function Chat({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
       {notice && (
@@ -349,8 +360,8 @@ function Chat({
         </div>
       )}
 
-      <div className="relative min-h-screen flex flex-col">
-        <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/50 backdrop-blur-xl">
+      <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
+        <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/80 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-6">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -383,7 +394,10 @@ function Chat({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-10 pt-8 pb-36">
+        <main
+          ref={mainScrollRef}
+          className="flex-1 min-h-0 overflow-y-auto px-10 pt-8 pb-10"
+        >
           {messages.length === 0 && (
             <div className="min-h-[520px] flex flex-col items-center justify-center text-center">
               <div className="relative mb-10">
@@ -523,39 +537,41 @@ function Chat({
           </div>
         </main>
 
-        <div className="absolute left-1/2 bottom-8 -translate-x-1/2 w-[820px] max-w-[calc(100vw-360px)]">
-          <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl">
-            <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
-              +
-            </button>
+        <div className="shrink-0 px-10 pb-8 pt-4 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent">
+          <div className="mx-auto w-[820px] max-w-full">
+            <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl">
+              <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
+                +
+              </button>
 
-            <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
-              🎤
-            </button>
+              <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
+                🎤
+              </button>
 
-            <input
-              type="text"
-              value={input}
-              placeholder="Ask OrbitalAI anything..."
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
-              className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
-            />
+              <input
+                type="text"
+                value={input}
+                placeholder="Ask OrbitalAI anything..."
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") sendMessage();
+                }}
+                className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+              />
 
-            <button
-              onClick={sendMessage}
-              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
-            >
-              ➤
-            </button>
+              <button
+                onClick={sendMessage}
+                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+              >
+                ➤
+              </button>
+            </div>
+
+            <p className="text-center text-sm text-gray-500 mt-4">
+              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new
+              line
+            </p>
           </div>
-
-          <p className="text-center text-sm text-gray-500 mt-4">
-            Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new
-            line
-          </p>
         </div>
       </div>
     </div>

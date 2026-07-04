@@ -69,7 +69,9 @@ function App() {
     }
 
     if (page === "project") {
-      return selectedProject ? `/project/${slugify(selectedProject)}` : "/project";
+      return selectedProject
+        ? `/project/${slugify(selectedProject)}`
+        : "/project";
     }
 
     if (page === "search") return "/search";
@@ -551,8 +553,8 @@ function App() {
         addActivity={addActivity}
       />
 
-      <div className="flex-1 relative h-screen overflow-y-auto">
-        <div className="w-full">{renderPage()}</div>
+      <div className="flex-1 relative h-screen overflow-hidden">
+        <div className="w-full h-full">{renderPage()}</div>
       </div>
 
       <CommandPalette
