@@ -180,38 +180,20 @@ function Chat({
     return updatedProjectChats;
   };
 
-  const createEmptyChat = () => {
-    let newChatName = `New Chat ${chats.length + 1}`;
-
-    while (chats.includes(newChatName)) {
-      newChatName = `New Chat ${Date.now()}`;
-    }
-
-    const now = new Date().toISOString();
-
-    setChats([...chats, newChatName]);
-
-    setChatActivity({
-      ...chatActivity,
-      [newChatName]: now,
-    });
-
-    setSelectedChat(newChatName);
-    setActionMenuOpen(false);
-    setInput("");
-
-    addActivity("chat", "New chat created", newChatName);
-    showNotice("New chat created.");
-  };
-
   const handleAttachFile = () => {
     setActionMenuOpen(false);
     showNotice("File attachment will be added next.");
   };
 
-  const handleCreateProject = () => {
+  const handleUploadImage = () => {
     setActionMenuOpen(false);
-    showNotice("Use the sidebar to create a project for now.");
+    showNotice("Image upload will be added next.");
+  };
+
+  const handleClearInput = () => {
+    setInput("");
+    setActionMenuOpen(false);
+    showNotice("Input cleared.");
   };
 
   const handleVoiceInput = () => {
@@ -593,28 +575,52 @@ function Chat({
               {actionMenuOpen && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute left-0 bottom-[92px] w-64 rounded-2xl bg-[#07101F] border border-[#1B2540] shadow-2xl shadow-purple-950/30 p-2 z-[9999]"
+                  className="absolute left-0 bottom-[92px] w-72 rounded-3xl bg-[#08111F]/95 border border-[#1B2540] shadow-2xl shadow-black/40 backdrop-blur-xl p-3 z-[9999]"
                 >
-                  <button
-                    onClick={handleAttachFile}
-                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
-                  >
-                    📎 Attach File
-                  </button>
+                  <p className="text-xs uppercase tracking-[0.18em] text-purple-300/80 px-3 pt-1 pb-3">
+                    Quick Actions
+                  </p>
 
-                  <button
-                    onClick={createEmptyChat}
-                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
-                  >
-                    💬 Create New Chat
-                  </button>
+                  <div className="space-y-1">
+                    <button
+                      onClick={handleAttachFile}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
+                    >
+                      <span className="text-xl">📎</span>
+                      <div>
+                        <p className="text-sm font-medium">Attach File</p>
+                        <p className="text-xs text-gray-400">
+                          Add a document or file
+                        </p>
+                      </div>
+                    </button>
 
-                  <button
-                    onClick={handleCreateProject}
-                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#101827] text-sm text-gray-200"
-                  >
-                    📂 Create Project
-                  </button>
+                    <button
+                      onClick={handleUploadImage}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
+                    >
+                      <span className="text-xl">🖼️</span>
+                      <div>
+                        <p className="text-sm font-medium">Upload Image</p>
+                        <p className="text-xs text-gray-400">
+                          Add an image to your chat
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={handleClearInput}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
+                    >
+                      <span className="text-xl">🧹</span>
+                      <div>
+                        <p className="text-sm font-medium">Clear Input</p>
+                        <p className="text-xs text-gray-400">
+                          Remove current typed text
+                        </p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -624,14 +630,18 @@ function Chat({
               >
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
-                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]"
+                  className={`w-14 h-14 rounded-2xl border text-3xl text-white transition ${
+                    actionMenuOpen
+                      ? "bg-[#16213A] border-purple-500/60 shadow-lg shadow-purple-900/20"
+                      : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
+                  }`}
                 >
                   +
                 </button>
 
                 <button
                   onClick={handleVoiceInput}
-                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]"
+                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33] transition"
                 >
                   🎤
                 </button>
