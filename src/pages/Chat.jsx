@@ -923,29 +923,35 @@ function Chat({
                     </div>
                   </div>
                 ) : (
-                  <div className="max-w-5xl rounded-3xl rounded-tl-md bg-[#07101F]/95 border border-[#1B2540] p-7 shadow-xl shadow-purple-950/10">
+                  <div className="max-w-3xl w-fit rounded-3xl rounded-tl-md bg-[#07101F]/95 border border-[#1B2540] p-6 shadow-xl shadow-purple-950/10">
                     <div className="flex items-start gap-4 mb-6">
                       <div className="w-11 h-11 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
                         ✦
                       </div>
 
                       <div className="min-w-0">
-                        <div className="flex items-center gap-3">
-                          <p className="text-xl font-semibold whitespace-pre-wrap">
+                        <div>
+                          <div className="flex items-center gap-3 mb-3">
+                            <p className="text-sm font-semibold text-purple-300">
+                              OrbitalAI
+                            </p>
+
+                            {message.isLoading && (
+                              <span className="flex gap-1 shrink-0">
+                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce" />
+                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:120ms]" />
+                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:240ms]" />
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-[15px] leading-7 text-gray-100 whitespace-pre-wrap font-normal">
                             {message.text}
                           </p>
-
-                          {message.isLoading && (
-                            <span className="flex gap-1 shrink-0">
-                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce" />
-                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:120ms]" />
-                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:240ms]" />
-                            </span>
-                          )}
                         </div>
 
                         {message.tasks && message.tasks.length > 0 && (
-                          <p className="text-gray-400 mt-2">
+                          <p className="text-gray-400 mt-4">
                             The request was routed across the best-fit AI roles.
                           </p>
                         )}
@@ -965,37 +971,42 @@ function Chat({
                       </div>
                     )}
 
-                    {message.outputs && message.outputs.length > 0 && (
-                      <>
-                        <h2 className="text-2xl font-bold mb-5">
-                          Generated Outputs
-                        </h2>
+                    {message.outputs &&
+                      message.outputs.length > 0 &&
+                      !(
+                        message.outputs.length === 1 &&
+                        message.outputs[0][1] === "Answer"
+                      ) && (
+                        <>
+                          <h2 className="text-2xl font-bold mb-5">
+                            Generated Outputs
+                          </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {message.outputs.map((output, outputIndex) => (
-                            <button
-                              key={outputIndex}
-                              onClick={() => openSingleOutput(output)}
-                              className="text-left bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 hover:bg-[#141f33] transition"
-                            >
-                              <h3 className="font-bold text-lg mb-2">
-                                {output[0]} {output[1]}
-                              </h3>
-                              <p className="text-gray-400 text-sm">
-                                {output[2]}
-                              </p>
-                            </button>
-                          ))}
-                        </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {message.outputs.map((output, outputIndex) => (
+                              <button
+                                key={outputIndex}
+                                onClick={() => openSingleOutput(output)}
+                                className="text-left bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 hover:bg-[#141f33] transition"
+                              >
+                                <h3 className="font-bold text-lg mb-2">
+                                  {output[0]} {output[1]}
+                                </h3>
+                                <p className="text-gray-400 text-sm">
+                                  {output[2]}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
 
-                        <button
-                          onClick={() => openAllOutputs(message.outputs)}
-                          className="mt-7 text-purple-300 font-semibold hover:text-purple-200"
-                        >
-                          Open all files →
-                        </button>
-                      </>
-                    )}
+                          <button
+                            onClick={() => openAllOutputs(message.outputs)}
+                            className="mt-7 text-purple-300 font-semibold hover:text-purple-200"
+                          >
+                            Open all files →
+                          </button>
+                        </>
+                      )}
                   </div>
                 )}
               </div>
