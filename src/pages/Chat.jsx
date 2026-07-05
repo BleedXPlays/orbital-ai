@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import OutputPreviewModal from "../components/OutputPreviewModal";
 
 function Chat({
   selectedChat,
@@ -20,6 +21,12 @@ function Chat({
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const [outputModal, setOutputModal] = useState({
+    isOpen: false,
+    title: "",
+    outputs: [],
+  });
+
   const mainScrollRef = useRef(null);
 
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
@@ -39,6 +46,30 @@ function Chat({
     setTimeout(() => {
       setNotice("");
     }, 2500);
+  };
+
+  const openSingleOutput = (output) => {
+    setOutputModal({
+      isOpen: true,
+      title: output[1],
+      outputs: [output],
+    });
+  };
+
+  const openAllOutputs = (outputs) => {
+    setOutputModal({
+      isOpen: true,
+      title: "All Generated Outputs",
+      outputs,
+    });
+  };
+
+  const closeOutputModal = () => {
+    setOutputModal({
+      isOpen: false,
+      title: "",
+      outputs: [],
+    });
   };
 
   const analyzeTask = (text) => {
@@ -424,6 +455,13 @@ function Chat({
         </div>
       )}
 
+      <OutputPreviewModal
+        isOpen={outputModal.isOpen}
+        title={outputModal.title}
+        outputs={outputModal.outputs}
+        onClose={closeOutputModal}
+      />
+
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
         <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/80 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-6">
@@ -591,9 +629,10 @@ function Chat({
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {message.outputs.map((output, outputIndex) => (
-                            <div
+                            <button
                               key={outputIndex}
-                              className="bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 transition"
+                              onClick={() => openSingleOutput(output)}
+                              className="text-left bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 hover:bg-[#141f33] transition"
                             >
                               <h3 className="font-bold text-lg mb-2">
                                 {output[0]} {output[1]}
@@ -601,11 +640,14 @@ function Chat({
                               <p className="text-gray-400 text-sm">
                                 {output[2]}
                               </p>
-                            </div>
+                            </button>
                           ))}
                         </div>
 
-                        <button className="mt-7 text-purple-300 font-semibold hover:text-purple-200">
+                        <button
+                          onClick={() => openAllOutputs(message.outputs)}
+                          className="mt-7 text-purple-300 font-semibold hover:text-purple-200"
+                        >
                           Open all files →
                         </button>
                       </>
