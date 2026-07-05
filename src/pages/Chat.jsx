@@ -23,6 +23,9 @@ function Chat({
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
 
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceDuration, setVoiceDuration] = useState(0);
+
   const [outputModal, setOutputModal] = useState({
     isOpen: false,
     title: "",
@@ -32,6 +35,12 @@ function Chat({
   const mainScrollRef = useRef(null);
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
+
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const voiceTimerRef = useRef(null);
+  const voiceStartTimeRef = useRef(null);
+  const voiceStreamRef = useRef(null);
 
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
 
@@ -52,6 +61,18 @@ function Chat({
     };
   }, [attachmentPreviewUrl]);
 
+  useEffect(() => {
+    return () => {
+      if (voiceTimerRef.current) {
+        clearInterval(voiceTimerRef.current);
+      }
+
+      if (voiceStreamRef.current) {
+        voiceStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   const showNotice = (message) => {
     setNotice(message);
 
@@ -68,6 +89,20 @@ function Chat({
 
     if (mb >= 1) return `${mb.toFixed(2)} MB`;
     return `${kb.toFixed(1)} KB`;
+  };
+
+  const formatDuration = (seconds) => {
+    const safeSeconds = Math.max(0, seconds || 0);
+    const mins = Math.floor(safeSeconds / 60);
+    const secs = safeSeconds % 60;
+
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  };
+
+  const getAttachmentIcon = (kind) => {
+    if (kind === "image") return "🖼️";
+    if (kind === "voice") return "🎙️";
+    return "📎";
   };
 
   const openSingleOutput = (output) => {
@@ -165,7 +200,9 @@ function Chat({
     if (
       lowerText.includes("voice") ||
       lowerText.includes("audio") ||
-      lowerText.includes("speech")
+      lowerText.includes("speech") ||
+      lowerText.includes("transcribe") ||
+      lowerText.includes("recording")
     ) {
       detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
     }
@@ -271,6 +308,122 @@ function Chat({
     event.target.value = "";
   };
 
+  const startVoiceRecording = async () => {
+    if (isGenerating) return;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showNotice("Voice recording is not supported in this browser.");
+      return;
+    }
+
+    if (!window.MediaRecorder) {
+      showNotice("Media recording is not supported in this browser.");
+      return;
+    }
+
+    try {
+      if (attachmentPreviewUrl) {
+        URL.revokeObjectURL(attachmentPreviewUrl);
+      }
+
+      setActionMenuOpen(false);
+      setSelectedAttachment(null);
+      setAttachmentPreviewUrl("");
+      setVoiceDuration(0);
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      voiceStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      voiceStartTimeRef.current = Date.now();
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const durationSeconds = Math.max(
+          1,
+          Math.round((Date.now() - voiceStartTimeRef.current) / 1000)
+        );
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        const attachment = {
+          name: `voice-note-${Date.now()}.webm`,
+          type: "audio/webm",
+          size: audioBlob.size,
+          sizeLabel: formatFileSize(audioBlob.size),
+          kind: "voice",
+          durationLabel: formatDuration(durationSeconds),
+        };
+
+        setSelectedAttachment(attachment);
+        setAttachmentPreviewUrl(audioUrl);
+
+        setInput((prev) => {
+          if (prev.trim()) return prev;
+          return "Transcribe this voice note";
+        });
+
+        showNotice("Voice note recorded.");
+
+        if (voiceStreamRef.current) {
+          voiceStreamRef.current.getTracks().forEach((track) => track.stop());
+          voiceStreamRef.current = null;
+        }
+
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+        voiceStartTimeRef.current = null;
+      };
+
+      recorder.start();
+      setIsRecording(true);
+
+      voiceTimerRef.current = setInterval(() => {
+        setVoiceDuration((prev) => prev + 1);
+      }, 1000);
+
+      showNotice("Recording started.");
+    } catch (error) {
+      showNotice("Microphone permission was denied.");
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (!mediaRecorderRef.current) return;
+
+    if (voiceTimerRef.current) {
+      clearInterval(voiceTimerRef.current);
+      voiceTimerRef.current = null;
+    }
+
+    setIsRecording(false);
+
+    if (mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const handleVoiceInput = () => {
+    if (isRecording) {
+      stopVoiceRecording();
+      return;
+    }
+
+    startVoiceRecording();
+  };
+
   const removeAttachment = () => {
     if (attachmentPreviewUrl) {
       URL.revokeObjectURL(attachmentPreviewUrl);
@@ -282,13 +435,14 @@ function Chat({
   };
 
   const handleClearInput = () => {
+    if (isRecording) {
+      showNotice("Stop recording first.");
+      return;
+    }
+
     setInput("");
     setActionMenuOpen(false);
     showNotice("Input cleared.");
-  };
-
-  const handleVoiceInput = () => {
-    showNotice("Voice input will be added next.");
   };
 
   const formatChatForExport = () => {
@@ -373,6 +527,11 @@ function Chat({
   const sendMessage = () => {
     const trimmedInput = input.trim();
 
+    if (isRecording) {
+      showNotice("Stop recording before sending.");
+      return;
+    }
+
     if ((!trimmedInput && !selectedAttachment) || isGenerating) return;
 
     setIsGenerating(true);
@@ -382,8 +541,13 @@ function Chat({
     const attachmentText = selectedAttachment
       ? `Attached ${selectedAttachment.kind}: ${selectedAttachment.name}`
       : "";
+
     const messageText = trimmedInput || attachmentText;
-    const textForAnalysis = `${messageText} ${selectedAttachment?.name || ""}`;
+
+    const textForAnalysis = `${messageText} ${
+      selectedAttachment?.name || ""
+    } ${selectedAttachment?.kind || ""}`;
+
     const tasks = analyzeTask(textForAnalysis);
 
     const userMessage = {
@@ -679,12 +843,15 @@ function Chat({
                       {message.attachment && (
                         <div className="mt-4 rounded-2xl bg-[#07101F] border border-purple-500/30 p-4">
                           <p className="text-sm font-semibold text-purple-200">
-                            {message.attachment.kind === "image" ? "🖼️" : "📎"}{" "}
+                            {getAttachmentIcon(message.attachment.kind)}{" "}
                             {message.attachment.name}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
                             {message.attachment.sizeLabel} •{" "}
                             {message.attachment.type}
+                            {message.attachment.durationLabel
+                              ? ` • ${message.attachment.durationLabel}`
+                              : ""}
                           </p>
                         </div>
                       )}
@@ -826,6 +993,35 @@ function Chat({
                 </div>
               )}
 
+              {isRecording && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="mb-3 rounded-3xl bg-red-500/10 border border-red-500/30 p-4 shadow-xl shadow-red-950/20"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-red-400 animate-pulse" />
+                      <div>
+                        <p className="font-semibold text-red-200">
+                          Recording voice note
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          {formatDuration(voiceDuration)} • Click mic again to
+                          stop
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={stopVoiceRecording}
+                      className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 hover:bg-red-500/20"
+                    >
+                      Stop
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {selectedAttachment && (
                 <div
                   onClick={(e) => e.stopPropagation()}
@@ -839,6 +1035,18 @@ function Chat({
                         alt={selectedAttachment.name}
                         className="w-16 h-16 rounded-2xl object-cover border border-[#1B2540]"
                       />
+                    ) : selectedAttachment.kind === "voice" &&
+                      attachmentPreviewUrl ? (
+                      <div className="min-w-[170px]">
+                        <div className="w-16 h-16 rounded-2xl bg-[#101827] border border-[#1B2540] flex items-center justify-center text-2xl mb-2">
+                          🎙️
+                        </div>
+                        <audio
+                          controls
+                          src={attachmentPreviewUrl}
+                          className="w-48 h-8"
+                        />
+                      </div>
                     ) : (
                       <div className="w-16 h-16 rounded-2xl bg-[#101827] border border-[#1B2540] flex items-center justify-center text-2xl">
                         📎
@@ -847,11 +1055,15 @@ function Chat({
 
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold truncate">
+                        {getAttachmentIcon(selectedAttachment.kind)}{" "}
                         {selectedAttachment.name}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
                         {selectedAttachment.sizeLabel} •{" "}
                         {selectedAttachment.type}
+                        {selectedAttachment.durationLabel
+                          ? ` • ${selectedAttachment.durationLabel}`
+                          : ""}
                       </p>
                     </div>
 
@@ -871,9 +1083,9 @@ function Chat({
               >
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
-                  disabled={isGenerating}
+                  disabled={isGenerating || isRecording}
                   className={`w-14 h-14 rounded-2xl border text-3xl text-white transition ${
-                    isGenerating
+                    isGenerating || isRecording
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
                       : actionMenuOpen
                       ? "bg-[#16213A] border-purple-500/60 shadow-lg shadow-purple-900/20"
@@ -886,26 +1098,30 @@ function Chat({
                 <button
                   onClick={handleVoiceInput}
                   disabled={isGenerating}
-                  className={`w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl transition ${
-                    isGenerating
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-[#141f33]"
+                  className={`w-14 h-14 rounded-2xl border text-2xl transition ${
+                    isRecording
+                      ? "bg-red-500/10 border-red-500/40 text-red-200 hover:bg-red-500/20"
+                      : isGenerating
+                      ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
+                      : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
                   }`}
                 >
-                  🎤
+                  {isRecording ? "■" : "🎤"}
                 </button>
 
                 <input
                   type="text"
                   value={input}
                   placeholder={
-                    isGenerating
+                    isRecording
+                      ? "Recording voice note..."
+                      : isGenerating
                       ? "OrbitalAI is working..."
                       : selectedAttachment
                       ? "Add a message for this attachment..."
                       : "Ask OrbitalAI anything..."
                   }
-                  disabled={isGenerating}
+                  disabled={isGenerating || isRecording}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -918,9 +1134,9 @@ function Chat({
 
                 <button
                   onClick={sendMessage}
-                  disabled={isGenerating}
+                  disabled={isGenerating || isRecording}
                   className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 transition ${
-                    isGenerating
+                    isGenerating || isRecording
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:scale-[1.03]"
                   }`}
