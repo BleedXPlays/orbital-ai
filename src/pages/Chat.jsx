@@ -18,6 +18,7 @@ function Chat({
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const mainScrollRef = useRef(null);
 
@@ -277,8 +278,10 @@ function Chat({
 
   const sendMessage = () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput) return;
 
+    if (!trimmedInput || isGenerating) return;
+
+    setIsGenerating(true);
     setActionMenuOpen(false);
 
     const now = new Date().toISOString();
@@ -289,14 +292,20 @@ function Chat({
       text: trimmedInput,
     };
 
-    const aiMessage = {
+    const loadingMessage = {
+      role: "ai",
+      text: "OrbitalAI is analyzing your request...",
+      isLoading: true,
+    };
+
+    const finalAiMessage = {
       role: "ai",
       text: "OrbitalAI analyzed your request and assigned the best AI models.",
       tasks,
       outputs: getOutputs(tasks),
     };
 
-    const newMessages = [userMessage, aiMessage];
+    setInput("");
 
     if (!selectedChat) {
       const newTitle = generateChatTitle(trimmedInput);
@@ -305,7 +314,7 @@ function Chat({
 
       setChatMessages({
         ...chatMessages,
-        [newTitle]: newMessages,
+        [newTitle]: [userMessage, loadingMessage],
       });
 
       setChatActivity({
@@ -317,7 +326,15 @@ function Chat({
 
       addActivity("chat", "Chat created", newTitle);
 
-      setInput("");
+      setTimeout(() => {
+        setChatMessages((prev) => ({
+          ...prev,
+          [newTitle]: [userMessage, finalAiMessage],
+        }));
+
+        setIsGenerating(false);
+      }, 1200);
+
       return;
     }
 
@@ -332,7 +349,7 @@ function Chat({
 
       const updatedChatMessages = {
         ...chatMessages,
-        [newTitle]: newMessages,
+        [newTitle]: [userMessage, loadingMessage],
       };
 
       delete updatedChatMessages[selectedChat];
@@ -354,13 +371,21 @@ function Chat({
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 
-      setInput("");
+      setTimeout(() => {
+        setChatMessages((prev) => ({
+          ...prev,
+          [newTitle]: [userMessage, finalAiMessage],
+        }));
+
+        setIsGenerating(false);
+      }, 1200);
+
       return;
     }
 
     setChatMessages({
       ...chatMessages,
-      [selectedChat]: [...messages, userMessage, aiMessage],
+      [selectedChat]: [...messages, userMessage, loadingMessage],
     });
 
     setChatActivity({
@@ -370,7 +395,20 @@ function Chat({
 
     addActivity("message", "Message sent", selectedChat);
 
-    setInput("");
+    setTimeout(() => {
+      setChatMessages((prev) => {
+        const currentMessages = prev[selectedChat] || [];
+
+        return {
+          ...prev,
+          [selectedChat]: currentMessages.map((message) =>
+            message.isLoading ? finalAiMessage : message
+          ),
+        };
+      });
+
+      setIsGenerating(false);
+    }, 1200);
   };
 
   return (
@@ -510,9 +548,19 @@ function Chat({
                       </div>
 
                       <div className="min-w-0">
-                        <p className="text-xl font-semibold">
-                          {message.text}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <p className="text-xl font-semibold">
+                            {message.text}
+                          </p>
+
+                          {message.isLoading && (
+                            <span className="flex gap-1">
+                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce" />
+                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:120ms]" />
+                              <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:240ms]" />
+                            </span>
+                          )}
+                        </div>
 
                         {message.tasks && message.tasks.length > 0 && (
                           <p className="text-gray-400 mt-2">
@@ -630,8 +678,11 @@ function Chat({
               >
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
+                  disabled={isGenerating}
                   className={`w-14 h-14 rounded-2xl border text-3xl text-white transition ${
-                    actionMenuOpen
+                    isGenerating
+                      ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
+                      : actionMenuOpen
                       ? "bg-[#16213A] border-purple-500/60 shadow-lg shadow-purple-900/20"
                       : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
                   }`}
@@ -641,7 +692,12 @@ function Chat({
 
                 <button
                   onClick={handleVoiceInput}
-                  className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33] transition"
+                  disabled={isGenerating}
+                  className={`w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl transition ${
+                    isGenerating
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-[#141f33]"
+                  }`}
                 >
                   🎤
                 </button>
@@ -649,19 +705,32 @@ function Chat({
                 <input
                   type="text"
                   value={input}
-                  placeholder="Ask OrbitalAI anything..."
+                  placeholder={
+                    isGenerating
+                      ? "OrbitalAI is working..."
+                      : "Ask OrbitalAI anything..."
+                  }
+                  disabled={isGenerating}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") sendMessage();
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
                   }}
-                  className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+                  className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500 disabled:opacity-60"
                 />
 
                 <button
                   onClick={sendMessage}
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+                  disabled={isGenerating}
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 transition ${
+                    isGenerating
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:scale-[1.03]"
+                  }`}
                 >
-                  ➤
+                  {isGenerating ? "…" : "➤"}
                 </button>
               </div>
             </div>
