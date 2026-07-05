@@ -373,20 +373,21 @@ function App() {
       case "chat":
         return (
           <Chat
-            selectedChat={selectedChat}
-            setSelectedChat={setSelectedChat}
-            chats={chats}
-            setChats={setChats}
-            projectChats={projectChats}
-            setProjectChats={setProjectChats}
-            chatMessages={chatMessages}
-            setChatMessages={setChatMessages}
-            pinnedChats={pinnedChats}
-            setPinnedChats={setPinnedChats}
-            chatActivity={chatActivity}
-            setChatActivity={setChatActivity}
-            addActivity={addActivity}
-          />
+  user={user}
+  selectedChat={selectedChat}
+  setSelectedChat={setSelectedChat}
+  chats={chats}
+  setChats={setChats}
+  projectChats={projectChats}
+  setProjectChats={setProjectChats}
+  chatMessages={chatMessages}
+  setChatMessages={setChatMessages}
+  pinnedChats={pinnedChats}
+  setPinnedChats={setPinnedChats}
+  chatActivity={chatActivity}
+  setChatActivity={setChatActivity}
+  addActivity={addActivity}
+/>
         );
 
       case "project":
