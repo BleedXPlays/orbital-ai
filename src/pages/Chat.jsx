@@ -218,24 +218,41 @@ function Chat({
     const outputs = [];
 
     tasks.forEach((item) => {
-      if (item.task === "Research")
+      if (item.task === "Research") {
         outputs.push(["📚", "Research Notes", "Detailed sources"]);
-      if (item.task === "Writing")
+      }
+
+      if (item.task === "Writing") {
         outputs.push(["📄", "Written Content", "Essay / report"]);
-      if (item.task === "Images")
+      }
+
+      if (item.task === "Images") {
         outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
-      if (item.task === "Coding")
+      }
+
+      if (item.task === "Coding") {
         outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
-      if (item.task === "Presentation")
+      }
+
+      if (item.task === "Presentation") {
         outputs.push(["📊", "Presentation", "Slides"]);
-      if (item.task === "Video")
+      }
+
+      if (item.task === "Video") {
         outputs.push(["🎬", "Video Plan", "Scene prompts"]);
-      if (item.task === "Translation")
+      }
+
+      if (item.task === "Translation") {
         outputs.push(["🌍", "Translation", "Translated output"]);
-      if (item.task === "Voice Input")
+      }
+
+      if (item.task === "Voice Input") {
         outputs.push(["🎙️", "Transcript", "Voice to text"]);
-      if (item.task === "General Answer")
+      }
+
+      if (item.task === "General Answer") {
         outputs.push(["💬", "Answer", "General response"]);
+      }
     });
 
     return outputs;
@@ -271,6 +288,39 @@ function Chat({
     });
 
     return updatedProjectChats;
+  };
+
+  const getRealAiReply = async ({ message, tasks, outputs, attachment }) => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message,
+          tasks,
+          outputs,
+          attachment,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate AI response.");
+      }
+
+      return (
+        data.reply ||
+        "OrbitalAI generated a response, but no text was returned."
+      );
+    } catch (error) {
+      console.error("AI response error:", error);
+      showNotice("Real AI response failed. Showing fallback response.");
+
+      return "OrbitalAI analyzed your request and assigned the best AI models. Real AI response could not be generated right now.";
+    }
   };
 
   const handleAttachFile = () => {
@@ -524,7 +574,7 @@ function Chat({
     addActivity("export", "Chat exported", selectedChat);
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const trimmedInput = input.trim();
 
     if (isRecording) {
@@ -538,40 +588,42 @@ function Chat({
     setActionMenuOpen(false);
 
     const now = new Date().toISOString();
-    const attachmentText = selectedAttachment
-      ? `Attached ${selectedAttachment.kind}: ${selectedAttachment.name}`
+
+    const attachmentToSend = selectedAttachment;
+
+    const attachmentText = attachmentToSend
+      ? `Attached ${attachmentToSend.kind}: ${attachmentToSend.name}`
       : "";
 
     const messageText = trimmedInput || attachmentText;
 
     const textForAnalysis = `${messageText} ${
-      selectedAttachment?.name || ""
-    } ${selectedAttachment?.kind || ""}`;
+      attachmentToSend?.name || ""
+    } ${attachmentToSend?.kind || ""}`;
 
     const tasks = analyzeTask(textForAnalysis);
+    const outputs = getOutputs(tasks);
 
     const userMessage = {
       role: "user",
       text: messageText,
-      attachment: selectedAttachment,
+      attachment: attachmentToSend,
     };
 
     const loadingMessage = {
       role: "ai",
-      text: selectedAttachment
-        ? "OrbitalAI is analyzing your request and attachment..."
-        : "OrbitalAI is analyzing your request...",
+      text: attachmentToSend
+        ? "OrbitalAI is generating a real response for your request and attachment..."
+        : "OrbitalAI is generating a real response...",
       isLoading: true,
     };
 
-    const finalAiMessage = {
+    const createFinalAiMessage = (reply) => ({
       role: "ai",
-      text: selectedAttachment
-        ? "OrbitalAI analyzed your request, checked the attachment type, and assigned the best AI models."
-        : "OrbitalAI analyzed your request and assigned the best AI models.",
+      text: reply,
       tasks,
-      outputs: getOutputs(tasks),
-    };
+      outputs,
+    });
 
     setInput("");
 
@@ -601,15 +653,19 @@ function Chat({
 
       addActivity("chat", "Chat created", newTitle);
 
-      setTimeout(() => {
-        setChatMessages((prev) => ({
-          ...prev,
-          [newTitle]: [userMessage, finalAiMessage],
-        }));
+      const reply = await getRealAiReply({
+        message: messageText,
+        tasks,
+        outputs,
+        attachment: attachmentToSend,
+      });
 
-        setIsGenerating(false);
-      }, 1200);
+      setChatMessages((prev) => ({
+        ...prev,
+        [newTitle]: [userMessage, createFinalAiMessage(reply)],
+      }));
 
+      setIsGenerating(false);
       return;
     }
 
@@ -646,15 +702,19 @@ function Chat({
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 
-      setTimeout(() => {
-        setChatMessages((prev) => ({
-          ...prev,
-          [newTitle]: [userMessage, finalAiMessage],
-        }));
+      const reply = await getRealAiReply({
+        message: messageText,
+        tasks,
+        outputs,
+        attachment: attachmentToSend,
+      });
 
-        setIsGenerating(false);
-      }, 1200);
+      setChatMessages((prev) => ({
+        ...prev,
+        [newTitle]: [userMessage, createFinalAiMessage(reply)],
+      }));
 
+      setIsGenerating(false);
       return;
     }
 
@@ -670,24 +730,29 @@ function Chat({
 
     addActivity(
       "message",
-      selectedAttachment ? "Message with attachment sent" : "Message sent",
+      attachmentToSend ? "Message with attachment sent" : "Message sent",
       selectedChat
     );
 
-    setTimeout(() => {
-      setChatMessages((prev) => {
-        const currentMessages = prev[selectedChat] || [];
+    const reply = await getRealAiReply({
+      message: messageText,
+      tasks,
+      outputs,
+      attachment: attachmentToSend,
+    });
 
-        return {
-          ...prev,
-          [selectedChat]: currentMessages.map((message) =>
-            message.isLoading ? finalAiMessage : message
-          ),
-        };
-      });
+    setChatMessages((prev) => {
+      const currentMessages = prev[selectedChat] || [];
 
-      setIsGenerating(false);
-    }, 1200);
+      return {
+        ...prev,
+        [selectedChat]: currentMessages.map((message) =>
+          message.isLoading ? createFinalAiMessage(reply) : message
+        ),
+      };
+    });
+
+    setIsGenerating(false);
   };
 
   return (
@@ -866,12 +931,12 @@ function Chat({
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-3">
-                          <p className="text-xl font-semibold">
+                          <p className="text-xl font-semibold whitespace-pre-wrap">
                             {message.text}
                           </p>
 
                           {message.isLoading && (
-                            <span className="flex gap-1">
+                            <span className="flex gap-1 shrink-0">
                               <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce" />
                               <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:120ms]" />
                               <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:240ms]" />
