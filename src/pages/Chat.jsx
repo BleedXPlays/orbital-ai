@@ -20,6 +20,8 @@ function Chat({
   const [notice, setNotice] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
+  const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
 
   const [outputModal, setOutputModal] = useState({
     isOpen: false,
@@ -28,6 +30,8 @@ function Chat({
   });
 
   const mainScrollRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
 
@@ -40,12 +44,30 @@ function Chat({
     });
   }, [messages.length]);
 
+  useEffect(() => {
+    return () => {
+      if (attachmentPreviewUrl) {
+        URL.revokeObjectURL(attachmentPreviewUrl);
+      }
+    };
+  }, [attachmentPreviewUrl]);
+
   const showNotice = (message) => {
     setNotice(message);
 
     setTimeout(() => {
       setNotice("");
     }, 2500);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "Unknown size";
+
+    const kb = bytes / 1024;
+    const mb = kb / 1024;
+
+    if (mb >= 1) return `${mb.toFixed(2)} MB`;
+    return `${kb.toFixed(1)} KB`;
   };
 
   const openSingleOutput = (output) => {
@@ -100,7 +122,9 @@ function Chat({
       lowerText.includes("poster") ||
       lowerText.includes("diagram") ||
       lowerText.includes("logo") ||
-      lowerText.includes("visual")
+      lowerText.includes("visual") ||
+      lowerText.includes("photo") ||
+      lowerText.includes("picture")
     ) {
       detectedTasks.push({ task: "Images", ai: "Gemini" });
     }
@@ -214,12 +238,47 @@ function Chat({
 
   const handleAttachFile = () => {
     setActionMenuOpen(false);
-    showNotice("File attachment will be added next.");
+    fileInputRef.current?.click();
   };
 
   const handleUploadImage = () => {
     setActionMenuOpen(false);
-    showNotice("Image upload will be added next.");
+    imageInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event, kind) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (attachmentPreviewUrl) {
+      URL.revokeObjectURL(attachmentPreviewUrl);
+    }
+
+    const isImage = kind === "image" || file.type.startsWith("image/");
+
+    const attachment = {
+      name: file.name,
+      type: file.type || "Unknown type",
+      size: file.size,
+      sizeLabel: formatFileSize(file.size),
+      kind: isImage ? "image" : "file",
+    };
+
+    setSelectedAttachment(attachment);
+    setAttachmentPreviewUrl(isImage ? URL.createObjectURL(file) : "");
+    showNotice(isImage ? "Image selected." : "File attached.");
+
+    event.target.value = "";
+  };
+
+  const removeAttachment = () => {
+    if (attachmentPreviewUrl) {
+      URL.revokeObjectURL(attachmentPreviewUrl);
+    }
+
+    setSelectedAttachment(null);
+    setAttachmentPreviewUrl("");
+    showNotice("Attachment removed.");
   };
 
   const handleClearInput = () => {
@@ -237,8 +296,12 @@ function Chat({
 
     const formattedMessages = messages
       .map((message) => {
+        const attachmentText = message.attachment
+          ? `\n\nAttachment:\n- ${message.attachment.name} (${message.attachment.sizeLabel})`
+          : "";
+
         if (message.role === "user") {
-          return `You:\n${message.text}`;
+          return `You:\n${message.text}${attachmentText}`;
         }
 
         const taskText =
@@ -255,7 +318,7 @@ function Chat({
                 .join("\n")}`
             : "";
 
-        return `OrbitalAI:\n${message.text}${taskText}${outputText}`;
+        return `OrbitalAI:\n${message.text}${attachmentText}${taskText}${outputText}`;
       })
       .join("\n\n------------------------------\n\n");
 
@@ -310,36 +373,53 @@ function Chat({
   const sendMessage = () => {
     const trimmedInput = input.trim();
 
-    if (!trimmedInput || isGenerating) return;
+    if ((!trimmedInput && !selectedAttachment) || isGenerating) return;
 
     setIsGenerating(true);
     setActionMenuOpen(false);
 
     const now = new Date().toISOString();
-    const tasks = analyzeTask(trimmedInput);
+    const attachmentText = selectedAttachment
+      ? `Attached ${selectedAttachment.kind}: ${selectedAttachment.name}`
+      : "";
+    const messageText = trimmedInput || attachmentText;
+    const textForAnalysis = `${messageText} ${selectedAttachment?.name || ""}`;
+    const tasks = analyzeTask(textForAnalysis);
 
     const userMessage = {
       role: "user",
-      text: trimmedInput,
+      text: messageText,
+      attachment: selectedAttachment,
     };
 
     const loadingMessage = {
       role: "ai",
-      text: "OrbitalAI is analyzing your request...",
+      text: selectedAttachment
+        ? "OrbitalAI is analyzing your request and attachment..."
+        : "OrbitalAI is analyzing your request...",
       isLoading: true,
     };
 
     const finalAiMessage = {
       role: "ai",
-      text: "OrbitalAI analyzed your request and assigned the best AI models.",
+      text: selectedAttachment
+        ? "OrbitalAI analyzed your request, checked the attachment type, and assigned the best AI models."
+        : "OrbitalAI analyzed your request and assigned the best AI models.",
       tasks,
       outputs: getOutputs(tasks),
     };
 
     setInput("");
 
+    if (attachmentPreviewUrl) {
+      URL.revokeObjectURL(attachmentPreviewUrl);
+    }
+
+    setSelectedAttachment(null);
+    setAttachmentPreviewUrl("");
+
     if (!selectedChat) {
-      const newTitle = generateChatTitle(trimmedInput);
+      const newTitle = generateChatTitle(messageText);
 
       setChats([...chats, newTitle]);
 
@@ -370,7 +450,7 @@ function Chat({
     }
 
     if (selectedChat.startsWith("New Chat") && messages.length === 0) {
-      const newTitle = generateChatTitle(trimmedInput);
+      const newTitle = generateChatTitle(messageText);
 
       const updatedChats = chats.map((chat) =>
         chat === selectedChat ? newTitle : chat
@@ -424,7 +504,11 @@ function Chat({
       [selectedChat]: now,
     });
 
-    addActivity("message", "Message sent", selectedChat);
+    addActivity(
+      "message",
+      selectedAttachment ? "Message with attachment sent" : "Message sent",
+      selectedChat
+    );
 
     setTimeout(() => {
       setChatMessages((prev) => {
@@ -447,6 +531,21 @@ function Chat({
       onClick={() => setActionMenuOpen(false)}
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => handleFileSelected(e, "file")}
+      />
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFileSelected(e, "image")}
+      />
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
       {notice && (
@@ -576,6 +675,19 @@ function Chat({
                       <p className="text-gray-100 leading-relaxed">
                         {message.text}
                       </p>
+
+                      {message.attachment && (
+                        <div className="mt-4 rounded-2xl bg-[#07101F] border border-purple-500/30 p-4">
+                          <p className="text-sm font-semibold text-purple-200">
+                            {message.attachment.kind === "image" ? "🖼️" : "📎"}{" "}
+                            {message.attachment.name}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {message.attachment.sizeLabel} •{" "}
+                            {message.attachment.type}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -714,6 +826,45 @@ function Chat({
                 </div>
               )}
 
+              {selectedAttachment && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="mb-3 rounded-3xl bg-[#07101F]/95 border border-[#1B2540] p-4 shadow-xl shadow-purple-950/20"
+                >
+                  <div className="flex items-center gap-4">
+                    {selectedAttachment.kind === "image" &&
+                    attachmentPreviewUrl ? (
+                      <img
+                        src={attachmentPreviewUrl}
+                        alt={selectedAttachment.name}
+                        className="w-16 h-16 rounded-2xl object-cover border border-[#1B2540]"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-[#101827] border border-[#1B2540] flex items-center justify-center text-2xl">
+                        📎
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">
+                        {selectedAttachment.name}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        {selectedAttachment.sizeLabel} •{" "}
+                        {selectedAttachment.type}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={removeAttachment}
+                      className="w-10 h-10 rounded-xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:text-white hover:bg-[#141f33]"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div
                 onClick={(e) => e.stopPropagation()}
                 className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl"
@@ -750,6 +901,8 @@ function Chat({
                   placeholder={
                     isGenerating
                       ? "OrbitalAI is working..."
+                      : selectedAttachment
+                      ? "Add a message for this attachment..."
                       : "Ask OrbitalAI anything..."
                   }
                   disabled={isGenerating}
