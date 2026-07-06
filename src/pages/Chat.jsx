@@ -950,16 +950,26 @@ function Chat({
                           </p>
                         </div>
 
-                        {message.tasks && message.tasks.length > 0 && (
-                          <p className="text-gray-400 mt-4">
-                            The request was routed across the best-fit AI roles.
-                          </p>
-                        )}
+                        {message.tasks &&
+  message.tasks.length > 0 &&
+  !(
+    message.tasks.length === 1 &&
+    message.tasks[0].task === "General Answer"
+  ) && (
+    <p className="text-gray-400 mt-4">
+      The request was routed across the best-fit AI roles.
+    </p>
+  )}
                       </div>
                     </div>
 
-                    {message.tasks && message.tasks.length > 0 && (
-                      <div className="flex flex-wrap gap-3 mb-8">
+{message.tasks &&
+  message.tasks.length > 0 &&
+  !(
+    message.tasks.length === 1 &&
+    message.tasks[0].task === "General Answer"
+  ) && (
+    <div className="flex flex-wrap gap-3 mb-8">
                         {message.tasks.map((item, taskIndex) => (
                           <span
                             key={taskIndex}

@@ -4,6 +4,15 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const cleanAiText = (text = "") => {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/#{1,6}\s/g, "")
+    .replace(/`{1,3}/g, "")
+    .trim();
+};
+
 export default async function handler(request, response) {
   if (request.method !== "POST") {
     return response.status(405).json({
@@ -40,7 +49,7 @@ export default async function handler(request, response) {
         {
           role: "system",
           content:
-            "You are OrbitalAI, a multi-AI collaboration workspace. Answer the user's request clearly and naturally. Do not use markdown formatting. Do not use asterisks, hashtags, or bullet-heavy formatting. Keep the answer clean, simple, and readable. Mention the AI role only in one short sentence at the end if useful.",
+            "You are OrbitalAI, a multi-AI collaboration workspace. Answer clearly and naturally in plain text only. Do not use markdown. Do not use asterisks. Do not use bold text. Do not use headings with symbols. Do not use hashtags. Do not use code formatting unless the user specifically asks for code. For simple factual questions, answer directly in one short paragraph. Do not add a 'Why this approach' section. Only mention AI routing when the user asks for a complex multi-step task.",
         },
         {
           role: "user",
@@ -53,10 +62,12 @@ Expected output files: ${outputSummary}${attachmentSummary}`,
       ],
     });
 
+    const rawReply =
+      aiResponse.output_text ||
+      "OrbitalAI generated a response, but no text was returned.";
+
     return response.status(200).json({
-      reply:
-        aiResponse.output_text ||
-        "OrbitalAI generated a response, but no text was returned.",
+      reply: cleanAiText(rawReply),
     });
   } catch (error) {
     console.error("OpenAI API error:", error);
