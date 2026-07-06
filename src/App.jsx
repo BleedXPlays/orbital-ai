@@ -20,6 +20,7 @@ import Login from "./pages/Login";
 
 function App() {
   const saveTimer = useRef(null);
+  const mainContentRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -355,7 +356,12 @@ function App() {
   ]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!mainContentRef.current) return;
+
+    mainContentRef.current.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }, [page]);
 
   const handleLogout = async () => {
@@ -373,21 +379,21 @@ function App() {
       case "chat":
         return (
           <Chat
-  user={user}
-  selectedChat={selectedChat}
-  setSelectedChat={setSelectedChat}
-  chats={chats}
-  setChats={setChats}
-  projectChats={projectChats}
-  setProjectChats={setProjectChats}
-  chatMessages={chatMessages}
-  setChatMessages={setChatMessages}
-  pinnedChats={pinnedChats}
-  setPinnedChats={setPinnedChats}
-  chatActivity={chatActivity}
-  setChatActivity={setChatActivity}
-  addActivity={addActivity}
-/>
+            user={user}
+            selectedChat={selectedChat}
+            setSelectedChat={setSelectedChat}
+            chats={chats}
+            setChats={setChats}
+            projectChats={projectChats}
+            setProjectChats={setProjectChats}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
+            pinnedChats={pinnedChats}
+            setPinnedChats={setPinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
+            addActivity={addActivity}
+          />
         );
 
       case "project":
@@ -524,7 +530,7 @@ function App() {
   if (!user) return <Login />;
 
   return (
-    <div className="h-screen bg-black flex overflow-hidden">
+    <div className="h-screen w-screen bg-black flex overflow-hidden">
       {appError && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
           {appError}
@@ -554,9 +560,12 @@ function App() {
         addActivity={addActivity}
       />
 
-      <div className="flex-1 relative h-screen overflow-hidden">
-        <div className="w-full h-full">{renderPage()}</div>
-      </div>
+      <main
+        ref={mainContentRef}
+        className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden"
+      >
+        <div className="min-h-full w-full">{renderPage()}</div>
+      </main>
 
       <CommandPalette
         chats={chats}
