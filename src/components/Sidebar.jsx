@@ -434,7 +434,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-       className="w-64 h-screen shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col px-3 py-4 overflow-hidden"
+        className="w-64 h-screen min-h-0 shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden"
       >
         {notice && (
           <div className="fixed top-5 left-72 z-[10000] max-w-sm rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
@@ -442,7 +442,7 @@ function Sidebar({
           </div>
         )}
 
-        <div className="shrink-0">
+        <div className="shrink-0 px-3 pt-4 pb-3">
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -453,7 +453,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              
+              className="h-14 w-auto object-contain"
             />
           </div>
 
@@ -464,41 +464,41 @@ function Sidebar({
             }}
             type="text"
             placeholder="🔍 Global Search"
-            className="relative z-10 w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 cursor-pointer text-sm"
+            className="relative z-10 w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none cursor-pointer text-sm"
           />
         </div>
 
-        {pinnedChats.length > 0 && (
-          <div className="shrink-0 mb-3">
-            <h2 className="text-yellow-400 font-semibold mb-2 text-xs tracking-wide">
-              PINNED
-            </h2>
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-3">
+          {pinnedChats.length > 0 && (
+            <div className="mb-5">
+              <h2 className="text-yellow-400 font-semibold mb-2 text-xs tracking-wide">
+                PINNED
+              </h2>
 
-            <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
-              {pinnedChats.map((chat) => (
-                <div
-                  key={chat}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedChat(chat);
-                    setPage("chat");
-                  }}
-                  className={`px-3 py-2 rounded-lg cursor-pointer border ${
-                    selectedChat === chat
-                      ? "bg-[#101827] border-purple-700"
-                      : "bg-[#101827] border-gray-800 hover:border-purple-700"
-                  }`}
-                >
-                  <p className="truncate text-sm">⭐ {chat}</p>
-                </div>
-              ))}
+              <div className="space-y-1.5">
+                {pinnedChats.map((chat) => (
+                  <div
+                    key={chat}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedChat(chat);
+                      setPage("chat");
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer border ${
+                      selectedChat === chat
+                        ? "bg-[#101827] border-purple-700"
+                        : "bg-[#101827] border-gray-800 hover:border-purple-700"
+                    }`}
+                  >
+                    <p className="truncate text-sm">⭐ {chat}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="grid grid-rows-[1fr_1fr] gap-3 min-h-0 flex-1">
-          <section className="min-h-0 flex flex-col">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
+          <section className="mb-6">
+            <h2 className="text-purple-400 font-semibold mb-2 text-xs tracking-wide">
               CHATS
             </h2>
 
@@ -507,7 +507,7 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
+              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] text-sm"
             >
               + New Chat
             </button>
@@ -518,10 +518,10 @@ function Sidebar({
               placeholder="Search chats..."
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
+              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
+            <div className="space-y-1.5">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -584,13 +584,13 @@ function Sidebar({
               })}
 
               {filteredChats.length === 0 && (
-                <p className="text-gray-500 text-xs">No chats found.</p>
+                <p className="text-gray-500 text-xs px-1">No chats found.</p>
               )}
             </div>
           </section>
 
-          <section className="min-h-0 flex flex-col">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
+          <section>
+            <h2 className="text-purple-400 font-semibold mb-2 text-xs tracking-wide">
               PROJECTS
             </h2>
 
@@ -599,7 +599,7 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
+              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] text-sm"
             >
               + New Project
             </button>
@@ -610,10 +610,10 @@ function Sidebar({
               placeholder="Search projects..."
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
+              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
+            <div className="space-y-1.5">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;
@@ -669,13 +669,13 @@ function Sidebar({
               })}
 
               {filteredProjects.length === 0 && (
-                <p className="text-gray-500 text-xs">No projects found.</p>
+                <p className="text-gray-500 text-xs px-1">No projects found.</p>
               )}
             </div>
           </section>
         </div>
 
-        <div className="shrink-0 border-t border-[#1B2540] pt-2 mt-3 space-y-1.5">
+        <div className="shrink-0 border-t border-[#1B2540] px-3 py-3 space-y-1.5 bg-[#050B1A]">
           <button
             onClick={(e) => {
               e.stopPropagation();
