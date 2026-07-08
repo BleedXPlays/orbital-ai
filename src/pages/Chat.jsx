@@ -41,6 +41,7 @@ function Chat({
   const voiceTimerRef = useRef(null);
   const voiceStartTimeRef = useRef(null);
   const voiceStreamRef = useRef(null);
+  const selectedAttachmentFileRef = useRef(null);
 
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
 
@@ -290,8 +291,69 @@ function Chat({
     return updatedProjectChats;
   };
 
-  const getRealAiReply = async ({ message, tasks, outputs, attachment }) => {
+  const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const result = reader.result || "";
+        const base64 = String(result).split(",")[1] || "";
+        resolve(base64);
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const getRealAiReply = async ({
+    message,
+    tasks,
+    outputs,
+    attachment,
+    attachmentFile,
+  }) => {
     try {
+      if (attachment?.kind === "voice" && attachmentFile) {
+        const audioBase64 = await blobToBase64(attachmentFile);
+
+        const transcriptionResponse = await fetch("/api/transcribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            audioBase64,
+            filename: attachment.name,
+            mimeType: attachment.type,
+          }),
+        });
+
+        const transcriptionData = await transcriptionResponse.json();
+
+        if (!transcriptionResponse.ok) {
+          throw new Error(
+            transcriptionData.error || "Failed to transcribe audio."
+          );
+        }
+
+        const transcriptText =
+          transcriptionData.text || "No transcript was returned.";
+
+        const outputsWithTranscript = outputs.map((output) => {
+          if (output[1] === "Transcript") {
+            return [output[0], output[1], output[2], transcriptText];
+          }
+
+          return output;
+        });
+
+        return {
+          reply: `Transcript:\n${transcriptText}`,
+          outputs: outputsWithTranscript,
+        };
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -311,15 +373,38 @@ function Chat({
         throw new Error(data.error || "Failed to generate AI response.");
       }
 
-      return (
-        data.reply ||
-        "OrbitalAI generated a response, but no text was returned."
-      );
+      const generatedOutputs = Array.isArray(data.generatedOutputs)
+        ? data.generatedOutputs
+        : [];
+
+      const outputsWithContent = outputs.map((output) => {
+        const matchingOutput = generatedOutputs.find(
+          (item) => item.title === output[1]
+        );
+
+        return [
+          output[0],
+          output[1],
+          output[2],
+          matchingOutput?.content || "",
+        ];
+      });
+
+      return {
+        reply:
+          data.reply ||
+          "OrbitalAI generated a response, but no text was returned.",
+        outputs: outputsWithContent,
+      };
     } catch (error) {
       console.error("AI response error:", error);
       showNotice("Real AI response failed. Showing fallback response.");
 
-      return "OrbitalAI analyzed your request and assigned the best AI models. Real AI response could not be generated right now.";
+      return {
+        reply:
+          "OrbitalAI could not generate the response right now. Please try again.",
+        outputs,
+      };
     }
   };
 
@@ -336,6 +421,8 @@ function Chat({
   const handleFileSelected = (event, kind) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    selectedAttachmentFileRef.current = file;
 
     if (attachmentPreviewUrl) {
       URL.revokeObjectURL(attachmentPreviewUrl);
@@ -379,6 +466,7 @@ function Chat({
       setActionMenuOpen(false);
       setSelectedAttachment(null);
       setAttachmentPreviewUrl("");
+      selectedAttachmentFileRef.current = null;
       setVoiceDuration(0);
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -405,6 +493,8 @@ function Chat({
         const audioBlob = new Blob(audioChunksRef.current, {
           type: "audio/webm",
         });
+
+        selectedAttachmentFileRef.current = audioBlob;
 
         const audioUrl = URL.createObjectURL(audioBlob);
 
@@ -481,6 +571,7 @@ function Chat({
 
     setSelectedAttachment(null);
     setAttachmentPreviewUrl("");
+    selectedAttachmentFileRef.current = null;
     showNotice("Attachment removed.");
   };
 
@@ -518,7 +609,10 @@ function Chat({
         const outputText =
           message.outputs && message.outputs.length > 0
             ? `\n\nGenerated Outputs:\n${message.outputs
-                .map((output) => `- ${output[0]} ${output[1]}: ${output[2]}`)
+                .map((output) => {
+                  const content = output[3] ? `\n${output[3]}` : "";
+                  return `- ${output[0]} ${output[1]}: ${output[2]}${content}`;
+                })
                 .join("\n")}`
             : "";
 
@@ -590,6 +684,7 @@ function Chat({
     const now = new Date().toISOString();
 
     const attachmentToSend = selectedAttachment;
+    const attachmentFileToSend = selectedAttachmentFileRef.current;
 
     const attachmentText = attachmentToSend
       ? `Attached ${attachmentToSend.kind}: ${attachmentToSend.name}`
@@ -618,11 +713,11 @@ function Chat({
       isLoading: true,
     };
 
-    const createFinalAiMessage = (reply) => ({
+    const createFinalAiMessage = (result) => ({
       role: "ai",
-      text: reply,
+      text: result.reply,
       tasks,
-      outputs,
+      outputs: result.outputs || outputs,
     });
 
     setInput("");
@@ -633,6 +728,7 @@ function Chat({
 
     setSelectedAttachment(null);
     setAttachmentPreviewUrl("");
+    selectedAttachmentFileRef.current = null;
 
     if (!selectedChat) {
       const newTitle = generateChatTitle(messageText);
@@ -653,16 +749,17 @@ function Chat({
 
       addActivity("chat", "Chat created", newTitle);
 
-      const reply = await getRealAiReply({
+      const result = await getRealAiReply({
         message: messageText,
         tasks,
         outputs,
         attachment: attachmentToSend,
+        attachmentFile: attachmentFileToSend,
       });
 
       setChatMessages((prev) => ({
         ...prev,
-        [newTitle]: [userMessage, createFinalAiMessage(reply)],
+        [newTitle]: [userMessage, createFinalAiMessage(result)],
       }));
 
       setIsGenerating(false);
@@ -702,16 +799,17 @@ function Chat({
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 
-      const reply = await getRealAiReply({
+      const result = await getRealAiReply({
         message: messageText,
         tasks,
         outputs,
         attachment: attachmentToSend,
+        attachmentFile: attachmentFileToSend,
       });
 
       setChatMessages((prev) => ({
         ...prev,
-        [newTitle]: [userMessage, createFinalAiMessage(reply)],
+        [newTitle]: [userMessage, createFinalAiMessage(result)],
       }));
 
       setIsGenerating(false);
@@ -734,11 +832,12 @@ function Chat({
       selectedChat
     );
 
-    const reply = await getRealAiReply({
+    const result = await getRealAiReply({
       message: messageText,
       tasks,
       outputs,
       attachment: attachmentToSend,
+      attachmentFile: attachmentFileToSend,
     });
 
     setChatMessages((prev) => {
@@ -747,7 +846,7 @@ function Chat({
       return {
         ...prev,
         [selectedChat]: currentMessages.map((message) =>
-          message.isLoading ? createFinalAiMessage(reply) : message
+          message.isLoading ? createFinalAiMessage(result) : message
         ),
       };
     });
@@ -951,35 +1050,36 @@ function Chat({
                         </div>
 
                         {message.tasks &&
-  message.tasks.length > 0 &&
-  !(
-    message.tasks.length === 1 &&
-    message.tasks[0].task === "General Answer"
-  ) && (
-    <p className="text-gray-400 mt-4">
-      The request was routed across the best-fit AI roles.
-    </p>
-  )}
+                          message.tasks.length > 0 &&
+                          !(
+                            message.tasks.length === 1 &&
+                            message.tasks[0].task === "General Answer"
+                          ) && (
+                            <p className="text-gray-400 mt-4">
+                              The request was routed across the best-fit AI
+                              roles.
+                            </p>
+                          )}
                       </div>
                     </div>
 
-{message.tasks &&
-  message.tasks.length > 0 &&
-  !(
-    message.tasks.length === 1 &&
-    message.tasks[0].task === "General Answer"
-  ) && (
-    <div className="flex flex-wrap gap-3 mb-8">
-                        {message.tasks.map((item, taskIndex) => (
-                          <span
-                            key={taskIndex}
-                            className="px-4 py-2 rounded-full bg-[#101827] border border-[#1B2540] text-sm text-gray-200"
-                          >
-                            {item.ai} → {item.task}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {message.tasks &&
+                      message.tasks.length > 0 &&
+                      !(
+                        message.tasks.length === 1 &&
+                        message.tasks[0].task === "General Answer"
+                      ) && (
+                        <div className="flex flex-wrap gap-3 mb-8">
+                          {message.tasks.map((item, taskIndex) => (
+                            <span
+                              key={taskIndex}
+                              className="px-4 py-2 rounded-full bg-[#101827] border border-[#1B2540] text-sm text-gray-200"
+                            >
+                              {item.ai} → {item.task}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                     {message.outputs &&
                       message.outputs.length > 0 &&
