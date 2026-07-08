@@ -46,13 +46,24 @@ function Chat({
   const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
 
   useEffect(() => {
-    if (!mainScrollRef.current) return;
+    const scrollElement = mainScrollRef.current;
+    if (!scrollElement) return;
 
-    mainScrollRef.current.scrollTo({
-      top: mainScrollRef.current.scrollHeight,
-      behavior: "smooth",
+    const scrollToBottom = () => {
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: "smooth",
+      });
+    };
+
+    requestAnimationFrame(() => {
+      scrollToBottom();
+
+      setTimeout(() => {
+        scrollToBottom();
+      }, 150);
     });
-  }, [messages.length]);
+  }, [messages, isGenerating]);
 
   useEffect(() => {
     return () => {
@@ -510,10 +521,7 @@ function Chat({
         setSelectedAttachment(attachment);
         setAttachmentPreviewUrl(audioUrl);
 
-        setInput((prev) => {
-          if (prev.trim()) return prev;
-          return "Transcribe this voice note";
-        });
+        setInput((prev) => prev);
 
         showNotice("Voice note recorded.");
 
@@ -686,9 +694,12 @@ function Chat({
     const attachmentToSend = selectedAttachment;
     const attachmentFileToSend = selectedAttachmentFileRef.current;
 
-    const attachmentText = attachmentToSend
-      ? `Attached ${attachmentToSend.kind}: ${attachmentToSend.name}`
-      : "";
+    const attachmentText =
+      attachmentToSend?.kind === "voice"
+        ? "Voice note"
+        : attachmentToSend
+        ? `Attached ${attachmentToSend.kind}: ${attachmentToSend.name}`
+        : "";
 
     const messageText = trimmedInput || attachmentText;
 
