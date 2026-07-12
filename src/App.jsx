@@ -530,7 +530,7 @@ function App() {
   if (!user) return <Login />;
 
   return (
-    <div className="h-screen w-screen bg-black flex overflow-hidden">
+    <div className="flex h-dvh w-screen overflow-hidden bg-[#020817]">
       {appError && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
           {appError}
@@ -562,9 +562,9 @@ function App() {
 
       <main
         ref={mainContentRef}
-        className="flex-1 min-w-0 h-screen overflow-y-auto overflow-x-hidden"
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#020817]"
       >
-        <div className="min-h-full w-full">{renderPage()}</div>
+        <div className="h-full min-h-0 w-full">{renderPage()}</div>
       </main>
 
       <CommandPalette

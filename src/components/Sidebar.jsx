@@ -435,7 +435,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="w-64 h-screen min-h-0 shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden px-3 py-4"
+        className="h-full min-h-0 w-64 shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden px-3 py-4"
       >
         {notice && (
           <div className="fixed top-5 left-72 z-[10000] max-w-sm rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">

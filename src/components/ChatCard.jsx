@@ -6,14 +6,17 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
         selectedChat === chat ? "bg-[#101827]" : "hover:bg-[#101827]"
       }`}
     >
-      <div className="flex items-center justify-between gap-2 min-w-0">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">💬 {chat}</p>
+      <div className="flex w-full min-w-0 items-center gap-2">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <p className="block truncate text-sm font-medium" title={chat}>
+            💬 {chat}
+          </p>
         </div>
 
         <button
           onClick={onMenuClick}
-          className="shrink-0 text-gray-500 hover:text-white px-1"
+          aria-label={`Open menu for ${chat}`}
+          className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#101827] text-gray-400 hover:bg-[#18233A] hover:text-white"
         >
           ⋮
         </button>

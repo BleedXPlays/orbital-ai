@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/orbital-logo.png";
 
 function Home({
@@ -24,6 +25,16 @@ function Home({
   addActivity,
 }) {
   const [homeInput, setHomeInput] = useState("");
+  const navigate = useNavigate();
+
+  const slugify = (value) => {
+    return String(value || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+  };
 
   const analyzeTask = (text) => {
     const lowerText = text.toLowerCase();
@@ -187,6 +198,7 @@ function Home({
 
     setSelectedChat(chatTitle);
     setPage("chat");
+    navigate(`/chat/${slugify(chatTitle)}`);
 
     if (addActivity) {
       addActivity("chat", "Chat created from home", chatTitle);
