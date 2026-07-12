@@ -6,21 +6,21 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
         selectedChat === chat ? "bg-[#101827]" : "hover:bg-[#101827]"
       }`}
     >
-      <div className="flex w-full min-w-0 items-center gap-2">
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <p className="block truncate text-sm font-medium" title={chat}>
-            💬 {chat}
-          </p>
-        </div>
+      <p
+        className="block w-full truncate pr-10 text-sm font-medium"
+        title={chat}
+      >
+        💬 {chat}
+      </p>
 
-        <button
-          onClick={onMenuClick}
-          aria-label={`Open menu for ${chat}`}
-          className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#101827] text-gray-400 hover:bg-[#18233A] hover:text-white"
-        >
-          ⋮
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onMenuClick}
+        aria-label={`Open menu for ${chat}`}
+        className="absolute right-2 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-[#101827] text-lg leading-none text-gray-300 shadow-[-8px_0_10px_#101827] hover:bg-[#18233A] hover:text-white"
+      >
+        ⋮
+      </button>
     </div>
   );
 }
