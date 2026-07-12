@@ -29,6 +29,7 @@ export const generateWithProvider = async ({
   tasks,
   outputs,
   attachment,
+  fileText,
 }) => {
   const primaryTask = getPrimaryTask(tasks);
   const provider = getProviderForTask(primaryTask);
@@ -39,6 +40,7 @@ export const generateWithProvider = async ({
       tasks,
       outputs,
       attachment,
+      fileText,
     });
   }
 
@@ -47,5 +49,6 @@ export const generateWithProvider = async ({
     tasks,
     outputs,
     attachment,
+    fileText,
   });
 };

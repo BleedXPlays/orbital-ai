@@ -316,6 +316,34 @@ function Chat({
       reader.readAsDataURL(blob);
     });
   };
+  
+  const getReadableFileText = async ({ attachment, attachmentFile }) => {
+  if (!attachmentFile || attachment?.kind !== "file") {
+    return "";
+  }
+
+  const fileBase64 = await blobToBase64(attachmentFile);
+
+  const fileResponse = await fetch("/api/read-file", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fileBase64,
+      filename: attachment.name,
+      mimeType: attachment.type,
+    }),
+  });
+
+  const fileData = await fileResponse.json();
+
+  if (!fileResponse.ok) {
+    throw new Error(fileData.error || "Failed to read file.");
+  }
+
+  return fileData.text || "";
+};
 
   const getRealAiReply = async ({
     message,
@@ -365,6 +393,11 @@ function Chat({
         };
       }
 
+      const fileText = await getReadableFileText({
+        attachment,
+        attachmentFile,
+      });
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -375,6 +408,7 @@ function Chat({
           tasks,
           outputs,
           attachment,
+          fileText,
         }),
       });
 
@@ -870,7 +904,7 @@ function Chat({
       onClick={() => setActionMenuOpen(false)}
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
-      <input
+      <input accept=".txt,.pdf,text/plain,application/pdf"
         ref={fileInputRef}
         type="file"
         className="hidden"

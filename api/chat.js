@@ -8,7 +8,8 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { message, tasks, outputs, attachment } = request.body || {};
+    const { message, tasks, outputs, attachment, fileText } =
+      request.body || {};
 
     if (!message && !attachment) {
       return response.status(400).json({
@@ -21,6 +22,7 @@ export default async function handler(request, response) {
       tasks,
       outputs,
       attachment,
+      fileText,
     });
 
     return response.status(200).json(result);

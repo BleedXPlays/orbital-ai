@@ -32,7 +32,7 @@ const extractJson = (text = "") => {
   }
 };
 
-const buildPromptData = ({ message, tasks, outputs, attachment }) => {
+const buildPromptData = ({ message, tasks, outputs, attachment, fileText }) => {
   const taskSummary =
     tasks && tasks.length > 0
       ? tasks.map((item) => `${item.ai} → ${item.task}`).join(", ")
@@ -56,11 +56,16 @@ const buildPromptData = ({ message, tasks, outputs, attachment }) => {
     ? `\nAttachment: ${attachment.name}, type: ${attachment.type}, kind: ${attachment.kind}`
     : "";
 
+  const fileTextBlock = fileText
+    ? `\n\nReadable file content:\n${String(fileText).slice(0, 45000)}`
+    : "";
+
   return {
     taskSummary,
     outputSummary,
     outputInstructions,
     attachmentSummary,
+    fileTextBlock,
   };
 };
 
@@ -69,17 +74,20 @@ export const generateWithOpenAI = async ({
   tasks,
   outputs,
   attachment,
+  fileText,
 }) => {
   const {
     taskSummary,
     outputSummary,
     outputInstructions,
     attachmentSummary,
+    fileTextBlock,
   } = buildPromptData({
     message,
     tasks,
     outputs,
     attachment,
+    fileText,
   });
 
   const aiResponse = await client.responses.create({
@@ -88,7 +96,7 @@ export const generateWithOpenAI = async ({
       {
         role: "system",
         content:
-          "You are OrbitalAI, a multi-AI collaboration workspace. Return valid JSON only. Do not use markdown outside JSON. The JSON must have this exact shape: {\"reply\":\"short main answer\",\"generatedOutputs\":[{\"title\":\"Research Notes\",\"content\":\"real content for this output\"}]}. For simple factual questions, keep generatedOutputs as an empty array. For multi-output tasks, create useful separate content for each requested output card. Image-related outputs must be text prompts or visual ideas only, because real Gemini image generation is not connected yet. Do not claim that images, slides, videos, or files were actually created.",
+          "You are OrbitalAI, a multi-AI collaboration workspace. Return valid JSON only. Do not use markdown outside JSON. The JSON must have this exact shape: {\"reply\":\"short main answer\",\"generatedOutputs\":[{\"title\":\"Research Notes\",\"content\":\"real content for this output\"}]}. For simple factual questions, keep generatedOutputs as an empty array. For multi-output tasks, create useful separate content for each requested output card. If readable file content is provided, answer using that file content. If the user asks about the uploaded file, base the answer on the readable file content and do not pretend to know unreadable parts. Image-related outputs must be text prompts or visual ideas only, because real Gemini image generation is not connected yet. Do not claim that images, slides, videos, or files were actually created.",
       },
       {
         role: "user",
@@ -99,7 +107,7 @@ Detected AI routing: ${taskSummary}
 Expected output cards:
 ${outputInstructions}
 
-Expected output summary: ${outputSummary}${attachmentSummary}
+Expected output summary: ${outputSummary}${attachmentSummary}${fileTextBlock}
 
 Return only JSON.`,
       },
