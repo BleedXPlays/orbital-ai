@@ -23,9 +23,9 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
         type="button"
         onClick={onMenuClick}
         aria-label={`Open menu for ${chat}`}
-        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#101827] text-gray-200 hover:bg-[#18233A] hover:text-white"
+        className="w-8 shrink-0 px-2 text-gray-500 hover:text-white"
       >
-        <span className="-mt-1 text-lg font-bold tracking-[1px]">•••</span>
+        ⋮
       </button>
     </div>
   );
