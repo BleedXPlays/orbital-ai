@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/read-file.js": {
-      "includeFiles": "node_modules/@napi-rs/canvas*/**"
+      "includeFiles": "node_modules/{@napi-rs/canvas*,pdfjs-dist}/**"
     }
   }
 }
