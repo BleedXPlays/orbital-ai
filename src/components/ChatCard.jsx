@@ -2,13 +2,19 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
   return (
     <div
       onClick={onOpen}
-      className={`relative w-full max-w-full px-3 py-2 rounded-lg cursor-pointer overflow-hidden ${
+      className={`grid w-full max-w-full items-center gap-2 rounded-lg px-3 py-2 cursor-pointer ${
         selectedChat === chat ? "bg-[#101827]" : "hover:bg-[#101827]"
       }`}
+      style={{ gridTemplateColumns: "minmax(0, 1fr) 32px" }}
     >
       <p
-        className="block w-full truncate pr-10 text-sm font-medium"
+        className="min-w-0 text-sm font-medium"
         title={chat}
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
         💬 {chat}
       </p>
@@ -17,9 +23,9 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
         type="button"
         onClick={onMenuClick}
         aria-label={`Open menu for ${chat}`}
-        className="absolute right-2 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-[#101827] text-lg leading-none text-gray-300 shadow-[-8px_0_10px_#101827] hover:bg-[#18233A] hover:text-white"
+        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#101827] text-gray-200 hover:bg-[#18233A] hover:text-white"
       >
-        ⋮
+        <span className="-mt-1 text-lg font-bold tracking-[1px]">•••</span>
       </button>
     </div>
   );

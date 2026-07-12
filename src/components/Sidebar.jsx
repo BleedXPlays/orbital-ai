@@ -449,12 +449,12 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="cursor-pointer mb-3 flex items-center h-16 overflow-visible"
+            className="mb-3 flex h-20 cursor-pointer items-center overflow-visible"
           >
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-14 w-auto object-contain"
+              className="h-auto w-[190px] max-w-full object-contain"
             />
           </div>
 
