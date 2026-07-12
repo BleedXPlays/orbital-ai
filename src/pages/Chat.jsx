@@ -351,6 +351,7 @@ function Chat({
     outputs,
     attachment,
     attachmentFile,
+    previousFileText,
   }) => {
     try {
       if (attachment?.kind === "voice" && attachmentFile) {
@@ -393,10 +394,11 @@ function Chat({
         };
       }
 
-      const fileText = await getReadableFileText({
+      const newFileText = await getReadableFileText({
         attachment,
         attachmentFile,
       });
+      const fileText = newFileText || (!attachment ? previousFileText : "");
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -440,6 +442,7 @@ function Chat({
           data.reply ||
           "OrbitalAI generated a response, but no text was returned.",
         outputs: outputsWithContent,
+        fileText: newFileText,
       };
     } catch (error) {
       console.error("AI response error:", error);
@@ -727,6 +730,9 @@ function Chat({
 
     const attachmentToSend = selectedAttachment;
     const attachmentFileToSend = selectedAttachmentFileRef.current;
+    const previousFileText = [...messages]
+      .reverse()
+      .find((message) => message.fileText)?.fileText || "";
 
     const attachmentText =
       attachmentToSend?.kind === "voice"
@@ -758,12 +764,21 @@ function Chat({
       isLoading: true,
     };
 
-    const createFinalAiMessage = (result) => ({
-      role: "ai",
-      text: result.reply,
-      tasks,
-      outputs: result.outputs || outputs,
-    });
+    const createFinalAiMessage = (result) => {
+      const finalMessage = {
+        role: "ai",
+        text: result.reply,
+        tasks,
+        outputs: result.outputs || outputs,
+      };
+
+      if (result.fileText) {
+        finalMessage.fileText = result.fileText;
+        finalMessage.sourceFilename = attachmentToSend?.name || "uploaded-file";
+      }
+
+      return finalMessage;
+    };
 
     setInput("");
 
@@ -800,6 +815,7 @@ function Chat({
         outputs,
         attachment: attachmentToSend,
         attachmentFile: attachmentFileToSend,
+        previousFileText,
       });
 
       setChatMessages((prev) => ({
@@ -850,6 +866,7 @@ function Chat({
         outputs,
         attachment: attachmentToSend,
         attachmentFile: attachmentFileToSend,
+        previousFileText,
       });
 
       setChatMessages((prev) => ({
@@ -883,6 +900,7 @@ function Chat({
       outputs,
       attachment: attachmentToSend,
       attachmentFile: attachmentFileToSend,
+      previousFileText,
     });
 
     setChatMessages((prev) => {
