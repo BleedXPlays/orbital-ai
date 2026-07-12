@@ -1,9 +1,47 @@
-import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import PDFJS from "pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js";
 
 const extractBase64 = (base64 = "") => {
   if (!base64) return "";
   if (base64.includes(",")) return base64.split(",")[1] || "";
   return base64;
+};
+
+const extractPdfText = async (fileBuffer) => {
+  PDFJS.disableWorker = true;
+
+  const document = await PDFJS.getDocument(fileBuffer);
+  const pages = [];
+
+  try {
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent({
+        normalizeWhitespace: false,
+        disableCombineTextItems: false,
+      });
+
+      let lastY;
+      let pageText = "";
+
+      content.items.forEach((item) => {
+        const currentY = item.transform?.[5];
+
+        if (lastY === undefined || currentY === lastY) {
+          pageText += item.str;
+        } else {
+          pageText += `\n${item.str}`;
+        }
+
+        lastY = currentY;
+      });
+
+      pages.push(pageText);
+    }
+  } finally {
+    document.destroy();
+  }
+
+  return pages.join("\n\n");
 };
 
 export default async function handler(request, response) {
@@ -36,8 +74,7 @@ export default async function handler(request, response) {
       type.includes("application/pdf") ||
       lowerFilename.endsWith(".pdf")
     ) {
-      const parsedPdf = await pdfParse(fileBuffer);
-      text = parsedPdf.text || "";
+      text = await extractPdfText(fileBuffer);
     } else {
       return response.status(400).json({
         error: "Only TXT and PDF files are supported right now.",
