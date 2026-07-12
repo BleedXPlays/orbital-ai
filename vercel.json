@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/read-file.js": {
-      "includeFiles": "node_modules/pdf-parse/lib/pdf.js/v1.10.100/build/**"
-    }
-  }
-}

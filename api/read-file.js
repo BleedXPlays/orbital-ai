@@ -1,4 +1,4 @@
-import PDFJS from "pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const extractBase64 = (base64 = "") => {
   if (!base64) return "";
@@ -7,9 +7,12 @@ const extractBase64 = (base64 = "") => {
 };
 
 const extractPdfText = async (fileBuffer) => {
-  PDFJS.disableWorker = true;
-
-  const document = await PDFJS.getDocument(fileBuffer);
+  const loadingTask = getDocument({
+    data: new Uint8Array(fileBuffer),
+    isEvalSupported: false,
+    useSystemFonts: true,
+  });
+  const document = await loadingTask.promise;
   const pages = [];
 
   try {
@@ -38,7 +41,7 @@ const extractPdfText = async (fileBuffer) => {
       pages.push(pageText);
     }
   } finally {
-    document.destroy();
+    await document.destroy();
   }
 
   return pages.join("\n\n");
