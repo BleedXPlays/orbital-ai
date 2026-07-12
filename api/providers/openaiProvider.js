@@ -75,6 +75,7 @@ export const generateWithOpenAI = async ({
   outputs,
   attachment,
   fileText,
+  conversationHistory,
 }) => {
   const {
     taskSummary,
@@ -90,6 +91,21 @@ export const generateWithOpenAI = async ({
     fileText,
   });
 
+  const historyInput = Array.isArray(conversationHistory)
+    ? conversationHistory
+        .filter(
+          (item) =>
+            item &&
+            (item.role === "user" || item.role === "assistant") &&
+            item.content
+        )
+        .slice(-10)
+        .map((item) => ({
+          role: item.role,
+          content: String(item.content).slice(0, 6000),
+        }))
+    : [];
+
   const aiResponse = await client.responses.create({
     model: "gpt-4.1-mini",
     input: [
@@ -98,6 +114,7 @@ export const generateWithOpenAI = async ({
         content:
           "You are OrbitalAI, a multi-AI collaboration workspace. Return valid JSON only. Do not use markdown outside JSON. The JSON must have this exact shape: {\"reply\":\"short main answer\",\"generatedOutputs\":[{\"title\":\"Research Notes\",\"content\":\"real content for this output\"}]}. For simple factual questions, keep generatedOutputs as an empty array. For multi-output tasks, create useful separate content for each requested output card. If readable file content is provided, answer using that file content. If the user asks about the uploaded file, base the answer on the readable file content and do not pretend to know unreadable parts. Image-related outputs must be text prompts or visual ideas only, because real Gemini image generation is not connected yet. Do not claim that images, slides, videos, or files were actually created.",
       },
+      ...historyInput,
       {
         role: "user",
         content: `User request: ${message}

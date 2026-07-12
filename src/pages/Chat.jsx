@@ -352,6 +352,7 @@ function Chat({
     attachment,
     attachmentFile,
     previousFileText,
+    conversationHistory,
   }) => {
     try {
       if (attachment?.kind === "voice" && attachmentFile) {
@@ -411,6 +412,7 @@ function Chat({
           outputs,
           attachment,
           fileText,
+          conversationHistory,
         }),
       });
 
@@ -733,6 +735,13 @@ function Chat({
     const previousFileText = [...messages]
       .reverse()
       .find((message) => message.fileText)?.fileText || "";
+    const conversationHistory = messages
+      .filter((message) => !message.isLoading && message.text)
+      .slice(-10)
+      .map((message) => ({
+        role: message.role === "ai" ? "assistant" : "user",
+        content: String(message.text).slice(0, 6000),
+      }));
 
     const attachmentText =
       attachmentToSend?.kind === "voice"
@@ -816,6 +825,7 @@ function Chat({
         attachment: attachmentToSend,
         attachmentFile: attachmentFileToSend,
         previousFileText,
+        conversationHistory,
       });
 
       setChatMessages((prev) => ({
@@ -867,6 +877,7 @@ function Chat({
         attachment: attachmentToSend,
         attachmentFile: attachmentFileToSend,
         previousFileText,
+        conversationHistory,
       });
 
       setChatMessages((prev) => ({
@@ -901,6 +912,7 @@ function Chat({
       attachment: attachmentToSend,
       attachmentFile: attachmentFileToSend,
       previousFileText,
+      conversationHistory,
     });
 
     setChatMessages((prev) => {
