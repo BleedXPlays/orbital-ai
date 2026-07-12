@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 
 const extractBase64 = (base64 = "") => {
   if (!base64) return "";
@@ -36,14 +36,8 @@ export default async function handler(request, response) {
       type.includes("application/pdf") ||
       lowerFilename.endsWith(".pdf")
     ) {
-      const parser = new PDFParse({ data: fileBuffer });
-
-      try {
-        const parsedPdf = await parser.getText();
-        text = parsedPdf.text || "";
-      } finally {
-        await parser.destroy();
-      }
+      const parsedPdf = await pdfParse(fileBuffer);
+      text = parsedPdf.text || "";
     } else {
       return response.status(400).json({
         error: "Only TXT and PDF files are supported right now.",
