@@ -165,13 +165,9 @@ function Chat({
     }
 
     if (
-      lowerText.includes("image") ||
-      lowerText.includes("poster") ||
-      lowerText.includes("diagram") ||
-      lowerText.includes("logo") ||
-      lowerText.includes("visual") ||
-      lowerText.includes("photo") ||
-      lowerText.includes("picture")
+      /\b(image|images|poster|posters|diagram|diagrams|logo|logos|visual|visuals|photo|photos|photograph|photographs|picture|pictures)\b/.test(
+        lowerText
+      )
     ) {
       detectedTasks.push({ task: "Images", ai: "Gemini" });
     }
@@ -427,8 +423,10 @@ function Chat({
         : [];
 
       const outputsWithContent = outputs.map((output) => {
-        const matchingOutput = generatedOutputs.find(
-          (item) => item.title === output[1]
+        const matchingOutput = generatedOutputs.find((item) =>
+          String(item.title || "")
+            .toLowerCase()
+            .startsWith(output[1].toLowerCase())
         );
 
         return [

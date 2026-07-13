@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/orbital-logo.png";
 
@@ -25,6 +25,7 @@ function Home({
   addActivity,
 }) {
   const [homeInput, setHomeInput] = useState("");
+  const creatingChatRef = useRef(false);
   const navigate = useNavigate();
 
   const slugify = (value) => {
@@ -164,37 +165,39 @@ function Home({
     return title;
   };
 
-  const createChatWithPrompt = (promptText) => {
+  const createChatWithPrompt = async (promptText) => {
     const trimmedPrompt = promptText.trim();
-    if (!trimmedPrompt) return;
+    if (!trimmedPrompt || creatingChatRef.current) return;
+
+    creatingChatRef.current = true;
 
     const now = new Date().toISOString();
     const chatTitle = generateChatTitle(trimmedPrompt);
     const tasks = analyzeTask(trimmedPrompt);
+    const outputs = getOutputs(tasks);
 
     const userMessage = {
       role: "user",
       text: trimmedPrompt,
     };
 
-    const aiMessage = {
+    const loadingMessage = {
       role: "ai",
-      text: "OrbitalAI analyzed your request and assigned the best AI models.",
-      tasks,
-      outputs: getOutputs(tasks),
+      text: "OrbitalAI is generating a real response...",
+      isLoading: true,
     };
 
-    setChats([...chats, chatTitle]);
+    setChats((prev) => [...prev, chatTitle]);
 
-    setChatMessages({
-      ...chatMessages,
-      [chatTitle]: [userMessage, aiMessage],
-    });
+    setChatMessages((prev) => ({
+      ...prev,
+      [chatTitle]: [userMessage, loadingMessage],
+    }));
 
-    setChatActivity({
-      ...chatActivity,
+    setChatActivity((prev) => ({
+      ...prev,
       [chatTitle]: now,
-    });
+    }));
 
     setSelectedChat(chatTitle);
     setPage("chat");
@@ -205,6 +208,77 @@ function Home({
     }
 
     setHomeInput("");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: trimmedPrompt,
+          tasks,
+          outputs,
+          conversationHistory: [],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate AI response.");
+      }
+
+      const generatedOutputs = Array.isArray(data.generatedOutputs)
+        ? data.generatedOutputs
+        : [];
+
+      const outputsWithContent = outputs.map((output) => {
+        const matchingOutput = generatedOutputs.find((item) =>
+          String(item.title || "")
+            .toLowerCase()
+            .startsWith(output[1].toLowerCase())
+        );
+
+        return [
+          output[0],
+          output[1],
+          output[2],
+          matchingOutput?.content || "",
+        ];
+      });
+
+      const aiMessage = {
+        role: "ai",
+        text:
+          data.reply ||
+          "OrbitalAI generated a response, but no text was returned.",
+        tasks,
+        outputs: outputsWithContent,
+      };
+
+      setChatMessages((prev) => ({
+        ...prev,
+        [chatTitle]: [userMessage, aiMessage],
+      }));
+    } catch (error) {
+      console.error("Home AI response error:", error);
+
+      setChatMessages((prev) => ({
+        ...prev,
+        [chatTitle]: [
+          userMessage,
+          {
+            role: "ai",
+            text: "OrbitalAI could not generate the response right now. Please try again.",
+            tasks,
+            outputs,
+          },
+        ],
+      }));
+    } finally {
+      creatingChatRef.current = false;
+    }
   };
 
   const createProjectFromSuggestion = () => {
