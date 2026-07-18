@@ -447,9 +447,26 @@ function Chat({
     imageInputRef.current?.click();
   };
 
-  const handleFileSelected = (event, kind) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const selectAttachmentFile = (file, kind = "") => {
+    if (!file) return false;
+
+    const isImage = kind === "image" || file.type.startsWith("image/");
+    const lowerName = String(file.name || "").toLowerCase();
+    const isSupportedDocument =
+      file.type === "text/plain" ||
+      file.type === "application/pdf" ||
+      lowerName.endsWith(".txt") ||
+      lowerName.endsWith(".pdf");
+
+    if (isImage && file.size > MAX_INLINE_IMAGE_BYTES) {
+      showNotice("Choose an image smaller than 3 MB for Gemini analysis.");
+      return false;
+    }
+
+    if (!isImage && !isSupportedDocument) {
+      showNotice("Only PDF, TXT, and image attachments are supported right now.");
+      return false;
+    }
 
     selectedAttachmentFileRef.current = file;
 
@@ -457,16 +474,10 @@ function Chat({
       URL.revokeObjectURL(attachmentPreviewUrl);
     }
 
-    const isImage = kind === "image" || file.type.startsWith("image/");
-
-    if (isImage && file.size > MAX_INLINE_IMAGE_BYTES) {
-      showNotice("Choose an image smaller than 3 MB for Gemini analysis.");
-      event.target.value = "";
-      return;
-    }
-
     const attachment = {
-      name: file.name,
+      name:
+        file.name ||
+        (isImage ? `pasted-image-${Date.now()}` : `pasted-file-${Date.now()}`),
       type: file.type || "Unknown type",
       size: file.size,
       sizeLabel: formatFileSize(file.size),
@@ -477,7 +488,33 @@ function Chat({
     setAttachmentPreviewUrl(isImage ? URL.createObjectURL(file) : "");
     showNotice(isImage ? "Image selected." : "File attached.");
 
+    return true;
+  };
+
+  const handleFileSelected = (event, kind) => {
+    const file = event.target.files?.[0];
+    selectAttachmentFile(file, kind);
     event.target.value = "";
+  };
+
+  const handleAttachmentPaste = (event) => {
+    const clipboardFiles = Array.from(event.clipboardData?.files || []);
+    const clipboardItemFile = Array.from(
+      event.clipboardData?.items || []
+    ).find((item) => item.kind === "file")?.getAsFile();
+    const pastedFile = clipboardFiles[0] || clipboardItemFile;
+
+    if (!pastedFile) return;
+
+    event.preventDefault();
+
+    if (isGenerating || isRecording) {
+      showNotice("Wait for the current action to finish before pasting a file.");
+      return;
+    }
+
+    setActionMenuOpen(false);
+    selectAttachmentFile(pastedFile);
   };
 
   const startVoiceRecording = async () => {
@@ -1467,6 +1504,7 @@ function Chat({
                   }
                   disabled={isGenerating || isRecording}
                   onChange={(e) => setInput(e.target.value)}
+                  onPaste={handleAttachmentPaste}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
