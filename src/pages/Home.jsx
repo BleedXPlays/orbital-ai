@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/orbital-logo.png";
+import { analyzeTask, getOutputs } from "../utils/taskRouting";
 
 function Home({
   chats,
@@ -9,15 +10,8 @@ function Home({
   setProjects,
   projectChats,
   setProjectChats,
-  projectFiles,
-  projectNotes,
-  archivedChats,
-  archivedProjects,
-  pinnedChats,
   chatActivity,
   setChatActivity,
-  activityLog,
-  chatMessages,
   setChatMessages,
   setSelectedChat,
   setSelectedProject,
@@ -35,114 +29,6 @@ function Home({
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-");
-  };
-
-  const analyzeTask = (text) => {
-    const lowerText = text.toLowerCase();
-    const detectedTasks = [];
-
-    if (
-      lowerText.includes("research") ||
-      lowerText.includes("information") ||
-      lowerText.includes("facts") ||
-      lowerText.includes("sources")
-    ) {
-      detectedTasks.push({ task: "Research", ai: "Claude" });
-    }
-
-    if (
-      lowerText.includes("write") ||
-      lowerText.includes("essay") ||
-      lowerText.includes("report") ||
-      lowerText.includes("content") ||
-      lowerText.includes("explain")
-    ) {
-      detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
-    }
-
-    if (
-      lowerText.includes("image") ||
-      lowerText.includes("poster") ||
-      lowerText.includes("diagram") ||
-      lowerText.includes("logo") ||
-      lowerText.includes("visual")
-    ) {
-      detectedTasks.push({ task: "Images", ai: "Gemini" });
-    }
-
-    if (
-      lowerText.includes("website") ||
-      lowerText.includes("code") ||
-      lowerText.includes("app") ||
-      lowerText.includes("react")
-    ) {
-      detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
-    }
-
-    if (
-      lowerText.includes("presentation") ||
-      lowerText.includes("ppt") ||
-      lowerText.includes("slides")
-    ) {
-      detectedTasks.push({ task: "Presentation", ai: "Gamma" });
-    }
-
-    if (
-      lowerText.includes("video") ||
-      lowerText.includes("reel") ||
-      lowerText.includes("youtube")
-    ) {
-      detectedTasks.push({ task: "Video", ai: "Runway" });
-    }
-
-    if (
-      lowerText.includes("translate") ||
-      lowerText.includes("translation") ||
-      lowerText.includes("language")
-    ) {
-      detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
-    }
-
-    if (
-      lowerText.includes("voice") ||
-      lowerText.includes("audio") ||
-      lowerText.includes("speech")
-    ) {
-      detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
-    }
-
-    if (detectedTasks.length === 0) {
-      detectedTasks.push({ task: "General Answer", ai: "ChatGPT" });
-    }
-
-    return detectedTasks;
-  };
-
-  const getOutputs = (tasks) => {
-    const outputs = [];
-
-    tasks.forEach((item) => {
-      if (item.task === "Research")
-        outputs.push(["📚", "Research Notes", "Detailed sources"]);
-      if (item.task === "Writing")
-        outputs.push(["📄", "Written Content", "Essay / report"]);
-      if (item.task === "Images")
-        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
-      if (item.task === "Coding")
-        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
-      if (item.task === "Presentation")
-        outputs.push(["📊", "Presentation", "Slides"]);
-      if (item.task === "Video")
-        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
-      if (item.task === "Translation")
-        outputs.push(["🌍", "Translation", "Translated output"]);
-      if (item.task === "Voice Input")
-        outputs.push(["🎙️", "Transcript", "Voice to text"]);
-      if (item.task === "General Answer")
-        outputs.push(["💬", "Answer", "General response"]);
-    });
-
-    return outputs;
   };
 
   const generateChatTitle = (text) => {
@@ -255,6 +141,7 @@ function Home({
           "OrbitalAI generated a response, but no text was returned.",
         tasks,
         outputs: outputsWithContent,
+        provider: data.provider || "",
       };
 
       setChatMessages((prev) => ({

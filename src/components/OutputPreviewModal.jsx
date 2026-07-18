@@ -36,18 +36,17 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
       );
     }
 
-    if (outputTitle === "Image Ideas") {
+    if (outputTitle === "Visual Analysis") {
       return (
         <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4">
           <p className="text-sm text-gray-400 leading-relaxed">
-            Image prompts and visual ideas will appear here. Real Gemini image
-            generation is not connected yet.
+            Gemini image and visual-data findings will appear here.
           </p>
         </div>
       );
     }
 
-    if (outputTitle === "Website Code") {
+    if (outputTitle === "Code") {
       return (
         <pre className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4 overflow-x-auto text-sm text-gray-300 leading-relaxed">
 {`Generated code will appear here after this output is generated.`}
@@ -55,22 +54,31 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
       );
     }
 
-    if (outputTitle === "Presentation") {
+    if (outputTitle === "Document Analysis") {
       return (
         <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4">
           <p className="text-sm text-gray-400 leading-relaxed">
-            Slide outline will appear here. Gamma is not connected yet, so this
-            is currently a text-based presentation plan.
+            Claude document findings will appear here.
           </p>
         </div>
       );
     }
 
-    if (outputTitle === "Video Plan") {
+    if (outputTitle === "Decision Support") {
       return (
         <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4">
           <p className="text-sm text-gray-400 leading-relaxed">
-            Scene plan will appear here. Runway is not connected yet.
+            Claude will compare the options and provide a recommendation.
+          </p>
+        </div>
+      );
+    }
+
+    if (outputTitle === "Content Plan") {
+      return (
+        <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4">
+          <p className="text-sm text-gray-400 leading-relaxed">
+            A structured text plan will appear here.
           </p>
         </div>
       );
@@ -90,8 +98,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
       return (
         <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-4">
           <p className="text-sm text-gray-400 leading-relaxed">
-            Voice transcript will appear here after real transcription is
-            connected.
+            OpenAI voice transcription will appear here.
           </p>
         </div>
       );

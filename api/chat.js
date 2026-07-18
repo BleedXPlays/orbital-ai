@@ -8,8 +8,16 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { message, tasks, outputs, attachment, fileText, conversationHistory } =
-      request.body || {};
+    const {
+      message,
+      tasks,
+      outputs,
+      attachment,
+      fileText,
+      conversationHistory,
+      imageBase64,
+      imageMimeType,
+    } = request.body || {};
 
     if (!message && !attachment) {
       return response.status(400).json({
@@ -24,14 +32,21 @@ export default async function handler(request, response) {
       attachment,
       fileText,
       conversationHistory,
+      imageBase64,
+      imageMimeType,
     });
 
     return response.status(200).json(result);
   } catch (error) {
     console.error("OrbitalAI API error:", error);
+    const isConfigurationError = String(error?.message || "").includes(
+      "_API_KEY is not configured"
+    );
 
-    return response.status(500).json({
-      error: "Failed to generate AI response.",
+    return response.status(isConfigurationError ? 503 : 500).json({
+      error: isConfigurationError
+        ? error.message
+        : "Failed to generate AI response.",
     });
   }
 }

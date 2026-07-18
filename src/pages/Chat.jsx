@@ -4,6 +4,9 @@ import {
   getChatAttachmentUrl,
   uploadChatAttachment,
 } from "../services/attachmentService";
+import { analyzeTask, getOutputs } from "../utils/taskRouting";
+
+const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 
 function Chat({
   user,
@@ -172,131 +175,6 @@ function Chat({
     });
   };
 
-  const analyzeTask = (text) => {
-    const lowerText = text.toLowerCase();
-    const detectedTasks = [];
-
-    if (
-      lowerText.includes("research") ||
-      lowerText.includes("information") ||
-      lowerText.includes("facts") ||
-      lowerText.includes("sources")
-    ) {
-      detectedTasks.push({ task: "Research", ai: "Claude" });
-    }
-
-    if (
-      lowerText.includes("write") ||
-      lowerText.includes("essay") ||
-      lowerText.includes("report") ||
-      lowerText.includes("content") ||
-      lowerText.includes("explain")
-    ) {
-      detectedTasks.push({ task: "Writing", ai: "ChatGPT" });
-    }
-
-    if (
-      /\b(image|images|poster|posters|diagram|diagrams|logo|logos|visual|visuals|photo|photos|photograph|photographs|picture|pictures)\b/.test(
-        lowerText
-      )
-    ) {
-      detectedTasks.push({ task: "Images", ai: "Gemini" });
-    }
-
-    if (
-      lowerText.includes("website") ||
-      lowerText.includes("code") ||
-      lowerText.includes("app") ||
-      lowerText.includes("react")
-    ) {
-      detectedTasks.push({ task: "Coding", ai: "GitHub Copilot" });
-    }
-
-    if (
-      lowerText.includes("presentation") ||
-      lowerText.includes("ppt") ||
-      lowerText.includes("slides")
-    ) {
-      detectedTasks.push({ task: "Presentation", ai: "Gamma" });
-    }
-
-    if (
-      lowerText.includes("video") ||
-      lowerText.includes("reel") ||
-      lowerText.includes("youtube")
-    ) {
-      detectedTasks.push({ task: "Video", ai: "Runway" });
-    }
-
-    if (
-      lowerText.includes("translate") ||
-      lowerText.includes("translation") ||
-      lowerText.includes("language")
-    ) {
-      detectedTasks.push({ task: "Translation", ai: "Google Translate AI" });
-    }
-
-    if (
-      lowerText.includes("voice") ||
-      lowerText.includes("audio") ||
-      lowerText.includes("speech") ||
-      lowerText.includes("transcribe") ||
-      lowerText.includes("recording")
-    ) {
-      detectedTasks.push({ task: "Voice Input", ai: "Whisper" });
-    }
-
-    if (detectedTasks.length === 0) {
-      detectedTasks.push({ task: "General Answer", ai: "ChatGPT" });
-    }
-
-    return detectedTasks;
-  };
-
-  const getOutputs = (tasks) => {
-    const outputs = [];
-
-    tasks.forEach((item) => {
-      if (item.task === "Research") {
-        outputs.push(["📚", "Research Notes", "Detailed sources"]);
-      }
-
-      if (item.task === "Writing") {
-        outputs.push(["📄", "Written Content", "Essay / report"]);
-      }
-
-      if (item.task === "Images") {
-        outputs.push(["🖼️", "Image Ideas", "Visual prompts"]);
-      }
-
-      if (item.task === "Coding") {
-        outputs.push(["💻", "Website Code", "HTML, CSS, JS"]);
-      }
-
-      if (item.task === "Presentation") {
-        outputs.push(["📊", "Presentation", "Slides"]);
-      }
-
-      if (item.task === "Video") {
-        outputs.push(["🎬", "Video Plan", "Scene prompts"]);
-      }
-
-      if (item.task === "Translation") {
-        outputs.push(["🌍", "Translation", "Translated output"]);
-      }
-
-      if (item.task === "Voice Input") {
-        outputs.push(["🎙️", "Transcript", "Voice to text"]);
-      }
-
-      if (item.task === "General Answer") {
-        outputs.push(["💬", "Answer", "General response"]);
-      }
-    });
-
-    return outputs;
-  };
-
   const generateChatTitle = (text) => {
     const words = text
       .replace(/[^\w\s]/gi, "")
@@ -461,7 +339,7 @@ function Chat({
           });
 
         const voiceTasks = [
-          { task: "Voice Input", ai: "Whisper" },
+          { task: "Voice Input", ai: "OpenAI" },
           ...answerTasks.filter((item) => item.task !== "Voice Input"),
         ];
 
@@ -475,6 +353,7 @@ function Chat({
           ],
           tasks: voiceTasks,
           transcriptText,
+          provider: data.provider,
         };
       }
 
@@ -483,6 +362,10 @@ function Chat({
         attachmentFile,
       });
       const fileText = newFileText || (!attachment ? previousFileText : "");
+      const imageBase64 =
+        attachment?.kind === "image" && attachmentFile
+          ? await blobToBase64(attachmentFile)
+          : "";
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -496,6 +379,8 @@ function Chat({
           attachment,
           fileText,
           conversationHistory,
+          imageBase64,
+          imageMimeType: imageBase64 ? attachment.type : "",
         }),
       });
 
@@ -530,14 +415,23 @@ function Chat({
           "OrbitalAI generated a response, but no text was returned.",
         outputs: outputsWithContent,
         fileText: newFileText,
+        provider: data.provider,
       };
     } catch (error) {
       console.error("AI response error:", error);
-      showNotice("Real AI response failed. Showing fallback response.");
+      const isConfigurationError = String(error?.message || "").includes(
+        "_API_KEY is not configured"
+      );
+      showNotice(
+        isConfigurationError
+          ? "This AI provider still needs its API key."
+          : "Real AI response failed. Showing fallback response."
+      );
 
       return {
-        reply:
-          "OrbitalAI could not generate the response right now. Please try again.",
+        reply: isConfigurationError
+          ? `Provider setup required: ${error.message}`
+          : "OrbitalAI could not generate the response right now. Please try again.",
         outputs,
       };
     }
@@ -564,6 +458,12 @@ function Chat({
     }
 
     const isImage = kind === "image" || file.type.startsWith("image/");
+
+    if (isImage && file.size > MAX_INLINE_IMAGE_BYTES) {
+      showNotice("Choose an image smaller than 3 MB for Gemini analysis.");
+      event.target.value = "";
+      return;
+    }
 
     const attachment = {
       name: file.name,
@@ -883,6 +783,7 @@ function Chat({
         tasks: result.tasks || tasks,
         outputs: result.outputs || outputs,
         requestId,
+        provider: result.provider || "",
       };
 
       if (result.fileText) {
@@ -1285,6 +1186,12 @@ function Chat({
                             <p className="text-sm font-semibold text-purple-300">
                               OrbitalAI
                             </p>
+
+                            {message.provider && (
+                              <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-purple-200">
+                                {message.provider}
+                              </span>
+                            )}
 
                             {message.isLoading && (
                               <span className="flex gap-1 shrink-0">

@@ -1,3 +1,5 @@
+/* global process */
+
 import OpenAI from "openai";
 
 const client = new OpenAI({
@@ -32,7 +34,7 @@ const extractJson = (text = "") => {
   }
 };
 
-const buildPromptData = ({ message, tasks, outputs, attachment, fileText }) => {
+const buildPromptData = ({ tasks, outputs, attachment, fileText }) => {
   const taskSummary =
     tasks && tasks.length > 0
       ? tasks.map((item) => `${item.ai} → ${item.task}`).join(", ")
@@ -84,7 +86,6 @@ export const generateWithOpenAI = async ({
     attachmentSummary,
     fileTextBlock,
   } = buildPromptData({
-    message,
     tasks,
     outputs,
     attachment,
@@ -112,7 +113,7 @@ export const generateWithOpenAI = async ({
       {
         role: "system",
         content:
-          "You are OrbitalAI, a multi-AI collaboration workspace. Use the conversation history to resolve follow-up references such as 'that', 'it', and 'the previous answer'. Return valid JSON only. Do not use markdown outside JSON. The JSON must have this exact shape: {\"reply\":\"clear and complete main answer\",\"generatedOutputs\":[{\"title\":\"Research Notes\",\"content\":\"real content for this output\"}]}. Match every generated output title exactly to one of the requested output-card names. Give a detailed answer when the user asks for detail, and shorten it only when requested. For simple factual questions, keep generatedOutputs as an empty array. For multi-output tasks, create useful separate content for each requested output card. If readable file content is provided, answer using that file content. If the user asks about the uploaded file, base the answer on the readable file content and do not pretend to know unreadable parts. Image-related outputs must be text prompts or visual ideas only, because real Gemini image generation is not connected yet. Do not claim that images, slides, videos, or files were actually created.",
+          "You are OrbitalAI's OpenAI provider, responsible for general chat, clarifying questions, conversation memory, translation, and answering transcribed voice requests. Use the conversation history to resolve follow-up references such as 'that', 'it', and 'the previous answer'. Return valid JSON only. Do not use markdown outside JSON. The JSON must have this exact shape: {\"reply\":\"clear and complete main answer\",\"generatedOutputs\":[{\"title\":\"requested output title\",\"content\":\"real content for this output\"}]}. Match every generated output title exactly to one of the requested output-card names. Give a detailed answer when the user asks for detail, and shorten it only when requested. For simple factual questions, keep generatedOutputs as an empty array. Do not claim to have inspected content that was not provided.",
       },
       ...historyInput,
       {

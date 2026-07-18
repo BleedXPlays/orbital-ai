@@ -1,27 +1,36 @@
 import { generateWithOpenAI } from "./openaiProvider.js";
+import { generateWithClaude } from "./claudeProvider.js";
+import { generateWithGemini } from "./geminiProvider.js";
 
-const getPrimaryTask = (tasks = []) => {
-  if (!Array.isArray(tasks) || tasks.length === 0) {
-    return "General Answer";
+const getProviderForRequest = ({ tasks = [], attachment, fileText }) => {
+  const taskNames = Array.isArray(tasks)
+    ? tasks.map((item) => item?.task).filter(Boolean)
+    : [];
+
+  if (
+    attachment?.kind === "image" ||
+    taskNames.includes("Visual Analysis")
+  ) {
+    return "gemini";
   }
 
-  return tasks[0]?.task || "General Answer";
-};
+  if (
+    fileText ||
+    taskNames.some((task) =>
+      [
+        "Document Analysis",
+        "Coding",
+        "Decision Support",
+        "Research",
+        "Writing",
+        "Content Plan",
+      ].includes(task)
+    )
+  ) {
+    return "claude";
+  }
 
-const getProviderForTask = (task) => {
-  const providerMap = {
-    "General Answer": "openai",
-    Research: "openai",
-    Writing: "openai",
-    Images: "openai",
-    Coding: "openai",
-    Presentation: "openai",
-    Video: "openai",
-    Translation: "openai",
-    "Voice Input": "openai",
-  };
-
-  return providerMap[task] || "openai";
+  return "openai";
 };
 
 export const generateWithProvider = async ({
@@ -31,27 +40,28 @@ export const generateWithProvider = async ({
   attachment,
   fileText,
   conversationHistory,
+  imageBase64,
+  imageMimeType,
 }) => {
-  const primaryTask = getPrimaryTask(tasks);
-  const provider = getProviderForTask(primaryTask);
-
-  if (provider === "openai") {
-    return generateWithOpenAI({
-      message,
-      tasks,
-      outputs,
-      attachment,
-      fileText,
-      conversationHistory,
-    });
-  }
-
-  return generateWithOpenAI({
+  const provider = getProviderForRequest({ tasks, attachment, fileText });
+  const providerInput = {
     message,
     tasks,
     outputs,
     attachment,
     fileText,
     conversationHistory,
-  });
+    imageBase64,
+    imageMimeType,
+  };
+
+  if (provider === "claude") {
+    return generateWithClaude(providerInput);
+  }
+
+  if (provider === "gemini") {
+    return generateWithGemini(providerInput);
+  }
+
+  return generateWithOpenAI(providerInput);
 };
