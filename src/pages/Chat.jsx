@@ -28,6 +28,7 @@ function Chat({
   const [notice, setNotice] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDraggingAttachment, setIsDraggingAttachment] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
 
@@ -504,7 +505,18 @@ function Chat({
     ).find((item) => item.kind === "file")?.getAsFile();
     const pastedFile = clipboardFiles[0] || clipboardItemFile;
 
-    if (!pastedFile) return;
+    if (!pastedFile) {
+      const pastedText = event.clipboardData?.getData("text/plain")?.trim();
+
+      if (/\.(pdf|txt)$/i.test(pastedText || "")) {
+        event.preventDefault();
+        showNotice(
+          "The browser received only the filename. Drag the document onto the message box instead."
+        );
+      }
+
+      return;
+    }
 
     event.preventDefault();
 
@@ -515,6 +527,35 @@ function Chat({
 
     setActionMenuOpen(false);
     selectAttachmentFile(pastedFile);
+  };
+
+  const handleAttachmentDragOver = (event) => {
+    if (!Array.from(event.dataTransfer?.types || []).includes("Files")) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsDraggingAttachment(true);
+  };
+
+  const handleAttachmentDragLeave = (event) => {
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setIsDraggingAttachment(false);
+  };
+
+  const handleAttachmentDrop = (event) => {
+    event.preventDefault();
+    setIsDraggingAttachment(false);
+
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+
+    if (isGenerating || isRecording) {
+      showNotice("Wait for the current action to finish before adding a file.");
+      return;
+    }
+
+    setActionMenuOpen(false);
+    selectAttachmentFile(file);
   };
 
   const startVoiceRecording = async () => {
@@ -1460,7 +1501,14 @@ function Chat({
 
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl"
+                onDragOver={handleAttachmentDragOver}
+                onDragLeave={handleAttachmentDragLeave}
+                onDrop={handleAttachmentDrop}
+                className={`bg-[#07101F]/95 border shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl transition ${
+                  isDraggingAttachment
+                    ? "border-purple-400 bg-purple-500/10"
+                    : "border-[#1B2540]"
+                }`}
               >
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
@@ -1529,8 +1577,8 @@ function Chat({
             </div>
 
             <p className="text-center text-sm text-gray-500 mt-4">
-              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new
-              line
+              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag PDF/TXT files
+              here&nbsp;&nbsp;•&nbsp;&nbsp;Paste images with Command + V
             </p>
           </div>
         </div>
