@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import OutputPreviewModal from "../components/OutputPreviewModal";
+import {
+  getChatAttachmentUrl,
+  uploadChatAttachment,
+} from "../services/attachmentService";
 
 function Chat({
+  user,
   selectedChat,
   setSelectedChat,
   chats,
@@ -118,6 +123,29 @@ function Chat({
     if (kind === "image") return "🖼️";
     if (kind === "voice") return "🎙️";
     return "📎";
+  };
+
+  const openStoredAttachment = async (attachment) => {
+    if (!attachment?.path && !attachment?.url) {
+      showNotice("This older attachment was not saved to storage.");
+      return;
+    }
+
+    try {
+      const url = attachment.path
+        ? await getChatAttachmentUrl(attachment.path)
+        : attachment.url;
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Attachment open error:", error);
+      showNotice("Could not open this attachment.");
+    }
   };
 
   const openSingleOutput = (output) => {
@@ -835,12 +863,16 @@ function Chat({
       requestId,
     };
 
-    const createFinalUserMessage = (result) => {
-      if (!result.transcriptText) return userMessage;
-
+    const createFinalUserMessage = (
+      result,
+      savedAttachment = attachmentToSend
+    ) => {
       return {
         ...userMessage,
-        transcriptText: result.transcriptText,
+        ...(savedAttachment ? { attachment: savedAttachment } : {}),
+        ...(result.transcriptText
+          ? { transcriptText: result.transcriptText }
+          : {}),
       };
     };
 
@@ -859,6 +891,35 @@ function Chat({
       }
 
       return finalMessage;
+    };
+
+    const saveAttachment = async (chatName) => {
+      if (!attachmentToSend || !attachmentFileToSend || !user?.uid) {
+        return attachmentToSend;
+      }
+
+      try {
+        const uploadedAttachment = await uploadChatAttachment({
+          userId: user.uid,
+          chatName,
+          file: attachmentFileToSend,
+          filename: attachmentToSend.name,
+        });
+
+        return {
+          ...attachmentToSend,
+          ...uploadedAttachment,
+          sizeLabel:
+            attachmentToSend.sizeLabel ||
+            formatFileSize(uploadedAttachment.size),
+        };
+      } catch (error) {
+        console.error("Chat attachment upload error:", error);
+        showNotice(
+          "The AI processed the attachment, but the original file could not be saved."
+        );
+        return attachmentToSend;
+      }
     };
 
     setInput("");
@@ -890,20 +951,23 @@ function Chat({
 
       addActivity("chat", "Chat created", newTitle);
 
-      const result = await getRealAiReply({
-        message: messageText,
-        tasks,
-        outputs,
-        attachment: attachmentToSend,
-        attachmentFile: attachmentFileToSend,
-        previousFileText,
-        conversationHistory,
-      });
+      const [result, savedAttachment] = await Promise.all([
+        getRealAiReply({
+          message: messageText,
+          tasks,
+          outputs,
+          attachment: attachmentToSend,
+          attachmentFile: attachmentFileToSend,
+          previousFileText,
+          conversationHistory,
+        }),
+        saveAttachment(newTitle),
+      ]);
 
       setChatMessages((prev) => ({
         ...prev,
         [newTitle]: [
-          createFinalUserMessage(result),
+          createFinalUserMessage(result, savedAttachment),
           createFinalAiMessage(result),
         ],
       }));
@@ -945,20 +1009,23 @@ function Chat({
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 
-      const result = await getRealAiReply({
-        message: messageText,
-        tasks,
-        outputs,
-        attachment: attachmentToSend,
-        attachmentFile: attachmentFileToSend,
-        previousFileText,
-        conversationHistory,
-      });
+      const [result, savedAttachment] = await Promise.all([
+        getRealAiReply({
+          message: messageText,
+          tasks,
+          outputs,
+          attachment: attachmentToSend,
+          attachmentFile: attachmentFileToSend,
+          previousFileText,
+          conversationHistory,
+        }),
+        saveAttachment(newTitle),
+      ]);
 
       setChatMessages((prev) => ({
         ...prev,
         [newTitle]: [
-          createFinalUserMessage(result),
+          createFinalUserMessage(result, savedAttachment),
           createFinalAiMessage(result),
         ],
       }));
@@ -983,15 +1050,18 @@ function Chat({
       selectedChat
     );
 
-    const result = await getRealAiReply({
-      message: messageText,
-      tasks,
-      outputs,
-      attachment: attachmentToSend,
-      attachmentFile: attachmentFileToSend,
-      previousFileText,
-      conversationHistory,
-    });
+    const [result, savedAttachment] = await Promise.all([
+      getRealAiReply({
+        message: messageText,
+        tasks,
+        outputs,
+        attachment: attachmentToSend,
+        attachmentFile: attachmentFileToSend,
+        previousFileText,
+        conversationHistory,
+      }),
+      saveAttachment(selectedChat),
+    ]);
 
     setChatMessages((prev) => {
       const currentMessages = prev[selectedChat] || [];
@@ -1001,10 +1071,13 @@ function Chat({
         [selectedChat]: currentMessages.map((message) => {
           if (message.requestId !== requestId) return message;
 
-          if (message.role === "user" && result.transcriptText) {
+          if (message.role === "user") {
             return {
               ...message,
-              transcriptText: result.transcriptText,
+              ...(savedAttachment ? { attachment: savedAttachment } : {}),
+              ...(result.transcriptText
+                ? { transcriptText: result.transcriptText }
+                : {}),
             };
           }
 
@@ -1171,7 +1244,13 @@ function Chat({
                       </p>
 
                       {message.attachment && (
-                        <div className="mt-4 rounded-2xl bg-[#07101F] border border-purple-500/30 p-4">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openStoredAttachment(message.attachment)
+                          }
+                          className="mt-4 w-full text-left rounded-2xl bg-[#07101F] border border-purple-500/30 p-4 transition hover:border-purple-400/70 disabled:cursor-default"
+                        >
                           <p className="text-sm font-semibold text-purple-200">
                             {getAttachmentIcon(message.attachment.kind)}{" "}
                             {message.attachment.name}
@@ -1183,7 +1262,13 @@ function Chat({
                               ? ` • ${message.attachment.durationLabel}`
                               : ""}
                           </p>
-                        </div>
+                          {(message.attachment.path ||
+                            message.attachment.url) && (
+                            <p className="text-xs text-purple-300 mt-2">
+                              Open attachment ↗
+                            </p>
+                          )}
+                        </button>
                       )}
                     </div>
                   </div>
