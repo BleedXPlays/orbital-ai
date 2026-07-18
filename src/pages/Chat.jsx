@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import OutputPreviewModal from "../components/OutputPreviewModal";
 
 function Chat({
@@ -43,7 +43,10 @@ function Chat({
   const voiceStreamRef = useRef(null);
   const selectedAttachmentFileRef = useRef(null);
 
-  const messages = selectedChat ? chatMessages[selectedChat] || [] : [];
+  const messages = useMemo(
+    () => (selectedChat ? chatMessages[selectedChat] || [] : []),
+    [selectedChat, chatMessages]
+  );
 
   useEffect(() => {
     const scrollElement = mainScrollRef.current;
@@ -374,20 +377,76 @@ function Chat({
           );
         }
 
-        const transcriptText =
-          transcriptionData.text || "No transcript was returned.";
+        const transcriptText = String(transcriptionData.text || "").trim();
 
-        const outputsWithTranscript = outputs.map((output) => {
-          if (output[1] === "Transcript") {
-            return [output[0], output[1], output[2], transcriptText];
-          }
+        if (!transcriptText) {
+          throw new Error("No transcript was returned.");
+        }
 
-          return output;
+        const answerTasks = analyzeTask(transcriptText);
+        const answerOutputs = getOutputs(answerTasks);
+
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: transcriptText,
+            tasks: answerTasks,
+            outputs: answerOutputs,
+            attachment,
+            conversationHistory,
+          }),
         });
 
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error || "Failed to answer the transcribed voice note."
+          );
+        }
+
+        const generatedOutputs = Array.isArray(data.generatedOutputs)
+          ? data.generatedOutputs
+          : [];
+
+        const answerOutputsWithContent = answerOutputs
+          .filter(
+            (output) =>
+              output[1] !== "Answer" && output[1] !== "Transcript"
+          )
+          .map((output) => {
+            const matchingOutput = generatedOutputs.find((item) =>
+              String(item.title || "")
+                .toLowerCase()
+                .startsWith(output[1].toLowerCase())
+            );
+
+            return [
+              output[0],
+              output[1],
+              output[2],
+              matchingOutput?.content || "",
+            ];
+          });
+
+        const voiceTasks = [
+          { task: "Voice Input", ai: "Whisper" },
+          ...answerTasks.filter((item) => item.task !== "Voice Input"),
+        ];
+
         return {
-          reply: `Transcript:\n${transcriptText}`,
-          outputs: outputsWithTranscript,
+          reply:
+            data.reply ||
+            "OrbitalAI transcribed the voice note, but no answer was returned.",
+          outputs: [
+            ["🎙️", "Transcript", "Voice to text", transcriptText],
+            ...answerOutputsWithContent,
+          ],
+          tasks: voiceTasks,
+          transcriptText,
         };
       }
 
@@ -580,7 +639,7 @@ function Chat({
       }, 1000);
 
       showNotice("Recording started.");
-    } catch (error) {
+    } catch {
       showNotice("Microphone permission was denied.");
     }
   };
@@ -678,7 +737,7 @@ function Chat({
       await navigator.clipboard.writeText(window.location.href);
       showNotice("Chat link copied.");
       addActivity("share", "Chat link copied", selectedChat);
-    } catch (error) {
+    } catch {
       showNotice("Could not copy link.");
     }
   };
@@ -738,7 +797,7 @@ function Chat({
       .slice(-10)
       .map((message) => ({
         role: message.role === "ai" ? "assistant" : "user",
-        content: String(message.text).slice(0, 6000),
+        content: String(message.transcriptText || message.text).slice(0, 6000),
       }));
 
     const attachmentText =
@@ -756,11 +815,15 @@ function Chat({
 
     const tasks = analyzeTask(textForAnalysis);
     const outputs = getOutputs(tasks);
+    const requestId = `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 9)}`;
 
     const userMessage = {
       role: "user",
       text: messageText,
       attachment: attachmentToSend,
+      requestId,
     };
 
     const loadingMessage = {
@@ -769,14 +832,25 @@ function Chat({
         ? "OrbitalAI is generating a real response for your request and attachment..."
         : "OrbitalAI is generating a real response...",
       isLoading: true,
+      requestId,
+    };
+
+    const createFinalUserMessage = (result) => {
+      if (!result.transcriptText) return userMessage;
+
+      return {
+        ...userMessage,
+        transcriptText: result.transcriptText,
+      };
     };
 
     const createFinalAiMessage = (result) => {
       const finalMessage = {
         role: "ai",
         text: result.reply,
-        tasks,
+        tasks: result.tasks || tasks,
         outputs: result.outputs || outputs,
+        requestId,
       };
 
       if (result.fileText) {
@@ -828,7 +902,10 @@ function Chat({
 
       setChatMessages((prev) => ({
         ...prev,
-        [newTitle]: [userMessage, createFinalAiMessage(result)],
+        [newTitle]: [
+          createFinalUserMessage(result),
+          createFinalAiMessage(result),
+        ],
       }));
 
       setIsGenerating(false);
@@ -880,7 +957,10 @@ function Chat({
 
       setChatMessages((prev) => ({
         ...prev,
-        [newTitle]: [userMessage, createFinalAiMessage(result)],
+        [newTitle]: [
+          createFinalUserMessage(result),
+          createFinalAiMessage(result),
+        ],
       }));
 
       setIsGenerating(false);
@@ -918,9 +998,22 @@ function Chat({
 
       return {
         ...prev,
-        [selectedChat]: currentMessages.map((message) =>
-          message.isLoading ? createFinalAiMessage(result) : message
-        ),
+        [selectedChat]: currentMessages.map((message) => {
+          if (message.requestId !== requestId) return message;
+
+          if (message.role === "user" && result.transcriptText) {
+            return {
+              ...message,
+              transcriptText: result.transcriptText,
+            };
+          }
+
+          if (message.isLoading) {
+            return createFinalAiMessage(result);
+          }
+
+          return message;
+        }),
       };
     });
 
