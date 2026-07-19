@@ -1212,7 +1212,7 @@ function Chat({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
 
       {notice && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-200 px-5 py-3 text-sm shadow-2xl shadow-purple-950/20">
+        <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-200 px-4 py-3 text-sm shadow-2xl shadow-purple-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-xl sm:-translate-x-1/2 sm:px-5">
           {notice}
         </div>
       )}
@@ -1225,28 +1225,28 @@ function Chat({
       />
 
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
-        <header className="shrink-0 px-10 pt-8 pb-5 border-b border-[#1B2540]/70 bg-[#020817]/80 backdrop-blur-xl">
-          <div className="flex items-start justify-between gap-6">
+        <header className="shrink-0 border-b border-[#1B2540]/70 bg-[#020817]/80 px-4 pb-4 pt-16 backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
+          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_16px_rgba(74,222,128,0.8)]" />
-                <p className="text-sm text-green-300">
+                <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-400 shadow-[0_0_16px_rgba(74,222,128,0.8)] sm:h-3 sm:w-3" />
+                <p className="truncate text-xs text-green-300 sm:text-sm">
                   Multi-AI collaboration active
                 </p>
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight truncate">
+              <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">
                 {selectedChat || "Untitled Chat"}
               </h1>
             </div>
 
-            <div className="flex gap-3 shrink-0">
+            <div className="flex shrink-0 gap-2 sm:gap-3">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShare();
                 }}
-                className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
+                className="flex-1 rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:flex-none sm:rounded-2xl sm:px-5 sm:py-3"
               >
                 Share
               </button>
@@ -1256,7 +1256,7 @@ function Chat({
                   e.stopPropagation();
                   handleExport();
                 }}
-                className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-sm text-gray-200 hover:bg-[#101827]"
+                className="flex-1 rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:flex-none sm:rounded-2xl sm:px-5 sm:py-3"
               >
                 Export
               </button>
@@ -1266,31 +1266,31 @@ function Chat({
 
         <main
           ref={mainScrollRef}
-          className="flex-1 min-h-0 overflow-y-auto px-10 pt-8 pb-10"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-6 pt-5 sm:px-6 sm:pb-8 sm:pt-7 lg:px-10 lg:pb-10 lg:pt-8"
         >
           {messages.length === 0 && (
-            <div className="min-h-[520px] flex flex-col items-center justify-center text-center">
-              <div className="relative mb-10">
+            <div className="flex min-h-full flex-col items-center justify-center py-8 text-center sm:min-h-[520px]">
+              <div className="relative mb-6 sm:mb-10">
                 <div className="absolute inset-0 blur-3xl bg-purple-600/20 rounded-full" />
-                <div className="relative w-24 h-24 rounded-3xl bg-[#07101F] border border-[#1B2540] flex items-center justify-center text-4xl shadow-2xl shadow-purple-950/30">
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-[#1B2540] bg-[#07101F] text-3xl shadow-2xl shadow-purple-950/30 sm:h-24 sm:w-24 sm:rounded-3xl sm:text-4xl">
                   ✦
                 </div>
               </div>
 
-              <h2 className="text-4xl font-bold tracking-tight">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-4xl">
                 Start a new conversation
               </h2>
 
-              <p className="mt-4 text-gray-400 text-lg">
+              <p className="mt-3 max-w-md text-sm text-gray-400 sm:mt-4 sm:text-lg">
                 Ask once. OrbitalAI routes the work to the right AI experts.
               </p>
 
-              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl">
+              <div className="mt-6 grid w-full max-w-4xl grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
                 <button
                   onClick={() =>
                     setInput("Research Chandrayaan-3 and create key notes")
                   }
-                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                  className="rounded-2xl border border-[#1B2540] bg-[#07101F]/90 p-4 text-left hover:border-purple-500/70 sm:p-5"
                 >
                   <p className="text-lg mb-2">📚 Research</p>
                   <p className="text-sm text-gray-400">
@@ -1300,7 +1300,7 @@ function Chat({
 
                 <button
                   onClick={() => setInput("Write an essay on global warming")}
-                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                  className="rounded-2xl border border-[#1B2540] bg-[#07101F]/90 p-4 text-left hover:border-purple-500/70 sm:p-5"
                 >
                   <p className="text-lg mb-2">📄 Writing</p>
                   <p className="text-sm text-gray-400">
@@ -1312,7 +1312,7 @@ function Chat({
                   onClick={() =>
                     setInput("Create a project idea with visuals and code")
                   }
-                  className="text-left p-5 rounded-2xl bg-[#07101F]/90 border border-[#1B2540] hover:border-purple-500/70"
+                  className="rounded-2xl border border-[#1B2540] bg-[#07101F]/90 p-4 text-left hover:border-purple-500/70 sm:p-5"
                 >
                   <p className="text-lg mb-2">✦ Multi-output</p>
                   <p className="text-sm text-gray-400">
@@ -1323,7 +1323,7 @@ function Chat({
             </div>
           )}
 
-          <div className="space-y-7 max-w-6xl mx-auto">
+          <div className="mx-auto max-w-6xl space-y-4 sm:space-y-7">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -1332,10 +1332,10 @@ function Chat({
                 }`}
               >
                 {message.role === "user" ? (
-                  <div className="max-w-[620px] rounded-3xl rounded-tr-md bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 p-[1px] shadow-xl shadow-purple-950/30">
-                    <div className="rounded-3xl rounded-tr-md bg-[#111A2E]/90 p-6">
+                  <div className="min-w-0 max-w-[94%] rounded-2xl rounded-tr-md bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 p-[1px] shadow-xl shadow-purple-950/30 sm:max-w-[620px] sm:rounded-3xl">
+                    <div className="rounded-2xl rounded-tr-md bg-[#111A2E]/90 p-4 sm:rounded-3xl sm:p-6">
                       <p className="text-sm text-purple-200 mb-2">You</p>
-                      <p className="text-gray-100 leading-relaxed">
+                      <p className="break-words text-gray-100 leading-relaxed">
                         {message.text}
                       </p>
 
@@ -1347,7 +1347,7 @@ function Chat({
                           }
                           className="mt-4 w-full text-left rounded-2xl bg-[#07101F] border border-purple-500/30 p-4 transition hover:border-purple-400/70 disabled:cursor-default"
                         >
-                          <p className="text-sm font-semibold text-purple-200">
+                          <p className="break-all text-sm font-semibold text-purple-200">
                             {getAttachmentIcon(message.attachment.kind)}{" "}
                             {message.attachment.name}
                           </p>
@@ -1369,15 +1369,15 @@ function Chat({
                     </div>
                   </div>
                 ) : (
-                  <div className="max-w-3xl w-fit rounded-3xl rounded-tl-md bg-[#07101F]/95 border border-[#1B2540] p-6 shadow-xl shadow-purple-950/10">
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className="w-11 h-11 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+                  <div className="w-full min-w-0 max-w-3xl rounded-2xl rounded-tl-md border border-[#1B2540] bg-[#07101F]/95 p-4 shadow-xl shadow-purple-950/10 sm:w-fit sm:rounded-3xl sm:p-6">
+                    <div className="mb-5 flex items-start gap-3 sm:mb-6 sm:gap-4">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 sm:h-11 sm:w-11 sm:rounded-2xl">
                         ✦
                       </div>
 
                       <div className="min-w-0">
                         <div>
-                          <div className="flex items-center gap-3 mb-3">
+                          <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
                             <p className="text-sm font-semibold text-purple-300">
                               OrbitalAI
                             </p>
@@ -1398,7 +1398,7 @@ function Chat({
                             )}
                           </div>
 
-                          <p className="text-[15px] leading-7 text-gray-100 whitespace-pre-wrap font-normal">
+                          <p className="break-words text-[15px] font-normal leading-7 text-gray-100 whitespace-pre-wrap">
                             {message.text}
                           </p>
 
@@ -1429,11 +1429,11 @@ function Chat({
                         message.tasks.length === 1 &&
                         message.tasks[0].task === "General Answer"
                       ) && (
-                        <div className="flex flex-wrap gap-3 mb-8">
+                        <div className="mb-6 flex flex-wrap gap-2 sm:mb-8 sm:gap-3">
                           {message.tasks.map((item, taskIndex) => (
                             <span
                               key={taskIndex}
-                              className="px-4 py-2 rounded-full bg-[#101827] border border-[#1B2540] text-sm text-gray-200"
+                              className="rounded-full border border-[#1B2540] bg-[#101827] px-3 py-2 text-xs text-gray-200 sm:px-4 sm:text-sm"
                             >
                               {item.ai} → {item.task}
                             </span>
@@ -1448,16 +1448,16 @@ function Chat({
                         message.outputs[0][1] === "Answer"
                       ) && (
                         <>
-                          <h2 className="text-2xl font-bold mb-5">
+                          <h2 className="mb-4 text-xl font-bold sm:mb-5 sm:text-2xl">
                             Generated Outputs
                           </h2>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
                             {message.outputs.map((output, outputIndex) => (
                               <button
                                 key={outputIndex}
                                 onClick={() => openSingleOutput(output)}
-                                className="text-left bg-[#101827] border border-[#1B2540] rounded-2xl p-5 hover:border-purple-500/60 hover:bg-[#141f33] transition"
+                                className="min-w-0 rounded-2xl border border-[#1B2540] bg-[#101827] p-4 text-left transition hover:border-purple-500/60 hover:bg-[#141f33] sm:p-5"
                               >
                                 <h3 className="font-bold text-lg mb-2">
                                   {output[0]} {output[1]}
@@ -1484,13 +1484,13 @@ function Chat({
           </div>
         </main>
 
-        <div className="shrink-0 px-10 pb-8 pt-4 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent">
+        <div className="shrink-0 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-5 sm:pt-4 lg:px-10 lg:pb-8">
           <div className="mx-auto w-[820px] max-w-full">
             <div className="relative">
               {actionMenuOpen && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute left-0 bottom-[92px] w-72 rounded-3xl bg-[#08111F]/95 border border-[#1B2540] shadow-2xl shadow-black/40 backdrop-blur-xl p-3 z-[9999]"
+                  className="absolute bottom-[72px] left-0 z-[9999] w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#1B2540] bg-[#08111F]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl sm:bottom-[92px] sm:rounded-3xl"
                 >
                   <p className="text-xs uppercase tracking-[0.18em] text-purple-300/80 px-3 pt-1 pb-3">
                     Quick Actions
@@ -1542,9 +1542,9 @@ function Chat({
               {isRecording && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="mb-3 rounded-3xl bg-red-500/10 border border-red-500/30 p-4 shadow-xl shadow-red-950/20"
+                  className="mb-3 rounded-2xl bg-red-500/10 border border-red-500/30 p-3 shadow-xl shadow-red-950/20 sm:rounded-3xl sm:p-4"
                 >
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4">
                     <div className="flex items-center gap-3">
                       <span className="w-3 h-3 rounded-full bg-red-400 animate-pulse" />
                       <div>
@@ -1571,30 +1571,30 @@ function Chat({
               {selectedAttachment && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="mb-3 rounded-3xl bg-[#07101F]/95 border border-[#1B2540] p-4 shadow-xl shadow-purple-950/20"
+                  className="mb-3 rounded-2xl bg-[#07101F]/95 border border-[#1B2540] p-3 shadow-xl shadow-purple-950/20 sm:rounded-3xl sm:p-4"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     {selectedAttachment.kind === "image" &&
                     attachmentPreviewUrl ? (
                       <img
                         src={attachmentPreviewUrl}
                         alt={selectedAttachment.name}
-                        className="w-16 h-16 rounded-2xl object-cover border border-[#1B2540]"
+                        className="h-12 w-12 shrink-0 rounded-xl object-cover border border-[#1B2540] sm:h-16 sm:w-16 sm:rounded-2xl"
                       />
                     ) : selectedAttachment.kind === "voice" &&
                       attachmentPreviewUrl ? (
-                      <div className="min-w-[170px]">
-                        <div className="w-16 h-16 rounded-2xl bg-[#101827] border border-[#1B2540] flex items-center justify-center text-2xl mb-2">
+                      <div className="min-w-0">
+                        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-xl sm:h-16 sm:w-16 sm:rounded-2xl sm:text-2xl">
                           🎙️
                         </div>
                         <audio
                           controls
                           src={attachmentPreviewUrl}
-                          className="w-48 h-8"
+                          className="h-8 w-36 max-w-full sm:w-48"
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-[#101827] border border-[#1B2540] flex items-center justify-center text-2xl">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-xl sm:h-16 sm:w-16 sm:rounded-2xl sm:text-2xl">
                         📎
                       </div>
                     )}
@@ -1604,7 +1604,7 @@ function Chat({
                         {getAttachmentIcon(selectedAttachment.kind)}{" "}
                         {selectedAttachment.name}
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="mt-1 truncate text-xs text-gray-400 sm:text-sm">
                         {selectedAttachment.sizeLabel} •{" "}
                         {selectedAttachment.type}
                         {selectedAttachment.durationLabel
@@ -1615,7 +1615,7 @@ function Chat({
 
                     <button
                       onClick={removeAttachment}
-                      className="w-10 h-10 rounded-xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:text-white hover:bg-[#141f33]"
+                      className="h-9 w-9 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:text-white hover:bg-[#141f33] sm:h-10 sm:w-10"
                     >
                       ×
                     </button>
@@ -1628,7 +1628,7 @@ function Chat({
                 onDragOver={handleAttachmentDragOver}
                 onDragLeave={handleAttachmentDragLeave}
                 onDrop={handleAttachmentDrop}
-                className={`bg-[#07101F]/95 border shadow-2xl shadow-purple-950/30 rounded-3xl p-4 flex items-center gap-4 backdrop-blur-xl transition ${
+                className={`flex min-w-0 items-center gap-2 rounded-2xl border bg-[#07101F]/95 p-2 shadow-2xl shadow-purple-950/30 backdrop-blur-xl transition sm:gap-3 sm:rounded-3xl sm:p-3 lg:gap-4 lg:p-4 ${
                   isDraggingAttachment
                     ? "border-purple-400 bg-purple-500/10"
                     : "border-[#1B2540]"
@@ -1637,7 +1637,7 @@ function Chat({
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
                   disabled={isGenerating || isRecording}
-                  className={`w-14 h-14 rounded-2xl border text-3xl text-white transition ${
+                  className={`h-11 w-11 shrink-0 rounded-xl border text-2xl text-white transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-3xl ${
                     isGenerating || isRecording
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
                       : actionMenuOpen
@@ -1651,7 +1651,7 @@ function Chat({
                 <button
                   onClick={handleVoiceInput}
                   disabled={isGenerating}
-                  className={`w-14 h-14 rounded-2xl border text-2xl transition ${
+                  className={`h-11 w-11 shrink-0 rounded-xl border text-xl transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl ${
                     isRecording
                       ? "bg-red-500/10 border-red-500/40 text-red-200 hover:bg-red-500/20"
                       : isGenerating
@@ -1683,13 +1683,13 @@ function Chat({
                       sendMessage();
                     }
                   }}
-                  className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500 disabled:opacity-60"
+                  className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 disabled:opacity-60 sm:text-lg"
                 />
 
                 <button
                   onClick={sendMessage}
                   disabled={isGenerating || isRecording}
-                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 transition ${
+                  className={`h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl shadow-lg shadow-purple-700/30 transition sm:h-16 sm:w-16 sm:rounded-2xl sm:text-3xl ${
                     isGenerating || isRecording
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:scale-[1.03]"
@@ -1700,7 +1700,7 @@ function Chat({
               </div>
             </div>
 
-            <p className="text-center text-sm text-gray-500 mt-4">
+            <p className="mt-4 hidden text-center text-sm text-gray-500 sm:block">
               Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag documents
               here&nbsp;&nbsp;•&nbsp;&nbsp;Paste images with Command + V
             </p>
