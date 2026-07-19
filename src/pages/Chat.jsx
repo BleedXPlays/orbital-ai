@@ -456,8 +456,11 @@ function Chat({
     const isSupportedDocument =
       file.type === "text/plain" ||
       file.type === "application/pdf" ||
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       lowerName.endsWith(".txt") ||
-      lowerName.endsWith(".pdf");
+      lowerName.endsWith(".pdf") ||
+      lowerName.endsWith(".docx");
 
     if (isImage && file.size > MAX_INLINE_IMAGE_BYTES) {
       showNotice("Choose an image smaller than 3 MB for Gemini analysis.");
@@ -465,7 +468,9 @@ function Chat({
     }
 
     if (!isImage && !isSupportedDocument) {
-      showNotice("Only PDF, TXT, and image attachments are supported right now.");
+      showNotice(
+        "Only PDF, TXT, DOCX, and image attachments are supported right now."
+      );
       return false;
     }
 
@@ -508,7 +513,7 @@ function Chat({
     if (!pastedFile) {
       const pastedText = event.clipboardData?.getData("text/plain")?.trim();
 
-      if (/\.(pdf|txt)$/i.test(pastedText || "")) {
+      if (/\.(pdf|txt|docx)$/i.test(pastedText || "")) {
         event.preventDefault();
         showNotice(
           "The browser received only the filename. Drag the document onto the message box instead."
@@ -1077,7 +1082,8 @@ function Chat({
       onClick={() => setActionMenuOpen(false)}
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
-      <input accept=".txt,.pdf,text/plain,application/pdf"
+      <input
+        accept=".txt,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ref={fileInputRef}
         type="file"
         className="hidden"
@@ -1577,7 +1583,7 @@ function Chat({
             </div>
 
             <p className="text-center text-sm text-gray-500 mt-4">
-              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag PDF/TXT files
+              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag PDF/TXT/DOCX files
               here&nbsp;&nbsp;•&nbsp;&nbsp;Paste images with Command + V
             </p>
           </div>

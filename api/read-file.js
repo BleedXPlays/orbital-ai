@@ -1,4 +1,7 @@
+/* global Buffer */
+
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import mammoth from "mammoth";
 
 const extractBase64 = (base64 = "") => {
   if (!base64) return "";
@@ -78,9 +81,17 @@ export default async function handler(request, response) {
       lowerFilename.endsWith(".pdf")
     ) {
       text = await extractPdfText(fileBuffer);
+    } else if (
+      type.includes(
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) ||
+      lowerFilename.endsWith(".docx")
+    ) {
+      const result = await mammoth.extractRawText({ buffer: fileBuffer });
+      text = result.value;
     } else {
       return response.status(400).json({
-        error: "Only TXT and PDF files are supported right now.",
+        error: "Only TXT, PDF, and DOCX files are supported right now.",
       });
     }
 
