@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ChatCard from "./ChatCard";
 import ProjectCard from "./ProjectCard";
 import ChatMenu from "./ChatMenu";
@@ -7,6 +8,15 @@ import MoveChatModal from "./MoveChatModal";
 import RenameModal from "./RenameModal";
 import ConfirmModal from "./ConfirmModal";
 import logo from "../assets/orbital-logo.png";
+
+const slugify = (value) => {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
 
 function Sidebar({
   setPage,
@@ -30,6 +40,7 @@ function Sidebar({
   setChatActivity,
   addActivity,
 }) {
+  const navigate = useNavigate();
   const [chatSearch, setChatSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
@@ -166,6 +177,7 @@ function Sidebar({
     setChatActivity({ ...chatActivity, [newChatName]: now });
     setSelectedChat(newChatName);
     setPage("chat");
+    navigate(`/chat/${slugify(newChatName)}`);
 
     addActivity("chat", "Global chat created", newChatName);
   };
@@ -214,6 +226,7 @@ function Sidebar({
 
     if (selectedChat === oldName) {
       setSelectedChat(trimmedName);
+      navigate(`/chat/${slugify(trimmedName)}`, { replace: true });
     }
 
     addActivity("chat", "Chat renamed", `${oldName} → ${trimmedName}`);

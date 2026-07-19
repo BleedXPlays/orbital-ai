@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import OutputPreviewModal from "../components/OutputPreviewModal";
 import {
   getChatAttachmentUrl,
@@ -56,6 +57,14 @@ const SUPPORTED_DOCUMENT_MIME_TYPES = new Set([
   "application/vnd.oasis.opendocument.spreadsheet",
 ]);
 const LEGACY_OFFICE_EXTENSIONS = new Set([".doc", ".ppt", ".xls"]);
+const slugify = (value) => {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
 
 function Chat({
   user,
@@ -73,6 +82,7 @@ function Chat({
   setChatActivity,
   addActivity,
 }) {
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
@@ -994,6 +1004,7 @@ function Chat({
       });
 
       setSelectedChat(newTitle);
+      navigate(`/chat/${slugify(newTitle)}`, { replace: true });
 
       addActivity("chat", "Chat created", newTitle);
 
@@ -1052,6 +1063,7 @@ function Chat({
       setPinnedChats(updatedPinnedChats);
       setChatActivity(updatedChatActivity);
       setSelectedChat(newTitle);
+      navigate(`/chat/${slugify(newTitle)}`, { replace: true });
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 

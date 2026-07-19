@@ -1,8 +1,21 @@
 function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
   if (!isOpen) return null;
 
-  const formatGeneratedContent = (content) => {
+  const formatGeneratedContent = (content, outputTitle) => {
     if (!content) return null;
+
+    if (String(outputTitle || "").toLowerCase().includes("code")) {
+      const code = String(content)
+        .replace(/^```[\w-]*\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      return (
+        <pre className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-5 overflow-x-auto text-sm text-gray-200 leading-7 whitespace-pre">
+          <code>{code}</code>
+        </pre>
+      );
+    }
 
     return (
       <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-5">
@@ -117,7 +130,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
     const generatedContent = output[3];
 
     if (generatedContent) {
-      return formatGeneratedContent(generatedContent);
+      return formatGeneratedContent(generatedContent, output[1]);
     }
 
     return getFallbackContent(output);
