@@ -79,9 +79,12 @@ export const generateWithGemini = async ({
   const data = await apiResponse.json();
 
   if (!apiResponse.ok) {
-    throw new Error(
+    const error = new Error(
       data?.error?.message || "Gemini could not generate a response."
     );
+    error.status = apiResponse.status;
+    error.code = data?.error?.status || "";
+    throw error;
   }
 
   const rawText =

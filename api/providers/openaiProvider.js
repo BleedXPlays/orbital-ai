@@ -78,6 +78,8 @@ export const generateWithOpenAI = async ({
   attachment,
   fileText,
   conversationHistory,
+  imageBase64,
+  imageMimeType,
 }) => {
   const {
     taskSummary,
@@ -107,6 +109,31 @@ export const generateWithOpenAI = async ({
         }))
     : [];
 
+  const userPrompt = `User request: ${message}
+
+Detected AI routing: ${taskSummary}
+
+Expected output cards:
+${outputInstructions}
+
+Expected output summary: ${outputSummary}${attachmentSummary}${fileTextBlock}
+
+Return only JSON.`;
+  const userContent = imageBase64
+    ? [
+        {
+          type: "input_text",
+          text: userPrompt,
+        },
+        {
+          type: "input_image",
+          image_url: `data:${
+            imageMimeType || attachment?.type || "image/jpeg"
+          };base64,${imageBase64}`,
+        },
+      ]
+    : userPrompt;
+
   const aiResponse = await client.responses.create({
     model: "gpt-4.1-mini",
     input: [
@@ -118,16 +145,7 @@ export const generateWithOpenAI = async ({
       ...historyInput,
       {
         role: "user",
-        content: `User request: ${message}
-
-Detected AI routing: ${taskSummary}
-
-Expected output cards:
-${outputInstructions}
-
-Expected output summary: ${outputSummary}${attachmentSummary}${fileTextBlock}
-
-Return only JSON.`,
+        content: userContent,
       },
     ],
   });

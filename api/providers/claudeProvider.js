@@ -90,9 +90,12 @@ export const generateWithClaude = async ({
   const data = await apiResponse.json();
 
   if (!apiResponse.ok) {
-    throw new Error(
+    const error = new Error(
       data?.error?.message || "Claude could not generate a response."
     );
+    error.status = apiResponse.status;
+    error.code = data?.error?.type || "";
+    throw error;
   }
 
   const structuredResponse = Array.isArray(data.content)

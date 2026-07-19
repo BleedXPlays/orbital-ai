@@ -1,4 +1,7 @@
-import { generateWithProvider } from "./providers/providerRouter.js";
+import {
+  generateWithProvider,
+  getProviderErrorResponse,
+} from "./providers/providerRouter.js";
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -39,14 +42,11 @@ export default async function handler(request, response) {
     return response.status(200).json(result);
   } catch (error) {
     console.error("OrbitalAI API error:", error);
-    const isConfigurationError = String(error?.message || "").includes(
-      "_API_KEY is not configured"
-    );
+    const providerError = getProviderErrorResponse(error);
 
-    return response.status(isConfigurationError ? 503 : 500).json({
-      error: isConfigurationError
-        ? error.message
-        : "Failed to generate AI response.",
+    return response.status(providerError.status).json({
+      error: providerError.error,
+      errorCode: providerError.errorCode,
     });
   }
 }

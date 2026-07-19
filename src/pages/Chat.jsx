@@ -414,6 +414,8 @@ function Chat({
           tasks: voiceTasks,
           transcriptText,
           provider: data.provider,
+          fallbackFrom: data.fallbackFrom || "",
+          providerNotice: data.providerNotice || "",
         };
       }
 
@@ -476,22 +478,18 @@ function Chat({
         outputs: outputsWithContent,
         fileText: newFileText,
         provider: data.provider,
+        fallbackFrom: data.fallbackFrom || "",
+        providerNotice: data.providerNotice || "",
       };
     } catch (error) {
       console.error("AI response error:", error);
-      const isConfigurationError = String(error?.message || "").includes(
-        "_API_KEY is not configured"
-      );
-      showNotice(
-        isConfigurationError
-          ? "This AI provider still needs its API key."
-          : "Real AI response failed. Showing fallback response."
-      );
+      const errorMessage =
+        String(error?.message || "").trim() ||
+        "The request could not be completed. Please try again.";
+      showNotice(errorMessage);
 
       return {
-        reply: isConfigurationError
-          ? `Provider setup required: ${error.message}`
-          : "OrbitalAI could not generate the response right now. Please try again.",
+        reply: `OrbitalAI could not complete this request: ${errorMessage}`,
         outputs,
       };
     }
@@ -939,6 +937,8 @@ function Chat({
         outputs: result.outputs || outputs,
         requestId,
         provider: result.provider || "",
+        fallbackFrom: result.fallbackFrom || "",
+        providerNotice: result.providerNotice || "",
       };
 
       if (result.fileText) {
@@ -1348,6 +1348,7 @@ function Chat({
                             {message.provider && (
                               <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-purple-200">
                                 {message.provider}
+                                {message.fallbackFrom ? " fallback" : ""}
                               </span>
                             )}
 
@@ -1363,6 +1364,12 @@ function Chat({
                           <p className="text-[15px] leading-7 text-gray-100 whitespace-pre-wrap font-normal">
                             {message.text}
                           </p>
+
+                          {message.providerNotice && (
+                            <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-200">
+                              {message.providerNotice}
+                            </p>
+                          )}
                         </div>
 
                         {message.tasks &&

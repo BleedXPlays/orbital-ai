@@ -142,6 +142,8 @@ function Home({
         tasks,
         outputs: outputsWithContent,
         provider: data.provider || "",
+        fallbackFrom: data.fallbackFrom || "",
+        providerNotice: data.providerNotice || "",
       };
 
       setChatMessages((prev) => ({
@@ -157,7 +159,10 @@ function Home({
           userMessage,
           {
             role: "ai",
-            text: "OrbitalAI could not generate the response right now. Please try again.",
+            text: `OrbitalAI could not complete this request: ${
+              String(error?.message || "").trim() ||
+              "Please try again in a moment."
+            }`,
             tasks,
             outputs,
           },
