@@ -34,7 +34,13 @@ const extractJson = (text = "") => {
   }
 };
 
-const buildPromptData = ({ tasks, outputs, attachment, fileText }) => {
+const buildPromptData = ({
+  tasks,
+  outputs,
+  attachment,
+  fileText,
+  fileName,
+}) => {
   const taskSummary =
     tasks && tasks.length > 0
       ? tasks.map((item) => `${item.ai} → ${item.task}`).join(", ")
@@ -56,10 +62,16 @@ const buildPromptData = ({ tasks, outputs, attachment, fileText }) => {
 
   const attachmentSummary = attachment
     ? `\nAttachment: ${attachment.name}, type: ${attachment.type}, kind: ${attachment.kind}`
+    : fileName
+    ? `\nActive document: ${fileName}`
     : "";
 
   const fileTextBlock = fileText
-    ? `\n\nReadable file content:\n${String(fileText).slice(0, 45000)}`
+    ? `\n\nThe content below is from the active/latest document${
+        fileName ? ` named "${fileName}"` : ""
+      }. For document-specific questions, use only this content unless the user explicitly asks to compare documents.\n\nReadable file content:\n${String(
+        fileText
+      ).slice(0, 45000)}`
     : "";
 
   return {
@@ -77,6 +89,7 @@ export const generateWithOpenAI = async ({
   outputs,
   attachment,
   fileText,
+  fileName,
   conversationHistory,
   imageBase64,
   imageMimeType,
@@ -92,6 +105,7 @@ export const generateWithOpenAI = async ({
     outputs,
     attachment,
     fileText,
+    fileName,
   });
 
   const historyInput = Array.isArray(conversationHistory)

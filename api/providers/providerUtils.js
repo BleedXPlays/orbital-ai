@@ -77,6 +77,7 @@ export const buildProviderRequest = ({
   outputs,
   attachment,
   fileText,
+  fileName,
 }) => {
   const taskSummary =
     Array.isArray(tasks) && tasks.length > 0
@@ -94,10 +95,16 @@ export const buildProviderRequest = ({
 
   const attachmentSummary = attachment
     ? `\nAttachment: ${attachment.name}, type: ${attachment.type}, kind: ${attachment.kind}`
+    : fileName
+    ? `\nActive document: ${fileName}`
     : "";
 
   const fileTextBlock = fileText
-    ? `\n\nReadable document content:\n${String(fileText).slice(0, 70000)}`
+    ? `\n\nThe content below is from the active/latest document${
+        fileName ? ` named "${fileName}"` : ""
+      }. For document-specific questions, use only this content unless the user explicitly asks to compare documents.\n\nReadable document content:\n${String(
+        fileText
+      ).slice(0, 70000)}`
     : "";
 
   return `User request: ${message}

@@ -13,6 +13,7 @@ export const generateWithGemini = async ({
   outputs,
   attachment,
   fileText,
+  fileName,
   conversationHistory,
   imageBase64,
   imageMimeType,
@@ -46,6 +47,7 @@ export const generateWithGemini = async ({
       outputs,
       attachment,
       fileText,
+      fileName,
     }),
   });
 

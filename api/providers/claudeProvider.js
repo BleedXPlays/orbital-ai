@@ -13,6 +13,7 @@ export const generateWithClaude = async ({
   outputs,
   attachment,
   fileText,
+  fileName,
   conversationHistory,
 }) => {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -26,6 +27,7 @@ export const generateWithClaude = async ({
     outputs,
     attachment,
     fileText,
+    fileName,
   });
 
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {

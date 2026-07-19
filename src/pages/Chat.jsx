@@ -317,8 +317,11 @@ function Chat({
     attachment,
     attachmentFile,
     previousFileText,
+    previousFileName,
     conversationHistory,
   }) => {
+    let newFileText = "";
+
     try {
       if (attachment?.kind === "voice" && attachmentFile) {
         const audioBase64 = await blobToBase64(attachmentFile);
@@ -419,11 +422,16 @@ function Chat({
         };
       }
 
-      const newFileText = await getReadableFileText({
+      newFileText = await getReadableFileText({
         attachment,
         attachmentFile,
       });
       const fileText = newFileText || (!attachment ? previousFileText : "");
+      const fileName = newFileText
+        ? attachment?.name || ""
+        : !attachment && previousFileText
+        ? previousFileName || ""
+        : "";
       const imageBase64 =
         attachment?.kind === "image" && attachmentFile
           ? await blobToBase64(attachmentFile)
@@ -440,6 +448,7 @@ function Chat({
           outputs,
           attachment,
           fileText,
+          fileName,
           conversationHistory,
           imageBase64,
           imageMimeType: imageBase64 ? attachment.type : "",
@@ -491,6 +500,7 @@ function Chat({
       return {
         reply: `OrbitalAI could not complete this request: ${errorMessage}`,
         outputs,
+        fileText: newFileText,
       };
     }
   };
@@ -547,6 +557,9 @@ function Chat({
     }
 
     const attachment = {
+      id: `attachment-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 9)}`,
       name:
         file.name ||
         (isImage ? `pasted-image-${Date.now()}` : `pasted-file-${Date.now()}`),
@@ -554,6 +567,7 @@ function Chat({
       size: file.size,
       sizeLabel: formatFileSize(file.size),
       kind: isImage ? "image" : "file",
+      createdAt: new Date().toISOString(),
     };
 
     setSelectedAttachment(attachment);
@@ -687,12 +701,16 @@ function Chat({
         const audioUrl = URL.createObjectURL(audioBlob);
 
         const attachment = {
+          id: `attachment-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 9)}`,
           name: `voice-note-${Date.now()}.webm`,
           type: "audio/webm",
           size: audioBlob.size,
           sizeLabel: formatFileSize(audioBlob.size),
           kind: "voice",
           durationLabel: formatDuration(durationSeconds),
+          createdAt: new Date().toISOString(),
         };
 
         setSelectedAttachment(attachment);
@@ -870,9 +888,22 @@ function Chat({
 
     const attachmentToSend = selectedAttachment;
     const attachmentFileToSend = selectedAttachmentFileRef.current;
-    const previousFileText = [...messages]
+    const latestDocumentMessage = [...messages]
       .reverse()
-      .find((message) => message.fileText)?.fileText || "";
+      .find(
+        (message) =>
+          (message.attachment?.kind === "file" &&
+            message.attachment?.extractedText) ||
+          message.fileText
+      );
+    const previousFileText =
+      latestDocumentMessage?.attachment?.extractedText ||
+      latestDocumentMessage?.fileText ||
+      "";
+    const previousFileName =
+      latestDocumentMessage?.attachment?.name ||
+      latestDocumentMessage?.sourceFilename ||
+      "";
     const conversationHistory = messages
       .filter((message) => !message.isLoading && message.text)
       .slice(-10)
@@ -920,9 +951,23 @@ function Chat({
       result,
       savedAttachment = attachmentToSend
     ) => {
+      const attachmentWithContext = savedAttachment
+        ? {
+            ...savedAttachment,
+            ...(result.fileText
+              ? {
+                  extractedText: result.fileText,
+                  extractedAt: new Date().toISOString(),
+                }
+              : {}),
+          }
+        : null;
+
       return {
         ...userMessage,
-        ...(savedAttachment ? { attachment: savedAttachment } : {}),
+        ...(attachmentWithContext
+          ? { attachment: attachmentWithContext }
+          : {}),
         ...(result.transcriptText
           ? { transcriptText: result.transcriptText }
           : {}),
@@ -940,11 +985,6 @@ function Chat({
         fallbackFrom: result.fallbackFrom || "",
         providerNotice: result.providerNotice || "",
       };
-
-      if (result.fileText) {
-        finalMessage.fileText = result.fileText;
-        finalMessage.sourceFilename = attachmentToSend?.name || "uploaded-file";
-      }
 
       return finalMessage;
     };
@@ -1016,6 +1056,7 @@ function Chat({
           attachment: attachmentToSend,
           attachmentFile: attachmentFileToSend,
           previousFileText,
+          previousFileName,
           conversationHistory,
         }),
         saveAttachment(newTitle),
@@ -1075,6 +1116,7 @@ function Chat({
           attachment: attachmentToSend,
           attachmentFile: attachmentFileToSend,
           previousFileText,
+          previousFileName,
           conversationHistory,
         }),
         saveAttachment(newTitle),
@@ -1116,6 +1158,7 @@ function Chat({
         attachment: attachmentToSend,
         attachmentFile: attachmentFileToSend,
         previousFileText,
+        previousFileName,
         conversationHistory,
       }),
       saveAttachment(selectedChat),
@@ -1130,13 +1173,7 @@ function Chat({
           if (message.requestId !== requestId) return message;
 
           if (message.role === "user") {
-            return {
-              ...message,
-              ...(savedAttachment ? { attachment: savedAttachment } : {}),
-              ...(result.transcriptText
-                ? { transcriptText: result.transcriptText }
-                : {}),
-            };
+            return createFinalUserMessage(result, savedAttachment);
           }
 
           if (message.isLoading) {
