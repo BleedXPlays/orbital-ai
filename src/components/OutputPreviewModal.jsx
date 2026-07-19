@@ -1,7 +1,31 @@
+import { useState } from "react";
+
 function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
+  const [copyStatus, setCopyStatus] = useState({
+    outputIndex: null,
+    message: "",
+  });
+
   if (!isOpen) return null;
 
-  const formatGeneratedContent = (content, outputTitle) => {
+  const copyCode = async (code, outputIndex) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus({ outputIndex, message: "Copied!" });
+    } catch {
+      setCopyStatus({ outputIndex, message: "Copy failed" });
+    }
+
+    setTimeout(() => {
+      setCopyStatus((current) =>
+        current.outputIndex === outputIndex
+          ? { outputIndex: null, message: "" }
+          : current
+      );
+    }, 2000);
+  };
+
+  const formatGeneratedContent = (content, outputTitle, outputIndex) => {
     if (!content) return null;
 
     if (String(outputTitle || "").toLowerCase().includes("code")) {
@@ -11,9 +35,27 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
         .trim();
 
       return (
-        <pre className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-5 overflow-x-auto text-sm text-gray-200 leading-7 whitespace-pre">
-          <code>{code}</code>
-        </pre>
+        <div className="overflow-hidden rounded-2xl bg-[#050B1A] border border-[#1B2540]">
+          <div className="flex items-center justify-between gap-4 border-b border-[#1B2540] px-4 py-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Code
+            </span>
+
+            <button
+              type="button"
+              onClick={() => copyCode(code, outputIndex)}
+              className="rounded-lg border border-[#2A3653] bg-[#101827] px-3 py-1.5 text-xs font-semibold text-gray-200 transition hover:border-purple-500/60 hover:text-white"
+            >
+              {copyStatus.outputIndex === outputIndex
+                ? copyStatus.message
+                : "Copy code"}
+            </button>
+          </div>
+
+          <pre className="p-5 overflow-x-auto text-sm text-gray-200 leading-7 whitespace-pre">
+            <code>{code}</code>
+          </pre>
+        </div>
       );
     }
 
@@ -126,11 +168,11 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
     );
   };
 
-  const getPreviewContent = (output) => {
+  const getPreviewContent = (output, outputIndex) => {
     const generatedContent = output[3];
 
     if (generatedContent) {
-      return formatGeneratedContent(generatedContent, output[1]);
+      return formatGeneratedContent(generatedContent, output[1], outputIndex);
     }
 
     return getFallbackContent(output);
@@ -172,7 +214,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
 
                 <p className="text-sm text-gray-400 mb-5">{output[2]}</p>
 
-                {getPreviewContent(output)}
+                {getPreviewContent(output, index)}
               </div>
             ))}
           </div>
