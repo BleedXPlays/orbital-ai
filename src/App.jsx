@@ -274,15 +274,11 @@ function App() {
 
     setPage("home");
     setRouteReady(true);
-  }, [
-    location.pathname,
-    user,
-    dataLoading,
-    hasLoadedUserData,
-    chats,
-    projects,
-    projectChats,
-  ]);
+    // Route changes select workspace items. Local chat/project list changes
+    // are handled by the state-to-route effect below, so they must not rerun
+    // this effect with a stale URL during creation or automatic renaming.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, user, dataLoading, hasLoadedUserData]);
 
   useEffect(() => {
     if (!user || dataLoading || !hasLoadedUserData || !routeReady) return;
