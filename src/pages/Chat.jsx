@@ -7,6 +7,55 @@ import {
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 
 const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
+const MAX_READABLE_FILE_BYTES = 3 * 1024 * 1024;
+const SUPPORTED_DOCUMENT_EXTENSIONS = new Set([
+  ".pdf",
+  ".docx",
+  ".pptx",
+  ".xlsx",
+  ".odt",
+  ".odp",
+  ".ods",
+  ".epub",
+  ".txt",
+  ".md",
+  ".markdown",
+  ".csv",
+  ".tsv",
+  ".json",
+  ".xml",
+  ".html",
+  ".htm",
+  ".rtf",
+  ".log",
+  ".yaml",
+  ".yml",
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".css",
+  ".py",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".sql",
+]);
+const SUPPORTED_DOCUMENT_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/json",
+  "application/xml",
+  "application/rtf",
+  "application/epub+zip",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/vnd.oasis.opendocument.spreadsheet",
+]);
+const LEGACY_OFFICE_EXTENSIONS = new Set([".doc", ".ppt", ".xls"]);
 
 function Chat({
   user,
@@ -453,23 +502,32 @@ function Chat({
 
     const isImage = kind === "image" || file.type.startsWith("image/");
     const lowerName = String(file.name || "").toLowerCase();
+    const extension = lowerName.match(/\.[^.]+$/)?.[0] || "";
     const isSupportedDocument =
-      file.type === "text/plain" ||
-      file.type === "application/pdf" ||
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      lowerName.endsWith(".txt") ||
-      lowerName.endsWith(".pdf") ||
-      lowerName.endsWith(".docx");
+      file.type.startsWith("text/") ||
+      SUPPORTED_DOCUMENT_MIME_TYPES.has(file.type) ||
+      SUPPORTED_DOCUMENT_EXTENSIONS.has(extension);
 
     if (isImage && file.size > MAX_INLINE_IMAGE_BYTES) {
       showNotice("Choose an image smaller than 3 MB for Gemini analysis.");
       return false;
     }
 
+    if (!isImage && file.size > MAX_READABLE_FILE_BYTES) {
+      showNotice("Choose a document smaller than 3 MB for AI analysis.");
+      return false;
+    }
+
+    if (!isImage && LEGACY_OFFICE_EXTENSIONS.has(extension)) {
+      showNotice(
+        "Convert this legacy Office file to DOCX, PPTX, or XLSX before uploading."
+      );
+      return false;
+    }
+
     if (!isImage && !isSupportedDocument) {
       showNotice(
-        "Only PDF, TXT, DOCX, and image attachments are supported right now."
+        "This format cannot be read yet. Try PDF, DOCX, PPTX, XLSX, EPUB, OpenDocument, or a text file."
       );
       return false;
     }
@@ -513,7 +571,11 @@ function Chat({
     if (!pastedFile) {
       const pastedText = event.clipboardData?.getData("text/plain")?.trim();
 
-      if (/\.(pdf|txt|docx)$/i.test(pastedText || "")) {
+      if (
+        /\.(pdf|docx?|pptx?|xlsx?|odt|odp|ods|epub|txt|md|csv|json|rtf)$/i.test(
+          pastedText || ""
+        )
+      ) {
         event.preventDefault();
         showNotice(
           "The browser received only the filename. Drag the document onto the message box instead."
@@ -1083,7 +1145,7 @@ function Chat({
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
       <input
-        accept=".txt,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept=".pdf,.docx,.pptx,.xlsx,.odt,.odp,.ods,.epub,.txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.log,.yaml,.yml,.js,.jsx,.ts,.tsx,.css,.py,.java,.c,.cpp,.h,.sql"
         ref={fileInputRef}
         type="file"
         className="hidden"
@@ -1583,7 +1645,7 @@ function Chat({
             </div>
 
             <p className="text-center text-sm text-gray-500 mt-4">
-              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag PDF/TXT/DOCX files
+              Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Drag documents
               here&nbsp;&nbsp;•&nbsp;&nbsp;Paste images with Command + V
             </p>
           </div>
