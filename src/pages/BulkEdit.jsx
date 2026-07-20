@@ -154,23 +154,23 @@ function BulkEdit({
   const totalSelected = selectedChats.length + selectedProjects.length;
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
       {notice && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-md rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+        <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
           {notice}
         </div>
       )}
 
-      <div className="relative px-10 py-8 pb-16">
+      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
             <span>✏️</span>
             <span>Bulk Edit</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Bulk Edit Mode
           </h1>
 
@@ -179,7 +179,7 @@ function BulkEdit({
           </p>
         </header>
 
-        <section className="grid grid-cols-3 gap-4 mb-8">
+        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 sm:mb-8">
           <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
             <p className="text-gray-400 text-sm">Selected items</p>
             <h2 className="text-3xl font-bold mt-2">{totalSelected}</h2>
@@ -198,8 +198,8 @@ function BulkEdit({
           </div>
         </section>
 
-        <div className="grid grid-cols-[1fr_340px] gap-6">
-          <main className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
+          <main className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
             <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
               <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
                 <h2 className="text-2xl font-bold">Chats</h2>

@@ -196,8 +196,8 @@ function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-[9999] flex items-start justify-center pt-28">
-      <div className="w-[720px] bg-[#08111F] border border-[#1B2540] rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/70 px-3 pt-16 sm:px-6 sm:pt-28">
+      <div className="w-full max-w-[720px] overflow-hidden rounded-2xl border border-[#1B2540] bg-[#08111F] shadow-2xl">
         <div className="p-5 border-b border-[#1B2540]">
           <div className="flex items-center gap-3">
             <span className="text-gray-400 text-xl">⌘K</span>

@@ -7,8 +7,8 @@ function MoveChatModal({
   onMove,
 }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">
-      <div className="bg-[#08111F] border border-[#1B2540] rounded-2xl p-6 w-[460px] text-white shadow-2xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4">
+      <div className="w-full max-w-[460px] rounded-2xl border border-[#1B2540] bg-[#08111F] p-5 text-white shadow-2xl sm:p-6">
         <h2 className="text-2xl font-bold mb-3">Move Chat</h2>
 
         <p className="text-gray-400 mb-2">Chat</p>

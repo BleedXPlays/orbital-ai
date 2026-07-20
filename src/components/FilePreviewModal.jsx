@@ -5,11 +5,11 @@ function FilePreviewModal({ file, onClose, onDelete }) {
   const isPdf = file.type === "application/pdf";
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center px-6">
-      <div className="w-[900px] max-h-[90vh] bg-[#08111F] border border-[#1B2540] rounded-3xl p-6 text-white overflow-y-auto">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">{file.name}</h2>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-3 sm:px-6">
+      <div className="max-h-[90vh] w-full max-w-[900px] overflow-y-auto rounded-2xl border border-[#1B2540] bg-[#08111F] p-4 text-white sm:rounded-3xl sm:p-6">
+        <div className="mb-6 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="break-all text-xl font-bold sm:text-2xl">{file.name}</h2>
             <p className="text-gray-400 text-sm mt-1">
               {file.size} • {file.type}
             </p>
@@ -23,7 +23,7 @@ function FilePreviewModal({ file, onClose, onDelete }) {
           </button>
         </div>
 
-        <div className="bg-black rounded-2xl min-h-[420px] flex items-center justify-center overflow-hidden mb-6">
+        <div className="mb-6 flex min-h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-black sm:min-h-[420px]">
           {isImage && (
             <img
               src={file.url}
@@ -36,7 +36,7 @@ function FilePreviewModal({ file, onClose, onDelete }) {
             <iframe
               src={file.url}
               title={file.name}
-              className="w-full h-[520px] rounded-xl"
+              className="h-[60vh] w-full rounded-xl sm:h-[520px]"
             />
           )}
 

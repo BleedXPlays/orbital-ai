@@ -1,7 +1,7 @@
 function Help() {
   return (
-    <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
-      <h1 className="text-4xl font-bold mb-4">Help & Support</h1>
+    <div className="h-full min-h-0 overflow-y-auto bg-black px-4 pb-12 pt-16 text-white sm:px-6 sm:py-8 lg:px-10">
+      <h1 className="mb-4 text-3xl font-bold sm:text-4xl">Help & Support</h1>
       <p className="text-gray-400">Find help, FAQs, and support options here.</p>
     </div>
   );

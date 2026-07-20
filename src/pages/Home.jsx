@@ -203,26 +203,26 @@ function Home({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 overflow-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.16),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.16),transparent_35%)]" />
 
-      <div className="relative min-h-screen flex flex-col items-center justify-center px-10 pb-40">
-        <div className="text-center mt-8">
-          <h1 className="text-5xl font-extrabold tracking-tight">
+      <div className="relative flex h-full min-h-0 flex-col items-center justify-center overflow-y-auto px-4 pb-36 pt-16 sm:px-8 sm:pb-40 sm:pt-8 lg:px-10">
+        <div className="mt-4 text-center sm:mt-8">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
               OrbitalAI
             </span>
           </h1>
 
-          <p className="mt-4 text-xl text-gray-300">
+          <p className="mt-3 text-base text-gray-300 sm:mt-4 sm:text-xl">
             One request. Multiple AI experts.
           </p>
         </div>
 
-        <div className="mt-12 relative flex items-center justify-center">
-          <div className="absolute w-[420px] h-[110px] rounded-full border border-purple-500/30 rotate-[-4deg]" />
-          <div className="absolute w-[360px] h-[90px] rounded-full border border-blue-500/20 rotate-[6deg]" />
+        <div className="relative mt-7 flex max-w-full items-center justify-center sm:mt-12">
+          <div className="absolute h-[80px] w-[280px] max-w-[82vw] rotate-[-4deg] rounded-full border border-purple-500/30 sm:h-[110px] sm:w-[420px]" />
+          <div className="absolute h-[66px] w-[240px] max-w-[72vw] rotate-[6deg] rounded-full border border-blue-500/20 sm:h-[90px] sm:w-[360px]" />
           <div className="absolute w-3 h-3 rounded-full bg-purple-500 top-[-18px] right-8" />
           <div className="absolute w-2.5 h-2.5 rounded-full bg-blue-500 bottom-[-12px] left-12" />
           <div className="absolute w-2 h-2 rounded-full bg-purple-400 top-6 left-[-18px]" />
@@ -231,22 +231,22 @@ function Home({
           <img
             src={logo}
             alt="OrbitalAI"
-            className="relative h-32 w-auto object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.45)]"
+            className="relative h-20 w-auto object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.45)] sm:h-32"
           />
         </div>
 
-        <div className="mt-16 text-center">
-          <p className="text-xl text-gray-200">
+        <div className="mt-9 w-full text-center sm:mt-16">
+          <p className="text-base text-gray-200 sm:text-xl">
             What would you like to do today?
           </p>
 
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[760px]">
+          <div className="mx-auto mt-5 grid w-full max-w-[760px] grid-cols-1 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-2">
             <button
               onClick={createProjectFromSuggestion}
-              className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
+              className="group flex min-h-24 items-center justify-between rounded-2xl border border-[#1B2540] bg-[#08111F]/90 px-4 text-left transition hover:border-purple-500/70 sm:h-28 sm:px-6"
             >
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-2xl">
+              <div className="flex items-center gap-3 sm:gap-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 text-xl sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
                   ▣
                 </div>
 
@@ -266,10 +266,10 @@ function Home({
               onClick={() =>
                 createChatWithPrompt("Write an essay on global warming")
               }
-              className="group h-28 rounded-2xl bg-[#08111F]/90 border border-[#1B2540] hover:border-purple-500/70 px-6 flex items-center justify-between text-left transition"
+              className="group flex min-h-24 items-center justify-between rounded-2xl border border-[#1B2540] bg-[#08111F]/90 px-4 text-left transition hover:border-purple-500/70 sm:h-28 sm:px-6"
             >
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-2xl">
+              <div className="flex items-center gap-3 sm:gap-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 text-xl sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
                   ✎
                 </div>
 
@@ -288,13 +288,13 @@ function Home({
         </div>
       </div>
 
-      <div className="absolute left-1/2 bottom-14 -translate-x-1/2 w-[760px] max-w-[calc(100vw-420px)]">
-        <div className="bg-[#07101F]/95 border border-[#1B2540] shadow-2xl shadow-purple-950/20 rounded-3xl p-4 flex items-center gap-4">
-          <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-3xl text-white hover:bg-[#141f33]">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-8 lg:px-10">
+        <div className="mx-auto flex w-full max-w-[760px] min-w-0 items-center gap-2 rounded-2xl border border-[#1B2540] bg-[#07101F]/95 p-2 shadow-2xl shadow-purple-950/20 sm:gap-3 sm:rounded-3xl sm:p-3 lg:gap-4 lg:p-4">
+          <button className="h-11 w-11 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-2xl text-white hover:bg-[#141f33] sm:h-14 sm:w-14 sm:rounded-2xl sm:text-3xl">
             +
           </button>
 
-          <button className="w-14 h-14 rounded-2xl bg-[#101827] border border-[#1B2540] text-2xl hover:bg-[#141f33]">
+          <button className="h-11 w-11 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-xl hover:bg-[#141f33] sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
             🎙️
           </button>
 
@@ -306,18 +306,18 @@ function Home({
             onKeyDown={(e) => {
               if (e.key === "Enter") createChatWithPrompt(homeInput);
             }}
-            className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+            className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 sm:text-lg"
           />
 
           <button
             onClick={() => createChatWithPrompt(homeInput)}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-3xl shadow-lg shadow-purple-700/30 hover:scale-[1.03] transition"
+            className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl shadow-lg shadow-purple-700/30 transition hover:scale-[1.03] sm:h-16 sm:w-16 sm:rounded-2xl sm:text-3xl"
           >
             ✈
           </button>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="mt-4 hidden text-center text-sm text-gray-500 sm:block">
           Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new line
         </p>
       </div>

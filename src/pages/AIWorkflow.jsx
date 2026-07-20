@@ -18,8 +18,8 @@ function AIWorkflow() {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-black text-white px-10 py-8">
-      <h1 className="text-4xl font-bold mb-2">AI Collaboration View</h1>
+    <div className="h-full min-h-0 overflow-y-auto bg-black px-4 pb-12 pt-16 text-white sm:px-6 sm:py-8 lg:px-10">
+      <h1 className="mb-2 text-3xl font-bold sm:text-4xl">AI Collaboration View</h1>
       <p className="text-gray-400 mb-8">
         OrbitalAI selects one of three focused AI providers for each request.
       </p>
@@ -39,7 +39,7 @@ function AIWorkflow() {
           {providers.map(([icon, provider, description]) => (
             <div
               key={provider}
-              className="bg-[#101827] border border-gray-800 rounded-xl p-5 flex justify-between items-center"
+              className="flex flex-col items-start justify-between gap-3 rounded-xl border border-gray-800 bg-[#101827] p-5 sm:flex-row sm:items-center"
             >
               <div className="flex items-center gap-4">
                 <span className="text-3xl">{icon}</span>
@@ -49,7 +49,7 @@ function AIWorkflow() {
                 </div>
               </div>
 
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <p className="text-green-400 text-sm">Assigned role</p>
               </div>
             </div>

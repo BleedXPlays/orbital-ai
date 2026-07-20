@@ -40,8 +40,8 @@ function RenameModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-      <div className="w-[430px] rounded-3xl bg-[#08111F] border border-[#1B2540] p-7 shadow-2xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-[430px] rounded-2xl bg-[#08111F] border border-[#1B2540] p-5 shadow-2xl sm:rounded-3xl sm:p-7">
 
         <h2 className="text-2xl font-semibold text-white mb-6">
           {title}

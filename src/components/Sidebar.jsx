@@ -448,10 +448,10 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="h-full min-h-0 w-64 shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden px-3 py-4"
+        className="h-full min-h-0 w-[min(86vw,20rem)] shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden overscroll-contain px-3 py-4 lg:w-64"
       >
         {notice && (
-          <div className="fixed top-5 left-72 z-[10000] max-w-sm rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+          <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
             {notice}
           </div>
         )}

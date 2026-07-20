@@ -86,6 +86,7 @@ function Chat({
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDraggingAttachment, setIsDraggingAttachment] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
@@ -789,41 +790,109 @@ function Chat({
     showNotice("Input cleared.");
   };
 
-  const formatChatForExport = () => {
+  const formatChatForExport = (format = "txt") => {
     const title = selectedChat || "Untitled Chat";
+    const exportedAt = new Date().toLocaleString();
+    const isMarkdown = format === "md";
 
     const formattedMessages = messages
       .map((message) => {
+        const attachmentName = message.attachment?.name || "";
+        const attachmentDetails = message.attachment
+          ? [
+              message.attachment.sizeLabel,
+              message.attachment.type,
+              message.attachment.durationLabel,
+            ]
+              .filter(Boolean)
+              .join(" • ")
+          : "";
         const attachmentText = message.attachment
-          ? `\n\nAttachment:\n- ${message.attachment.name} (${message.attachment.sizeLabel})`
+          ? isMarkdown
+            ? `\n\n**Attachment:** ${attachmentName}${
+                attachmentDetails ? ` — ${attachmentDetails}` : ""
+              }`
+            : `\n\nAttachment:\n- ${attachmentName}${
+                attachmentDetails ? ` (${attachmentDetails})` : ""
+              }`
           : "";
 
         if (message.role === "user") {
-          return `You:\n${message.text}${attachmentText}`;
+          return isMarkdown
+            ? `## You\n\n${message.text}${attachmentText}`
+            : `You:\n${message.text}${attachmentText}`;
         }
 
+        const providerName = message.provider
+          ? `${message.provider}${message.fallbackFrom ? " fallback" : ""}`
+          : "";
+        const providerText = providerName
+          ? isMarkdown
+            ? `\n\n**Provider:** ${providerName}`
+            : `\n\nProvider: ${providerName}`
+          : "";
+        const providerNoticeText = message.providerNotice
+          ? isMarkdown
+            ? `\n\n> ${message.providerNotice}`
+            : `\n\nProvider notice: ${message.providerNotice}`
+          : "";
         const taskText =
           message.tasks && message.tasks.length > 0
-            ? `\n\nAssigned AI Models:\n${message.tasks
-                .map((item) => `- ${item.ai} → ${item.task}`)
-                .join("\n")}`
+            ? isMarkdown
+              ? `\n\n### Assigned AI roles\n\n${message.tasks
+                  .map((item) => `- ${item.ai} → ${item.task}`)
+                  .join("\n")}`
+              : `\n\nAssigned AI Models:\n${message.tasks
+                  .map((item) => `- ${item.ai} → ${item.task}`)
+                  .join("\n")}`
             : "";
-
         const outputText =
           message.outputs && message.outputs.length > 0
-            ? `\n\nGenerated Outputs:\n${message.outputs
-                .map((output) => {
-                  const content = output[3] ? `\n${output[3]}` : "";
-                  return `- ${output[0]} ${output[1]}: ${output[2]}${content}`;
-                })
-                .join("\n")}`
+            ? isMarkdown
+              ? `\n\n### Generated outputs\n\n${message.outputs
+                  .map((output) => {
+                    const outputTitle = `${output[0]} ${output[1]}`.trim();
+                    const outputDescription = output[2] || "";
+                    const rawContent = String(output[3] || "").trim();
+                    const isCodeOutput = String(output[1] || "")
+                      .toLowerCase()
+                      .includes("code");
+                    const content = isCodeOutput
+                      ? rawContent
+                          .replace(/^```[\w-]*\s*/i, "")
+                          .replace(/\s*```$/i, "")
+                          .trim()
+                      : rawContent;
+                    const contentBlock = content
+                      ? isCodeOutput
+                        ? `\n\n\`\`\`\n${content}\n\`\`\``
+                        : `\n\n${content}`
+                      : "";
+
+                    return `#### ${outputTitle}\n\n${outputDescription}${contentBlock}`;
+                  })
+                  .join("\n\n")}`
+              : `\n\nGenerated Outputs:\n${message.outputs
+                  .map((output) => {
+                    const content = output[3] ? `\n${output[3]}` : "";
+                    return `- ${output[0]} ${output[1]}: ${output[2]}${content}`;
+                  })
+                  .join("\n")}`
             : "";
 
-        return `OrbitalAI:\n${message.text}${attachmentText}${taskText}${outputText}`;
+        return isMarkdown
+          ? `## OrbitalAI\n\n${message.text}${providerText}${providerNoticeText}${attachmentText}${taskText}${outputText}`
+          : `OrbitalAI:\n${message.text}${providerText}${providerNoticeText}${attachmentText}${taskText}${outputText}`;
       })
-      .join("\n\n------------------------------\n\n");
+      .join(
+        isMarkdown
+          ? "\n\n---\n\n"
+          : "\n\n------------------------------\n\n"
+      );
 
-    return `OrbitalAI Chat Export\n\nChat: ${title}\nExported: ${new Date().toLocaleString()}\n\n==============================\n\n${formattedMessages}`;
+    return isMarkdown
+      ? `# OrbitalAI Chat Export\n\n**Chat:** ${title}  \n**Exported:** ${exportedAt}\n\n---\n\n${formattedMessages}\n`
+      : `OrbitalAI Chat Export\n\nChat: ${title}\nExported: ${exportedAt}\n\n==============================\n\n${formattedMessages}`;
   };
 
   const handleShare = async () => {
@@ -832,23 +901,49 @@ function Chat({
       return;
     }
 
+    const shareData = {
+      title: `OrbitalAI — ${selectedChat}`,
+      text: `Private OrbitalAI chat: ${selectedChat}. This link opens only for the signed-in workspace owner.`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        showNotice("Private chat link shared.");
+        addActivity("share", "Private chat link shared", selectedChat);
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      showNotice("Chat link copied.");
-      addActivity("share", "Chat link copied", selectedChat);
+      await navigator.clipboard.writeText(
+        `${shareData.title}\n${shareData.text}\n${shareData.url}`
+      );
+      showNotice(
+        "Private chat link copied. It only opens for this workspace owner."
+      );
+      addActivity("share", "Private chat link copied", selectedChat);
     } catch {
-      showNotice("Could not copy link.");
+      showNotice("Could not share or copy the private chat link.");
     }
   };
 
-  const handleExport = () => {
+  const handleExport = (format) => {
     if (!selectedChat || messages.length === 0) {
       showNotice("No chat messages to export.");
       return;
     }
 
-    const exportText = formatChatForExport();
-    const blob = new Blob([exportText], { type: "text/plain;charset=utf-8" });
+    const safeFormat = format === "md" ? "md" : "txt";
+    const exportText = formatChatForExport(safeFormat);
+    const mimeType =
+      safeFormat === "md"
+        ? "text/markdown;charset=utf-8"
+        : "text/plain;charset=utf-8";
+    const blob = new Blob([exportText], { type: mimeType });
     const url = URL.createObjectURL(blob);
 
     const safeFileName = selectedChat
@@ -860,15 +955,20 @@ function Chat({
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${safeFileName || "orbitalai-chat"}.txt`;
+    link.download = `${safeFileName || "orbitalai-chat"}.${safeFormat}`;
     document.body.appendChild(link);
     link.click();
     link.remove();
 
     URL.revokeObjectURL(url);
 
-    showNotice("Chat exported.");
-    addActivity("export", "Chat exported", selectedChat);
+    setExportMenuOpen(false);
+    showNotice(`Chat exported as ${safeFormat.toUpperCase()}.`);
+    addActivity(
+      "export",
+      `Chat exported as ${safeFormat.toUpperCase()}`,
+      selectedChat
+    );
   };
 
   const sendMessage = async () => {
@@ -1190,7 +1290,10 @@ function Chat({
 
   return (
     <div
-      onClick={() => setActionMenuOpen(false)}
+      onClick={() => {
+        setActionMenuOpen(false);
+        setExportMenuOpen(false);
+      }}
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
       <input
@@ -1251,15 +1354,52 @@ function Chat({
                 Share
               </button>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleExport();
-                }}
-                className="flex-1 rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:flex-none sm:rounded-2xl sm:px-5 sm:py-3"
-              >
-                Export
-              </button>
+              <div className="relative flex-1 sm:flex-none">
+                <button
+                  type="button"
+                  aria-expanded={exportMenuOpen}
+                  aria-haspopup="menu"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportMenuOpen((open) => !open);
+                  }}
+                  className="w-full rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:rounded-2xl sm:px-5 sm:py-3"
+                >
+                  Export ▾
+                </button>
+
+                {exportMenuOpen && (
+                  <div
+                    role="menu"
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-[calc(100%+0.5rem)] z-[5000] w-52 overflow-hidden rounded-2xl border border-[#1B2540] bg-[#08111F]/95 p-2 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleExport("txt")}
+                      className="w-full rounded-xl px-4 py-3 text-left text-sm text-gray-100 hover:bg-[#101827]"
+                    >
+                      <span className="block font-semibold">Plain text</span>
+                      <span className="mt-1 block text-xs text-gray-400">
+                        Download .txt
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleExport("md")}
+                      className="w-full rounded-xl px-4 py-3 text-left text-sm text-gray-100 hover:bg-[#101827]"
+                    >
+                      <span className="block font-semibold">Markdown</span>
+                      <span className="mt-1 block text-xs text-gray-400">
+                        Preserves code formatting
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>

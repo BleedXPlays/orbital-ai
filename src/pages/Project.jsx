@@ -375,26 +375,26 @@ function Project({
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
-      className="relative min-h-screen bg-[#020817] text-white overflow-hidden"
+      className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
       {notice && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-md rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20">
+        <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
           {notice}
         </div>
       )}
 
-      <div className="relative px-10 py-8 pb-16">
-        <header className="mb-8">
-          <div className="flex items-start justify-between gap-6">
-            <div>
+      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
+        <header className="mb-6 sm:mb-8">
+          <div className="flex flex-col items-stretch gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
                 <span>✦</span>
                 <span>Project Workspace</span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight">
+              <h1 className="break-words text-3xl font-bold tracking-tight sm:text-4xl">
                 {selectedProject || "Untitled Project"}
               </h1>
 
@@ -404,17 +404,17 @@ function Project({
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
               <button
                 onClick={createProjectChat}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-purple-700/20 hover:scale-[1.02] transition"
+                className="rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 px-4 py-3 text-center text-sm text-white shadow-lg shadow-purple-700/20 transition hover:scale-[1.02] sm:rounded-2xl sm:px-5 sm:text-base"
               >
                 + New Chat
               </button>
 
               <label
                 htmlFor="headerFileUpload"
-                className="px-5 py-3 rounded-2xl bg-[#07101F] border border-[#1B2540] text-gray-200 cursor-pointer hover:bg-[#101827]"
+                className="cursor-pointer rounded-xl border border-[#1B2540] bg-[#07101F] px-4 py-3 text-center text-sm text-gray-200 hover:bg-[#101827] sm:rounded-2xl sm:px-5 sm:text-base"
               >
                 {isUploading ? "Uploading..." : "Upload File"}
               </label>
@@ -431,31 +431,31 @@ function Project({
           </div>
         </header>
 
-        <section className="grid grid-cols-4 gap-4 mb-8">
-          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+        <section className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 xl:grid-cols-4">
+          <div className="rounded-2xl bg-[#07101F]/90 border border-[#1B2540] p-4 sm:rounded-3xl sm:p-5">
             <p className="text-gray-400 text-sm">Chats</p>
             <h2 className="text-3xl font-bold mt-2">{rawProjectChatList.length}</h2>
           </div>
 
-          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+          <div className="rounded-2xl bg-[#07101F]/90 border border-[#1B2540] p-4 sm:rounded-3xl sm:p-5">
             <p className="text-gray-400 text-sm">Files</p>
             <h2 className="text-3xl font-bold mt-2">{files.length}</h2>
           </div>
 
-          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+          <div className="rounded-2xl bg-[#07101F]/90 border border-[#1B2540] p-4 sm:rounded-3xl sm:p-5">
             <p className="text-gray-400 text-sm">Images</p>
             <h2 className="text-3xl font-bold mt-2">{images.length}</h2>
           </div>
 
-          <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
+          <div className="rounded-2xl bg-[#07101F]/90 border border-[#1B2540] p-4 sm:rounded-3xl sm:p-5">
             <p className="text-gray-400 text-sm">Notes</p>
             <h2 className="text-3xl font-bold mt-2">{notes.length}</h2>
           </div>
         </section>
 
-        <div className="grid grid-cols-[1fr_300px] gap-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-6">
           <main className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-            <div className="flex gap-2 p-3 border-b border-[#1B2540] bg-[#020817]/50">
+            <div className="flex gap-2 overflow-x-auto border-b border-[#1B2540] bg-[#020817]/50 p-3">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -463,7 +463,7 @@ function Project({
                     e.stopPropagation();
                     setActiveTab(tab.id);
                   }}
-                  className={`px-5 py-3 rounded-2xl capitalize transition ${
+                  className={`shrink-0 px-4 py-3 rounded-2xl capitalize transition sm:px-5 ${
                     activeTab === tab.id
                       ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
                       : "text-gray-400 hover:bg-[#101827] border border-transparent"
@@ -477,10 +477,10 @@ function Project({
               ))}
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {activeTab === "chats" && (
                 <>
-                  <div className="flex justify-between items-center mb-6">
+                  <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-2xl font-bold">Project chats</h2>
                       <p className="text-gray-400 text-sm mt-1">
@@ -553,7 +553,7 @@ function Project({
 
               {activeTab === "files" && (
                 <>
-                  <div className="flex justify-between items-center mb-6">
+                  <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-2xl font-bold">Project files</h2>
                       <p className="text-gray-400 text-sm mt-1">
@@ -587,7 +587,7 @@ function Project({
                     }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
-                    className={`border border-dashed rounded-3xl p-10 mb-6 text-center transition ${
+                    className={`mb-6 rounded-3xl border border-dashed p-6 text-center transition sm:p-10 ${
                       isDragging
                         ? "border-purple-500 bg-purple-950/20 text-purple-300"
                         : "border-[#1B2540] bg-[#101827]/60 text-gray-400"
@@ -612,10 +612,10 @@ function Project({
                         <div
                           key={`${file.name}-${index}`}
                           onClick={() => setSelectedFilePreview({ file, index })}
-                          className="flex justify-between items-center bg-[#101827] border border-[#1B2540] rounded-2xl p-4 cursor-pointer hover:border-purple-500/60 transition"
+                          className="flex min-w-0 cursor-pointer flex-col items-stretch gap-3 rounded-2xl border border-[#1B2540] bg-[#101827] p-4 transition hover:border-purple-500/60 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <div>
-                            <h3 className="font-semibold">📄 {file.name}</h3>
+                          <div className="min-w-0">
+                            <h3 className="break-all font-semibold">📄 {file.name}</h3>
 
                             <p className="text-gray-400 text-sm mt-1">
                               {file.size} • {file.type}
@@ -646,7 +646,7 @@ function Project({
 
               {activeTab === "images" && (
                 <>
-                  <div className="flex justify-between items-center mb-6">
+                  <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-2xl font-bold">Images</h2>
                       <p className="text-gray-400 text-sm mt-1">
@@ -681,7 +681,7 @@ function Project({
                     }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
-                    className={`border border-dashed rounded-3xl p-10 mb-6 text-center transition ${
+                    className={`mb-6 rounded-3xl border border-dashed p-6 text-center transition sm:p-10 ${
                       isDragging
                         ? "border-purple-500 bg-purple-950/20 text-purple-300"
                         : "border-[#1B2540] bg-[#101827]/60 text-gray-400"
@@ -699,7 +699,7 @@ function Project({
                       No images uploaded yet.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {images.map((file, imageIndex) => {
                         const originalIndex = files.findIndex(
                           (item) =>

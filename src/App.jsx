@@ -30,6 +30,7 @@ function App() {
   const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
   const [routeReady, setRouteReady] = useState(false);
   const [appError, setAppError] = useState("");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [page, setPage] = useState("home");
   const [chats, setChats] = useState([]);
@@ -360,6 +361,14 @@ function App() {
     });
   }, [page]);
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setIsMobileSidebarOpen(false);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
 
@@ -526,35 +535,70 @@ function App() {
   if (!user) return <Login />;
 
   return (
-    <div className="flex h-dvh w-screen overflow-hidden bg-[#020817]">
+    <div className="relative flex h-dvh w-screen overflow-hidden bg-[#020817]">
       {appError && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
           {appError}
         </div>
       )}
 
-      <Sidebar
-        setPage={setPage}
-        chats={chats}
-        setChats={setChats}
-        projects={projects}
-        setProjects={setProjects}
-        projectChats={projectChats}
-        setProjectChats={setProjectChats}
-        selectedChat={selectedChat}
-        setSelectedChat={setSelectedChat}
-        selectedProject={selectedProject}
-        setSelectedProject={setSelectedProject}
-        archivedChats={archivedChats}
-        setArchivedChats={setArchivedChats}
-        archivedProjects={archivedProjects}
-        setArchivedProjects={setArchivedProjects}
-        pinnedChats={pinnedChats}
-        setPinnedChats={setPinnedChats}
-        chatActivity={chatActivity}
-        setChatActivity={setChatActivity}
-        addActivity={addActivity}
-      />
+      <button
+        type="button"
+        aria-label="Open navigation"
+        onClick={() => setIsMobileSidebarOpen(true)}
+        className={`fixed left-3 top-3 z-[7000] flex h-11 w-11 items-center justify-center rounded-xl border border-[#1B2540] bg-[#07101F]/95 text-xl text-white shadow-xl backdrop-blur lg:hidden ${
+          isMobileSidebarOpen ? "hidden" : ""
+        }`}
+      >
+        ☰
+      </button>
+
+      {isMobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 z-[8000] bg-black/65 backdrop-blur-sm lg:hidden"
+        />
+      )}
+
+      <div
+        className={`fixed inset-y-0 left-0 z-[9000] h-full lg:static lg:z-auto lg:block ${
+          isMobileSidebarOpen ? "block" : "hidden"
+        }`}
+      >
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="absolute right-3 top-3 z-[9100] flex h-10 w-10 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-2xl text-gray-200 lg:hidden"
+        >
+          ×
+        </button>
+
+        <Sidebar
+          setPage={setPage}
+          chats={chats}
+          setChats={setChats}
+          projects={projects}
+          setProjects={setProjects}
+          projectChats={projectChats}
+          setProjectChats={setProjectChats}
+          selectedChat={selectedChat}
+          setSelectedChat={setSelectedChat}
+          selectedProject={selectedProject}
+          setSelectedProject={setSelectedProject}
+          archivedChats={archivedChats}
+          setArchivedChats={setArchivedChats}
+          archivedProjects={archivedProjects}
+          setArchivedProjects={setArchivedProjects}
+          pinnedChats={pinnedChats}
+          setPinnedChats={setPinnedChats}
+          chatActivity={chatActivity}
+          setChatActivity={setChatActivity}
+          addActivity={addActivity}
+        />
+      </div>
 
       <main
         ref={mainContentRef}

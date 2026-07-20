@@ -114,17 +114,17 @@ function Settings({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
-      <div className="relative px-10 py-8 pb-16">
+      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
             <span>⚙️</span>
             <span>Settings</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Account Settings
           </h1>
 
@@ -133,7 +133,7 @@ function Settings({
           </p>
         </header>
 
-        <section className="grid grid-cols-4 gap-4 mb-8">
+        <section className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 xl:grid-cols-4">
           <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
             <p className="text-gray-400 text-sm">Global chats</p>
             <h2 className="text-3xl font-bold mt-2">{chats.length}</h2>
@@ -155,7 +155,7 @@ function Settings({
           </div>
         </section>
 
-        <div className="grid grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
           <main className="space-y-6">
             <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
               <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
@@ -165,7 +165,7 @@ function Settings({
                 </p>
               </div>
 
-              <div className="p-6 grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6">
                 <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
                   <p className="text-gray-400 text-sm mb-2">Full name</p>
 
@@ -197,7 +197,7 @@ function Settings({
                   </p>
                 </div>
 
-                <div className="col-span-2 rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
+                <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 sm:col-span-2">
                   <p className="text-gray-400 text-sm mb-2">User ID</p>
                   <p className="text-sm break-all text-gray-300">
                     {user?.uid || "Not available"}

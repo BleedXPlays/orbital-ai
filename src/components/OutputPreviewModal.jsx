@@ -180,22 +180,22 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-3xl bg-[#07101F] border border-[#1B2540] shadow-2xl shadow-purple-950/30 text-white">
-        <div className="flex items-start justify-between gap-5 px-7 py-6 border-b border-[#1B2540]">
-          <div>
+      <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-[#1B2540] bg-[#07101F] text-white shadow-2xl shadow-purple-950/30 sm:max-h-[85vh] sm:rounded-3xl">
+        <div className="flex items-start justify-between gap-3 border-b border-[#1B2540] px-4 py-4 sm:gap-5 sm:px-7 sm:py-6">
+          <div className="min-w-0">
             <p className="text-sm text-purple-300 mb-2">Generated Output</p>
-            <h2 className="text-2xl font-bold">{title}</h2>
+            <h2 className="break-words text-xl font-bold sm:text-2xl">{title}</h2>
           </div>
 
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-2xl bg-[#101827] border border-[#1B2540] text-xl text-gray-300 hover:text-white hover:bg-[#141f33]"
+            className="h-10 w-10 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-xl text-gray-300 hover:text-white hover:bg-[#141f33] sm:h-11 sm:w-11 sm:rounded-2xl"
           >
             ×
           </button>
         </div>
 
-        <div className="p-7 overflow-y-auto max-h-[65vh]">
+        <div className="max-h-[68vh] overflow-y-auto p-4 sm:max-h-[65vh] sm:p-7">
           <div
             className={`grid gap-4 ${
               outputs.length === 1
@@ -206,7 +206,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
             {outputs.map((output, index) => (
               <div
                 key={index}
-                className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5"
+                className="min-w-0 rounded-2xl bg-[#101827] border border-[#1B2540] p-4 sm:p-5"
               >
                 <h3 className="text-lg font-bold mb-2">
                   {output[0]} {output[1]}
@@ -220,7 +220,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
           </div>
         </div>
 
-        <div className="px-7 py-5 border-t border-[#1B2540] flex justify-end">
+        <div className="flex justify-end border-t border-[#1B2540] px-4 py-4 sm:px-7 sm:py-5">
           <button
             onClick={onClose}
             className="px-5 py-3 rounded-xl bg-purple-600 text-white hover:bg-purple-700"

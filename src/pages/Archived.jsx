@@ -86,17 +86,17 @@ function Archived({
   const totalArchived = archivedChats.length + archivedProjects.length;
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
-      <div className="relative px-10 py-8 pb-16">
+      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
             <span>🗄️</span>
             <span>Archive</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Archived Items
           </h1>
 
@@ -106,7 +106,7 @@ function Archived({
           </p>
         </header>
 
-        <section className="grid grid-cols-3 gap-4 mb-8">
+        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 sm:mb-8">
           <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
             <p className="text-gray-400 text-sm">Total archived</p>
             <h2 className="text-3xl font-bold mt-2">{totalArchived}</h2>
@@ -127,7 +127,7 @@ function Archived({
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
           <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
             <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
               <h2 className="text-2xl font-bold">Archived chats</h2>
@@ -150,7 +150,7 @@ function Archived({
                     return (
                       <div
                         key={`${chatName}-${index}`}
-                        className="bg-[#101827] border border-[#1B2540] rounded-2xl p-5 flex justify-between items-center gap-5 hover:border-purple-500/50 transition"
+                        className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-[#1B2540] bg-[#101827] p-5 transition hover:border-purple-500/50 sm:flex-row sm:items-center sm:gap-5"
                       >
                         <div className="min-w-0">
                           <p className="font-semibold truncate">
@@ -164,7 +164,7 @@ function Archived({
                           </p>
                         </div>
 
-                        <div className="flex gap-3 shrink-0">
+                        <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:gap-3">
                           <button
                             onClick={() => restoreChat(index)}
                             className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 hover:bg-green-500/20"
@@ -205,11 +205,11 @@ function Archived({
                   {archivedProjects.map((project, index) => (
                     <div
                       key={`${project}-${index}`}
-                      className="bg-[#101827] border border-[#1B2540] rounded-2xl p-5 flex justify-between items-center gap-5 hover:border-purple-500/50 transition"
+                      className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-[#1B2540] bg-[#101827] p-5 transition hover:border-purple-500/50 sm:flex-row sm:items-center sm:gap-5"
                     >
                       <p className="font-semibold truncate">📂 {project}</p>
 
-                      <div className="flex gap-3 shrink-0">
+                      <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:gap-3">
                         <button
                           onClick={() => restoreProject(index)}
                           className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 hover:bg-green-500/20"

@@ -173,17 +173,17 @@ function Search({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020817] text-white overflow-hidden">
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 
-      <div className="relative px-10 py-8 pb-16">
+      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
             <span>🔍</span>
             <span>Global Search</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Search OrbitalAI
           </h1>
 
@@ -193,11 +193,11 @@ function Search({
           </p>
         </header>
 
-        <div className="grid grid-cols-[1fr_300px] gap-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-6">
           <main className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-            <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-              <div className="flex gap-4">
-                <div className="flex-1 rounded-3xl bg-[#101827] border border-[#1B2540] px-5 py-4 flex items-center gap-4 focus-within:border-purple-500/70">
+            <div className="border-b border-[#1B2540] bg-[#020817]/50 p-4 sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-[#1B2540] bg-[#101827] px-4 py-3 focus-within:border-purple-500/70 sm:rounded-3xl sm:px-5 sm:py-4">
                   <span className="text-2xl text-gray-500">⌕</span>
 
                   <input
@@ -205,14 +205,14 @@ function Search({
                     value={query}
                     placeholder="Search your workspace..."
                     onChange={(e) => setQuery(e.target.value)}
-                    className="flex-1 bg-transparent outline-none text-lg text-gray-200 placeholder:text-gray-500"
+                    className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 sm:text-lg"
                     autoFocus
                   />
                 </div>
 
                 <button
                   onClick={() => setQuery("")}
-                  className="px-6 rounded-2xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:bg-[#141f33]"
+                  className="rounded-2xl bg-[#101827] border border-[#1B2540] px-6 py-3 text-gray-300 hover:bg-[#141f33]"
                 >
                   Clear
                 </button>
@@ -238,7 +238,7 @@ function Search({
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {query.trim() === "" ? (
                 <div className="min-h-[420px] rounded-3xl bg-[#101827]/70 border border-[#1B2540] flex flex-col items-center justify-center text-center p-10">
                   <div className="w-20 h-20 rounded-3xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-4xl mb-6">
