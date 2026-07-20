@@ -4,6 +4,9 @@ import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
 import mammoth from "mammoth";
 
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
+const MAX_EXTRACTED_TEXT_LENGTH = 45000;
+
 const PLAIN_TEXT_EXTENSIONS = new Set([
   ".txt",
   ".md",
@@ -256,7 +259,33 @@ export default async function handler(request, response) {
     }
 
     const cleanBase64 = extractBase64(fileBase64);
+
+    if (
+      !cleanBase64 ||
+      cleanBase64.length % 4 === 1 ||
+      !/^[a-z0-9+/]*={0,2}$/i.test(cleanBase64)
+    ) {
+      return response.status(400).json({
+        error: "The uploaded file data is invalid. Select the file again.",
+        errorCode: "invalid_file_data",
+      });
+    }
+
     const fileBuffer = Buffer.from(cleanBase64, "base64");
+
+    if (fileBuffer.length === 0) {
+      return response.status(400).json({
+        error: "The uploaded file is empty.",
+        errorCode: "empty_file",
+      });
+    }
+
+    if (fileBuffer.length > MAX_FILE_BYTES) {
+      return response.status(413).json({
+        error: "This document is larger than 3 MB. Upload a smaller file.",
+        errorCode: "file_too_large",
+      });
+    }
 
     const lowerFilename = String(filename || "").toLowerCase();
     const type = String(mimeType || "").toLowerCase();
@@ -324,35 +353,70 @@ export default async function handler(request, response) {
       return response.status(400).json({
         error:
           "This is a legacy Microsoft Office file. Convert it to DOCX, PPTX, or XLSX and upload it again.",
+        errorCode: "legacy_office_format",
       });
     } else {
       return response.status(400).json({
         error:
           "This file format cannot be read yet. Upload PDF, DOCX, PPTX, XLSX, OpenDocument, EPUB, or a text-based file.",
+        errorCode: "unsupported_file_format",
       });
     }
 
     const cleanedText = text.replace(/\s+\n/g, "\n").trim();
 
     if (!cleanedText) {
-      return response.status(400).json({
-        error:
-          "No readable text found. Scanned PDFs require OCR, which is not supported yet.",
+      const isPdf =
+        type.includes("application/pdf") || extension === ".pdf";
+
+      return response.status(422).json({
+        error: isPdf
+          ? "This PDF contains no selectable text. It may be scanned or image-only, and OCR is not supported yet."
+          : "This document does not contain readable text.",
+        errorCode: isPdf ? "scanned_pdf" : "empty_document",
       });
     }
 
-    const wasTruncated = cleanedText.length > 45000;
+    const wasTruncated = cleanedText.length > MAX_EXTRACTED_TEXT_LENGTH;
 
     return response.status(200).json({
       filename: filename || "uploaded-file",
-      text: cleanedText.slice(0, 45000),
+      text: cleanedText.slice(0, MAX_EXTRACTED_TEXT_LENGTH),
       wasTruncated,
     });
   } catch (error) {
     console.error("File reading API error:", error);
+    const errorMessage = String(error?.message || "").toLowerCase();
+
+    if (
+      errorMessage.includes("password") ||
+      errorMessage.includes("encrypted")
+    ) {
+      return response.status(422).json({
+        error:
+          "This document is password-protected. Remove the password and upload it again.",
+        errorCode: "password_protected_document",
+      });
+    }
+
+    if (
+      errorMessage.includes("invalid pdf") ||
+      errorMessage.includes("formaterror") ||
+      errorMessage.includes("invalid zip") ||
+      errorMessage.includes("central directory") ||
+      errorMessage.includes("corrupt")
+    ) {
+      return response.status(422).json({
+        error:
+          "This document appears to be damaged or invalid. Open it locally, save a fresh copy, and upload it again.",
+        errorCode: "invalid_document",
+      });
+    }
 
     return response.status(500).json({
-      error: "Failed to read file.",
+      error:
+        "OrbitalAI could not read this document. Try saving a fresh copy or converting it to PDF, DOCX, PPTX, XLSX, or TXT.",
+      errorCode: "file_read_failed",
     });
   }
 }

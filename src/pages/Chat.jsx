@@ -212,6 +212,33 @@ function Chat({
     }
   };
 
+  const loadStoredAttachmentFile = async (attachment) => {
+    if (!attachment?.path && !attachment?.url) {
+      throw new Error(
+        "The original attachment was not saved, so this request cannot be retried with the file."
+      );
+    }
+
+    const url = attachment.path
+      ? await getChatAttachmentUrl(attachment.path)
+      : attachment.url;
+    const fileResponse = await fetch(url);
+
+    if (!fileResponse.ok) {
+      throw new Error(
+        "The saved attachment could not be loaded. Open the file and attach it again."
+      );
+    }
+
+    const blob = await fileResponse.blob();
+    return new File([blob], attachment.name || "attachment", {
+      type:
+        attachment.type ||
+        blob.type ||
+        "application/octet-stream",
+    });
+  };
+
   const openSingleOutput = (output) => {
     setOutputModal({
       isOpen: true,
@@ -284,32 +311,38 @@ function Chat({
   };
   
   const getReadableFileText = async ({ attachment, attachmentFile }) => {
-  if (!attachmentFile || attachment?.kind !== "file") {
-    return "";
-  }
+    if (!attachmentFile || attachment?.kind !== "file") {
+      return "";
+    }
 
-  const fileBase64 = await blobToBase64(attachmentFile);
+    const fileBase64 = await blobToBase64(attachmentFile);
 
-  const fileResponse = await fetch("/api/read-file", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBase64,
-      filename: attachment.name,
-      mimeType: attachment.type,
-    }),
-  });
+    const fileResponse = await fetch("/api/read-file", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileBase64,
+        filename: attachment.name,
+        mimeType: attachment.type,
+      }),
+    });
 
-  const fileData = await fileResponse.json();
+    const fileData = await fileResponse.json();
 
-  if (!fileResponse.ok) {
-    throw new Error(fileData.error || "Failed to read file.");
-  }
+    if (!fileResponse.ok) {
+      throw new Error(fileData.error || "Failed to read file.");
+    }
 
-  return fileData.text || "";
-};
+    if (fileData.wasTruncated) {
+      showNotice(
+        "This document is long. OrbitalAI will use the first 45,000 characters."
+      );
+    }
+
+    return fileData.text || "";
+  };
 
   const getRealAiReply = async ({
     message,
@@ -317,11 +350,14 @@ function Chat({
     outputs,
     attachment,
     attachmentFile,
+    existingFileText = "",
+    existingFileName = "",
     previousFileText,
     previousFileName,
     conversationHistory,
   }) => {
     let newFileText = "";
+    let transcriptText = "";
 
     try {
       if (attachment?.kind === "voice" && attachmentFile) {
@@ -347,7 +383,7 @@ function Chat({
           );
         }
 
-        const transcriptText = String(transcriptionData.text || "").trim();
+        transcriptText = String(transcriptionData.text || "").trim();
 
         if (!transcriptText) {
           throw new Error("No transcript was returned.");
@@ -400,7 +436,8 @@ function Chat({
               output[2],
               matchingOutput?.content || "",
             ];
-          });
+          })
+          .filter((output) => String(output[3] || "").trim());
 
         const voiceTasks = [
           { task: "Voice Input", ai: "OpenAI" },
@@ -423,13 +460,15 @@ function Chat({
         };
       }
 
-      newFileText = await getReadableFileText({
-        attachment,
-        attachmentFile,
-      });
+      newFileText =
+        existingFileText ||
+        (await getReadableFileText({
+          attachment,
+          attachmentFile,
+        }));
       const fileText = newFileText || (!attachment ? previousFileText : "");
       const fileName = newFileText
-        ? attachment?.name || ""
+        ? existingFileName || attachment?.name || ""
         : !attachment && previousFileText
         ? previousFileName || ""
         : "";
@@ -466,20 +505,22 @@ function Chat({
         ? data.generatedOutputs
         : [];
 
-      const outputsWithContent = outputs.map((output) => {
-        const matchingOutput = generatedOutputs.find((item) =>
-          String(item.title || "")
-            .toLowerCase()
-            .startsWith(output[1].toLowerCase())
-        );
+      const outputsWithContent = outputs
+        .map((output) => {
+          const matchingOutput = generatedOutputs.find((item) =>
+            String(item.title || "")
+              .toLowerCase()
+              .startsWith(output[1].toLowerCase())
+          );
 
-        return [
-          output[0],
-          output[1],
-          output[2],
-          matchingOutput?.content || "",
-        ];
-      });
+          return [
+            output[0],
+            output[1],
+            output[2],
+            matchingOutput?.content || "",
+          ];
+        })
+        .filter((output) => String(output[3] || "").trim());
 
       return {
         reply:
@@ -500,8 +541,11 @@ function Chat({
 
       return {
         reply: `OrbitalAI could not complete this request: ${errorMessage}`,
-        outputs,
+        outputs: [],
         fileText: newFileText,
+        transcriptText,
+        failed: true,
+        errorMessage,
       };
     }
   };
@@ -1079,12 +1123,19 @@ function Chat({
         role: "ai",
         text: result.reply,
         tasks: result.tasks || tasks,
-        outputs: result.outputs || outputs,
+        outputs: Array.isArray(result.outputs) ? result.outputs : [],
         requestId,
         provider: result.provider || "",
         fallbackFrom: result.fallbackFrom || "",
         providerNotice: result.providerNotice || "",
+        failed: Boolean(result.failed),
+        errorMessage: result.errorMessage || "",
       };
+
+      if (result.failed) {
+        finalMessage.retryTasks = tasks;
+        finalMessage.retryOutputs = outputs;
+      }
 
       return finalMessage;
     };
@@ -1284,6 +1335,181 @@ function Chat({
         }),
       };
     });
+
+    setIsGenerating(false);
+  };
+
+  const retryFailedMessage = async (failedMessage) => {
+    if (isGenerating || !selectedChat || !failedMessage?.requestId) return;
+
+    const originalUserMessage = messages.find(
+      (message) =>
+        message.role === "user" &&
+        message.requestId === failedMessage.requestId
+    );
+
+    if (!originalUserMessage) {
+      showNotice("The original request could not be found.");
+      return;
+    }
+
+    const retryTasks =
+      failedMessage.retryTasks ||
+      analyzeTask(
+        `${originalUserMessage.text || ""} ${
+          originalUserMessage.attachment?.name || ""
+        }`
+      );
+    const retryOutputs =
+      failedMessage.retryOutputs || getOutputs(retryTasks);
+    const attachment = originalUserMessage.attachment || null;
+    const earlierMessages = messages.filter(
+      (message) => message.requestId !== failedMessage.requestId
+    );
+    const previousDocumentMessage = [...earlierMessages]
+      .reverse()
+      .find(
+        (message) =>
+          (message.attachment?.kind === "file" &&
+            message.attachment?.extractedText) ||
+          message.fileText
+      );
+    const previousFileText =
+      previousDocumentMessage?.attachment?.extractedText ||
+      previousDocumentMessage?.fileText ||
+      "";
+    const previousFileName =
+      previousDocumentMessage?.attachment?.name ||
+      previousDocumentMessage?.sourceFilename ||
+      "";
+    const conversationHistory = earlierMessages
+      .filter((message) => !message.isLoading && message.text)
+      .slice(-10)
+      .map((message) => ({
+        role: message.role === "ai" ? "assistant" : "user",
+        content: String(message.transcriptText || message.text).slice(0, 6000),
+      }));
+
+    setIsGenerating(true);
+    setChatMessages((prev) => ({
+      ...prev,
+      [selectedChat]: (prev[selectedChat] || []).map((message) =>
+        message.role === "ai" &&
+        message.requestId === failedMessage.requestId
+          ? {
+              ...message,
+              text: "OrbitalAI is retrying this request...",
+              outputs: [],
+              isLoading: true,
+              failed: false,
+            }
+          : message
+      ),
+    }));
+
+    let result;
+
+    try {
+      let attachmentFile = null;
+      const existingFileText =
+        attachment?.kind === "file"
+          ? attachment.extractedText || ""
+          : "";
+
+      if (
+        attachment &&
+        (attachment.kind !== "file" || !existingFileText)
+      ) {
+        attachmentFile = await loadStoredAttachmentFile(attachment);
+      }
+
+      result = await getRealAiReply({
+        message: originalUserMessage.text,
+        tasks: retryTasks,
+        outputs: retryOutputs,
+        attachment,
+        attachmentFile,
+        existingFileText,
+        existingFileName: attachment?.name || "",
+        previousFileText,
+        previousFileName,
+        conversationHistory,
+      });
+    } catch (error) {
+      const errorMessage =
+        String(error?.message || "").trim() ||
+        "The retry could not be completed.";
+
+      result = {
+        reply: `OrbitalAI could not complete this request: ${errorMessage}`,
+        outputs: [],
+        failed: true,
+        errorMessage,
+      };
+      showNotice(errorMessage);
+    }
+
+    setChatMessages((prev) => ({
+      ...prev,
+      [selectedChat]: (prev[selectedChat] || []).map((message) => {
+        if (message.requestId !== failedMessage.requestId) return message;
+
+        if (message.role === "user") {
+          return {
+            ...message,
+            ...(result.fileText && message.attachment
+              ? {
+                  attachment: {
+                    ...message.attachment,
+                    extractedText: result.fileText,
+                    extractedAt: new Date().toISOString(),
+                  },
+                }
+              : {}),
+            ...(result.transcriptText
+              ? { transcriptText: result.transcriptText }
+              : {}),
+          };
+        }
+
+        if (message.role === "ai") {
+          return {
+            role: "ai",
+            text: result.reply,
+            tasks: result.tasks || retryTasks,
+            outputs: Array.isArray(result.outputs) ? result.outputs : [],
+            requestId: failedMessage.requestId,
+            provider: result.provider || "",
+            fallbackFrom: result.fallbackFrom || "",
+            providerNotice: result.providerNotice || "",
+            failed: Boolean(result.failed),
+            errorMessage: result.errorMessage || "",
+            ...(result.failed
+              ? {
+                  retryTasks,
+                  retryOutputs,
+                }
+              : {}),
+          };
+        }
+
+        return message;
+      }),
+    }));
+
+    setChatActivity((prev) => ({
+      ...prev,
+      [selectedChat]: new Date().toISOString(),
+    }));
+    addActivity(
+      "retry",
+      result.failed ? "AI request retry failed" : "AI request retried",
+      selectedChat
+    );
+
+    if (!result.failed) {
+      showNotice("Request completed successfully.");
+    }
 
     setIsGenerating(false);
   };
@@ -1509,7 +1735,13 @@ function Chat({
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full min-w-0 max-w-3xl rounded-2xl rounded-tl-md border border-[#1B2540] bg-[#07101F]/95 p-4 shadow-xl shadow-purple-950/10 sm:w-fit sm:rounded-3xl sm:p-6">
+                  <div
+                    className={`w-full min-w-0 max-w-3xl rounded-2xl rounded-tl-md border bg-[#07101F]/95 p-4 shadow-xl shadow-purple-950/10 sm:w-fit sm:rounded-3xl sm:p-6 ${
+                      message.failed
+                        ? "border-red-500/30"
+                        : "border-[#1B2540]"
+                    }`}
+                  >
                     <div className="mb-5 flex items-start gap-3 sm:mb-6 sm:gap-4">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 sm:h-11 sm:w-11 sm:rounded-2xl">
                         ✦
@@ -1546,6 +1778,17 @@ function Chat({
                             <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-200">
                               {message.providerNotice}
                             </p>
+                          )}
+
+                          {message.failed && !message.isLoading && (
+                            <button
+                              type="button"
+                              onClick={() => retryFailedMessage(message)}
+                              disabled={isGenerating}
+                              className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Retry request
+                            </button>
                           )}
                         </div>
 

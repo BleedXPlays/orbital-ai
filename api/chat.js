@@ -3,6 +3,9 @@ import {
   getProviderErrorResponse,
 } from "./providers/providerRouter.js";
 
+const MAX_MESSAGE_LENGTH = 20000;
+const MAX_IMAGE_BASE64_LENGTH = 4 * 1024 * 1024;
+
 export default async function handler(request, response) {
   if (request.method !== "POST") {
     return response.status(405).json({
@@ -26,6 +29,25 @@ export default async function handler(request, response) {
     if (!message && !attachment) {
       return response.status(400).json({
         error: "Message is required.",
+        errorCode: "message_required",
+      });
+    }
+
+    if (String(message || "").length > MAX_MESSAGE_LENGTH) {
+      return response.status(413).json({
+        error:
+          "This message is too long. Shorten it to fewer than 20,000 characters.",
+        errorCode: "message_too_long",
+      });
+    }
+
+    if (
+      imageBase64 &&
+      String(imageBase64).length > MAX_IMAGE_BASE64_LENGTH
+    ) {
+      return response.status(413).json({
+        error: "This image is too large. Upload an image smaller than 3 MB.",
+        errorCode: "image_too_large",
       });
     }
 

@@ -61,16 +61,21 @@ function Home({
     const chatTitle = generateChatTitle(trimmedPrompt);
     const tasks = analyzeTask(trimmedPrompt);
     const outputs = getOutputs(tasks);
+    const requestId = `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 9)}`;
 
     const userMessage = {
       role: "user",
       text: trimmedPrompt,
+      requestId,
     };
 
     const loadingMessage = {
       role: "ai",
       text: "OrbitalAI is generating a real response...",
       isLoading: true,
+      requestId,
     };
 
     setChats((prev) => [...prev, chatTitle]);
@@ -144,6 +149,7 @@ function Home({
         provider: data.provider || "",
         fallbackFrom: data.fallbackFrom || "",
         providerNotice: data.providerNotice || "",
+        requestId,
       };
 
       setChatMessages((prev) => ({
@@ -164,7 +170,14 @@ function Home({
               "Please try again in a moment."
             }`,
             tasks,
-            outputs,
+            outputs: [],
+            requestId,
+            failed: true,
+            errorMessage:
+              String(error?.message || "").trim() ||
+              "Please try again in a moment.",
+            retryTasks: tasks,
+            retryOutputs: outputs,
           },
         ],
       }));
