@@ -1,11 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProjectChatCard from "../components/ProjectChatCard";
 import ProjectChatMenu from "../components/ProjectChatMenu";
 import ProjectNoteCard from "../components/ProjectNoteCard";
 import FilePreviewModal from "../components/FilePreviewModal";
 import ConfirmModal from "../components/ConfirmModal";
 import RenameModal from "../components/RenameModal";
-import { uploadProjectFile } from "../utils/uploadFile";
+import {
+  deleteProjectFile,
+  getProjectFileUrl,
+  uploadProjectFile,
+} from "../utils/uploadFile";
+
+function ProjectImageThumbnail({ file }) {
+  const [imageUrl, setImageUrl] = useState(file.url || "");
+
+  useEffect(() => {
+    if (!file.path) return;
+
+    let isActive = true;
+
+    getProjectFileUrl(file.path)
+      .then((freshUrl) => {
+        if (isActive) setImageUrl(freshUrl);
+      })
+      .catch(() => {
+        if (isActive) setImageUrl("");
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [file.path]);
+
+  if (!imageUrl) {
+    return (
+      <div className="mb-4 flex h-40 items-center justify-center rounded-2xl bg-[#151E33] text-4xl">
+        🖼️
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl}
+      alt={file.name}
+      className="mb-4 h-40 w-full rounded-2xl object-cover"
+    />
+  );
+}
 
 function Project({
   user,
@@ -321,8 +363,39 @@ function Project({
     await uploadFiles(droppedFiles);
   };
 
-  const deleteFile = (index) => {
+  const openFilePreview = async (file, index) => {
+    if (!file) return;
+
+    try {
+      const freshUrl = file.path
+        ? await getProjectFileUrl(file.path)
+        : file.url || "";
+
+      setSelectedFilePreview({
+        file: {
+          ...file,
+          url: freshUrl,
+        },
+        index,
+      });
+    } catch (error) {
+      showNotice(error.message || "This file could not be opened.");
+    }
+  };
+
+  const deleteFile = async (index) => {
     const fileToDelete = files[index];
+    if (!fileToDelete) return;
+
+    try {
+      if (fileToDelete.path) {
+        await deleteProjectFile(fileToDelete.path);
+      }
+    } catch (error) {
+      showNotice(error.message || "The stored file could not be deleted.");
+      return;
+    }
+
     const updatedFiles = files.filter((_, i) => i !== index);
 
     setProjectFiles({
@@ -611,7 +684,7 @@ function Project({
                       {files.map((file, index) => (
                         <div
                           key={`${file.name}-${index}`}
-                          onClick={() => setSelectedFilePreview({ file, index })}
+                          onClick={() => openFilePreview(file, index)}
                           className="flex min-w-0 cursor-pointer flex-col items-stretch gap-3 rounded-2xl border border-[#1B2540] bg-[#101827] p-4 transition hover:border-purple-500/60 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div className="min-w-0">
@@ -711,27 +784,16 @@ function Project({
                           <div
                             key={`${file.name}-${imageIndex}`}
                             onClick={() =>
-                              setSelectedFilePreview({
+                              openFilePreview(
                                 file,
-                                index:
-                                  originalIndex === -1
-                                    ? imageIndex
-                                    : originalIndex,
-                              })
+                                originalIndex === -1
+                                  ? imageIndex
+                                  : originalIndex
+                              )
                             }
                             className="bg-[#101827] border border-[#1B2540] rounded-2xl p-4 cursor-pointer hover:border-purple-500/60 transition"
                           >
-                            {file.url ? (
-                              <img
-                                src={file.url}
-                                alt={file.name}
-                                className="h-40 w-full object-cover rounded-2xl mb-4"
-                              />
-                            ) : (
-                              <div className="h-40 rounded-2xl bg-[#151E33] flex items-center justify-center text-4xl mb-4">
-                                🖼️
-                              </div>
-                            )}
+                            <ProjectImageThumbnail file={file} />
 
                             <h3 className="font-semibold truncate">
                               {file.name}

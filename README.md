@@ -34,6 +34,16 @@ across Vercel serverless instances.
 The Firebase project ID has a safe project-specific default, and the model
 variables in `.env.example` are optional overrides.
 
+## Firebase identity in Supabase
+
+OrbitalAI sends the current Firebase ID token to Supabase so database and
+storage policies can identify the user. In Supabase, open **Authentication →
+Third-Party Auth**, add Firebase, and use project ID `orbital-ai-957b9`.
+Then run `supabase/migrations/20260721_workspace_storage_rls.sql` in the
+Supabase SQL Editor. The migration makes both OrbitalAI storage buckets private
+and restricts workspace rows and stored files to the Firebase user whose ID is
+stored in `user_id` or the first file-path segment.
+
 ## Commands
 
 ```bash

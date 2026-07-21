@@ -1,7 +1,7 @@
 import { supabase } from "../supabaseClient";
 
 const BUCKET_NAME = "orbital-attachments";
-const SIGNED_URL_LIFETIME_SECONDS = 60 * 60 * 24 * 7;
+const SIGNED_URL_LIFETIME_SECONDS = 60 * 60;
 
 const sanitizeFileName = (name) => {
   return String(name || "attachment")
