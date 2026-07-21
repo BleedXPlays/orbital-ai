@@ -448,7 +448,7 @@ function Project({
   return (
     <div
       onClick={() => setOpenChatMenu(null)}
-      className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white"
+      className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#030712] text-white"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
 

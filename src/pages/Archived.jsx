@@ -86,8 +86,8 @@ function Archived({
   const totalArchived = archivedChats.length + archivedProjects.length;
 
   return (
-    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#030712] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(91,110,255,0.12),transparent_35%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.07),transparent_30%)]" />
 
       <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">

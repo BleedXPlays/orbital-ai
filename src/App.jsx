@@ -19,8 +19,14 @@ const Help = lazy(() => import("./pages/Help"));
 const Login = lazy(() => import("./pages/Login"));
 
 const PageLoadingFallback = () => (
-  <div className="flex h-full min-h-full items-center justify-center bg-[#020817] text-white">
-    Loading OrbitalAI...
+  <div className="flex h-full min-h-full items-center justify-center bg-[#030712] text-white">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10">
+        <span className="absolute inset-[-1px] animate-spin rounded-2xl border border-transparent border-t-violet-400" />
+        <span className="text-violet-200">✦</span>
+      </div>
+      <p className="text-sm font-medium text-slate-400">Loading your workspace</p>
+    </div>
   </div>
 );
 
@@ -545,11 +551,7 @@ function App() {
   };
 
   if (authLoading || dataLoading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        Loading OrbitalAI...
-      </div>
-    );
+    return <PageLoadingFallback />;
   }
 
   if (!user) {
@@ -561,7 +563,7 @@ function App() {
   }
 
   return (
-    <div className="relative flex h-dvh w-screen overflow-hidden bg-[#020817]">
+    <div className="relative flex h-dvh w-screen overflow-hidden bg-[#030712]">
       {appError && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
           {appError}
@@ -572,7 +574,7 @@ function App() {
         type="button"
         aria-label="Open navigation"
         onClick={() => setIsMobileSidebarOpen(true)}
-        className={`fixed left-3 top-3 z-[7000] flex h-11 w-11 items-center justify-center rounded-xl border border-[#1B2540] bg-[#07101F]/95 text-xl text-white shadow-xl backdrop-blur lg:hidden ${
+        className={`fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[7000] flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.1] bg-[#0a1020]/90 text-lg text-white shadow-2xl backdrop-blur-xl transition hover:bg-[#111a2e] lg:hidden ${
           isMobileSidebarOpen ? "hidden" : ""
         }`}
       >
@@ -597,7 +599,7 @@ function App() {
           type="button"
           aria-label="Close navigation"
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[9100] flex h-10 w-10 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-2xl text-gray-200 lg:hidden"
+          className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[9100] flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[#11192b] text-xl text-slate-300 transition hover:text-white lg:hidden"
         >
           ×
         </button>
@@ -628,7 +630,7 @@ function App() {
 
       <main
         ref={mainContentRef}
-        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#020817]"
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#030712]"
       >
         <Suspense fallback={<PageLoadingFallback />}>
           <div className="h-full min-h-0 w-full">{renderPage()}</div>

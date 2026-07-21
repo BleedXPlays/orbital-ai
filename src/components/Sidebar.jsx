@@ -448,7 +448,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-[#1B2540] bg-[#050B1A] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:h-full lg:w-64 lg:py-4"
+        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-white/[0.07] bg-[#060b16]/95 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white shadow-[20px_0_60px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:h-full lg:w-64 lg:py-4"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -462,7 +462,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:h-20 lg:pr-0"
+            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible rounded-2xl pr-12 transition hover:bg-white/[0.025] lg:h-20 lg:pr-0"
           >
             <img
               src={logo}
@@ -477,8 +477,8 @@ function Sidebar({
               setPage("search");
             }}
             type="text"
-            placeholder="🔍 Global Search"
-            className="relative z-10 w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-3 cursor-pointer text-sm"
+            placeholder="Search workspace"
+            className="relative z-10 mb-4 w-full cursor-pointer rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 hover:border-white/[0.14]"
           />
         </div>
 
@@ -512,7 +512,7 @@ function Sidebar({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 lg:grid lg:grid-rows-[1fr_1fr] lg:gap-3 lg:overflow-hidden lg:pr-0">
           <section className="mb-5 flex min-h-0 flex-col lg:mb-0">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
+            <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
               CHATS
             </h2>
 
@@ -521,7 +521,7 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
+              className="mb-2 w-full shrink-0 rounded-xl border border-violet-400/15 bg-gradient-to-r from-violet-500/10 to-blue-500/5 px-3 py-2.5 text-left text-sm font-medium text-violet-100 transition hover:border-violet-400/30 hover:from-violet-500/15"
             >
               + New Chat
             </button>
@@ -532,7 +532,7 @@ function Sidebar({
               placeholder="Search chats..."
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
+              className="mb-2 w-full shrink-0 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40"
             />
 
             <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
@@ -604,7 +604,7 @@ function Sidebar({
           </section>
 
           <section className="flex min-h-0 flex-col">
-            <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
+            <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
               PROJECTS
             </h2>
 
@@ -613,7 +613,7 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="w-full bg-[#101827] py-2.5 px-3 rounded-xl mb-2 text-left hover:bg-[#141f33] shrink-0 text-sm"
+              className="mb-2 w-full shrink-0 rounded-xl border border-blue-400/15 bg-gradient-to-r from-blue-500/10 to-cyan-500/5 px-3 py-2.5 text-left text-sm font-medium text-blue-100 transition hover:border-blue-400/30 hover:from-blue-500/15"
             >
               + New Project
             </button>
@@ -624,7 +624,7 @@ function Sidebar({
               placeholder="Search projects..."
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
+              className="mb-2 w-full shrink-0 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40"
             />
 
             <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
@@ -689,13 +689,13 @@ function Sidebar({
           </section>
         </div>
 
-        <div className="shrink-0 border-t border-[#1B2540] pt-2 mt-3 space-y-1.5">
+        <div className="mt-3 shrink-0 space-y-1 border-t border-white/[0.07] pt-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
+            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
             ✏️ Edit Items
           </button>
@@ -705,7 +705,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
+            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
             🗄️ Archived Items
           </button>
@@ -715,7 +715,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="w-full bg-[#101827] py-2.5 px-3 rounded-xl text-left hover:bg-[#141f33] text-sm"
+            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
             ⚙️ Settings
           </button>

@@ -217,122 +217,126 @@ function Home({
   };
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden bg-[#020817] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.16),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.16),transparent_35%)]" />
+    <div className="relative h-full min-h-0 overflow-hidden bg-[#030712] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(91,110,255,0.18),transparent_38%),radial-gradient(circle_at_90%_70%,rgba(147,51,234,0.10),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 auth-grid opacity-[0.14]" />
 
-      <div className="relative flex h-full min-h-0 flex-col items-center justify-center overflow-y-auto px-4 pb-36 pt-16 sm:px-8 sm:pb-40 sm:pt-8 lg:px-10">
-        <div className="mt-4 text-center sm:mt-8">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
-            Welcome to{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
-              OrbitalAI
-            </span>
-          </h1>
+      <div className="relative h-full min-h-0 overflow-y-auto px-4 pb-40 pt-20 sm:px-8 sm:pb-44 sm:pt-14 lg:px-12 lg:pt-12">
+        <div className="mx-auto w-full max-w-[980px]">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-6 flex items-center gap-2.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3.5 py-2 text-xs font-medium text-emerald-300 sm:text-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
+              Your AI workspace is ready
+            </div>
 
-          <p className="mt-3 text-base text-gray-300 sm:mt-4 sm:text-xl">
-            One request. Multiple AI experts.
-          </p>
-        </div>
+            <img
+              src={logo}
+              alt="OrbitalAI"
+              className="mb-5 h-auto w-44 object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.3)] sm:w-52"
+            />
 
-        <div className="relative mt-7 flex max-w-full items-center justify-center sm:mt-12">
-          <div className="absolute h-[80px] w-[280px] max-w-[82vw] rotate-[-4deg] rounded-full border border-purple-500/30 sm:h-[110px] sm:w-[420px]" />
-          <div className="absolute h-[66px] w-[240px] max-w-[72vw] rotate-[6deg] rounded-full border border-blue-500/20 sm:h-[90px] sm:w-[360px]" />
-          <div className="absolute w-3 h-3 rounded-full bg-purple-500 top-[-18px] right-8" />
-          <div className="absolute w-2.5 h-2.5 rounded-full bg-blue-500 bottom-[-12px] left-12" />
-          <div className="absolute w-2 h-2 rounded-full bg-purple-400 top-6 left-[-18px]" />
-          <div className="absolute w-2 h-2 rounded-full bg-blue-400 bottom-7 right-[-20px]" />
+            <h1 className="max-w-[780px] text-3xl font-semibold leading-tight tracking-[-0.04em] text-slate-50 sm:text-5xl lg:text-[3.5rem]">
+              What do you want to accomplish?
+            </h1>
+            <p className="mt-4 max-w-[620px] text-base leading-7 text-slate-400 sm:text-lg">
+              Ask once. OrbitalAI routes your work to OpenAI, Claude or Gemini
+              and keeps everything organized in one workspace.
+            </p>
+          </div>
 
-          <img
-            src={logo}
-            alt="OrbitalAI"
-            className="relative h-20 w-auto object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.45)] sm:h-32"
-          />
-        </div>
-
-        <div className="mt-9 w-full text-center sm:mt-16">
-          <p className="text-base text-gray-200 sm:text-xl">
-            What would you like to do today?
-          </p>
-
-          <div className="mx-auto mt-5 grid w-full max-w-[760px] grid-cols-1 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-2">
-            <button
-              onClick={createProjectFromSuggestion}
-              className="group flex min-h-24 items-center justify-between rounded-2xl border border-[#1B2540] bg-[#08111F]/90 px-4 text-left transition hover:border-purple-500/70 sm:h-28 sm:px-6"
-            >
-              <div className="flex items-center gap-3 sm:gap-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 text-xl sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
-                  ▣
+          <div className="mt-9 grid grid-cols-1 gap-3 sm:mt-11 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                label: "Research & writing",
+                description: "Write a clear report about renewable energy",
+                accent: "from-blue-500/20 to-cyan-400/5",
+                icon: "✦",
+                action: () =>
+                  createChatWithPrompt(
+                    "Write a clear report about why renewable energy is important"
+                  ),
+              },
+              {
+                label: "Build a project",
+                description: "Create a Chandrayaan-3 research workspace",
+                accent: "from-violet-500/20 to-fuchsia-400/5",
+                icon: "◇",
+                action: createProjectFromSuggestion,
+              },
+              {
+                label: "Learn something",
+                description: "Explain photosynthesis in simple detail",
+                accent: "from-emerald-500/15 to-teal-400/5",
+                icon: "↗",
+                action: () =>
+                  createChatWithPrompt(
+                    "Explain photosynthesis in simple detail with examples"
+                  ),
+              },
+            ].map((suggestion) => (
+              <button
+                key={suggestion.label}
+                type="button"
+                onClick={suggestion.action}
+                className={`group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br ${suggestion.accent} p-5 text-left shadow-[0_18px_45px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-1 hover:border-violet-400/35 hover:bg-white/[0.06]`}
+              >
+                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.09] bg-black/20 text-lg text-violet-200">
+                  {suggestion.icon}
                 </div>
-
-                <p className="text-base leading-relaxed text-gray-100">
-                  Create a project on
-                  <br />
-                  Chandrayaan-3 with images
+                <p className="text-sm font-semibold text-slate-200">
+                  {suggestion.label}
                 </p>
-              </div>
-
-              <span className="text-3xl text-purple-400 group-hover:translate-x-1 transition">
-                →
-              </span>
-            </button>
-
-            <button
-              onClick={() =>
-                createChatWithPrompt("Write an essay on global warming")
-              }
-              className="group flex min-h-24 items-center justify-between rounded-2xl border border-[#1B2540] bg-[#08111F]/90 px-4 text-left transition hover:border-purple-500/70 sm:h-28 sm:px-6"
-            >
-              <div className="flex items-center gap-3 sm:gap-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 text-xl sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
-                  ✎
-                </div>
-
-                <p className="text-base leading-relaxed text-gray-100">
-                  Write an essay on
-                  <br />
-                  global warming
+                <p className="mt-1.5 pr-5 text-sm leading-6 text-slate-400">
+                  {suggestion.description}
                 </p>
-              </div>
+                <span className="absolute bottom-5 right-5 text-slate-600 transition group-hover:translate-x-1 group-hover:text-violet-300">
+                  →
+                </span>
+              </button>
+            ))}
+          </div>
 
-              <span className="text-3xl text-purple-400 group-hover:translate-x-1 transition">
-                →
-              </span>
-            </button>
+          <div className="mt-8 flex items-center justify-center gap-3 text-xs text-slate-600 sm:text-sm">
+            <span>OpenAI</span>
+            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span>Claude</span>
+            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span>Gemini</span>
           </div>
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020817] via-[#020817]/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-8 lg:px-10">
-        <div className="mx-auto flex w-full max-w-[760px] min-w-0 items-center gap-2 rounded-2xl border border-[#1B2540] bg-[#07101F]/95 p-2 shadow-2xl shadow-purple-950/20 sm:gap-3 sm:rounded-3xl sm:p-3 lg:gap-4 lg:p-4">
-          <button className="h-11 w-11 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-2xl text-white hover:bg-[#141f33] sm:h-14 sm:w-14 sm:rounded-2xl sm:text-3xl">
-            +
-          </button>
-
-          <button className="h-11 w-11 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-xl hover:bg-[#141f33] sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl">
-            🎙️
-          </button>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#030712] via-[#030712]/98 to-transparent px-3 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-8 sm:px-8 sm:pb-7 lg:px-12">
+        <div className="mx-auto flex w-full max-w-[820px] min-w-0 items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#0a1020]/90 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.48)] backdrop-blur-2xl sm:rounded-[22px] sm:p-2.5">
+          <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 text-violet-200 sm:flex">
+            ✦
+          </div>
 
           <input
             type="text"
+            aria-label="Ask OrbitalAI"
             placeholder="Ask OrbitalAI anything..."
             value={homeInput}
-            onChange={(e) => setHomeInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") createChatWithPrompt(homeInput);
+            onChange={(event) => setHomeInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") createChatWithPrompt(homeInput);
             }}
-            className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 sm:text-lg"
+            className="min-w-0 flex-1 bg-transparent px-3 py-3 text-[15px] text-slate-100 outline-none placeholder:text-slate-600 sm:text-base"
           />
 
           <button
+            type="button"
+            aria-label="Send prompt"
             onClick={() => createChatWithPrompt(homeInput)}
-            className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl shadow-lg shadow-purple-700/30 transition hover:scale-[1.03] sm:h-16 sm:w-16 sm:rounded-2xl sm:text-3xl"
+            disabled={!homeInput.trim() || creatingChatRef.current}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#557cff] to-[#963eff] text-xl text-white shadow-[0_10px_30px_rgba(109,74,255,0.3)] transition hover:scale-[1.03] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 sm:h-12 sm:w-12"
           >
-            ✈
+            ↑
           </button>
         </div>
 
-        <p className="mt-4 hidden text-center text-sm text-gray-500 sm:block">
-          Press Enter to send&nbsp;&nbsp;•&nbsp;&nbsp;Shift + Enter for new line
+        <p className="mt-3 hidden text-center text-xs text-slate-600 sm:block">
+          Press Enter to send · Files and voice notes can be added inside a chat
         </p>
       </div>
     </div>

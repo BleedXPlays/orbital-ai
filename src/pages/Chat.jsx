@@ -1597,7 +1597,7 @@ function Chat({
         setActionMenuOpen(false);
         setExportMenuOpen(false);
       }}
-      className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
+      className="relative h-full min-h-0 overflow-hidden bg-[#030712] text-white"
     >
       <input
         id="chat-file-input"
@@ -1615,7 +1615,7 @@ function Chat({
         onChange={(e) => handleFileSelected(e, "image")}
       />
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,90,255,0.12),transparent_38%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.14),transparent_35%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(91,110,255,0.11),transparent_38%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.08),transparent_30%)]" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-200 px-4 py-3 text-sm shadow-2xl shadow-purple-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-xl sm:-translate-x-1/2 sm:px-5">
@@ -1631,7 +1631,7 @@ function Chat({
       />
 
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
-        <header className="shrink-0 border-b border-[#1B2540]/70 bg-[#020817]/80 px-4 pb-4 pt-16 backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
+        <header className="shrink-0 border-b border-white/[0.07] bg-[#030712]/80 px-4 pb-4 pt-16 backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
           <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -1641,7 +1641,7 @@ function Chat({
                 </p>
               </div>
 
-              <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">
+              <h1 className="truncate text-2xl font-semibold tracking-[-0.035em] text-slate-50 sm:text-3xl">
                 {selectedChat || "Untitled Chat"}
               </h1>
             </div>
@@ -1652,7 +1652,7 @@ function Chat({
                   e.stopPropagation();
                   handleShare();
                 }}
-                className="flex-1 rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:flex-none sm:rounded-2xl sm:px-5 sm:py-3"
+                className="flex-1 rounded-xl border border-white/[0.09] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:flex-none sm:px-5"
               >
                 Share
               </button>
@@ -1666,7 +1666,7 @@ function Chat({
                     e.stopPropagation();
                     setExportMenuOpen((open) => !open);
                   }}
-                  className="w-full rounded-xl bg-[#07101F] border border-[#1B2540] px-4 py-2.5 text-sm text-gray-200 hover:bg-[#101827] sm:rounded-2xl sm:px-5 sm:py-3"
+                  className="w-full rounded-xl border border-white/[0.09] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:px-5"
                 >
                   Export ▾
                 </button>

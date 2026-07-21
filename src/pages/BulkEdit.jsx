@@ -154,8 +154,8 @@ function BulkEdit({
   const totalSelected = selectedChats.length + selectedProjects.length;
 
   return (
-    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#020817] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#030712] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(91,110,255,0.12),transparent_35%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.07),transparent_30%)]" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
