@@ -471,15 +471,28 @@ function Sidebar({
             />
           </div>
 
-          <input
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("search");
-            }}
-            type="text"
-            placeholder="Search workspace"
-            className="relative z-10 mb-4 w-full cursor-pointer rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 hover:border-white/[0.14]"
-          />
+          <div className="relative mb-4 min-w-0">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="pointer-events-none absolute left-3 top-1/2 z-20 h-4 w-4 -translate-y-1/2 text-slate-600"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input
+              onClick={(e) => {
+                e.stopPropagation();
+                setPage("search");
+              }}
+              type="text"
+              placeholder="Search workspace"
+              className="relative z-10 w-full min-w-0 cursor-pointer rounded-lg border border-white/[0.08] bg-white/[0.035] py-2.5 pl-9 pr-3 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 hover:border-white/[0.14]"
+            />
+          </div>
         </div>
 
         {pinnedChats.length > 0 && (
@@ -510,8 +523,8 @@ function Sidebar({
           </div>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 lg:grid lg:grid-rows-[1fr_1fr] lg:gap-3 lg:overflow-hidden lg:pr-0">
-          <section className="mb-5 flex min-h-0 flex-col lg:mb-0">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain lg:grid lg:grid-rows-[1fr_1fr] lg:gap-4 lg:overflow-hidden">
+          <section className="mb-6 flex min-h-0 min-w-0 max-w-full flex-col lg:mb-0">
             <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
               CHATS
             </h2>
@@ -521,9 +534,10 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="mb-2 w-full shrink-0 rounded-xl border border-violet-400/15 bg-gradient-to-r from-violet-500/10 to-blue-500/5 px-3 py-2.5 text-left text-sm font-medium text-violet-100 transition hover:border-violet-400/30 hover:from-violet-500/15"
+              className="mb-2 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.045] px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:border-white/[0.15] hover:bg-white/[0.07]"
             >
-              + New Chat
+              <span className="text-base leading-none text-slate-500">+</span>
+              New chat
             </button>
 
             <input
@@ -532,10 +546,10 @@ function Sidebar({
               placeholder="Search chats..."
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              className="mb-2 w-full shrink-0 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-lg border border-white/[0.07] bg-transparent px-3 py-2 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40 focus:bg-white/[0.025]"
             />
 
-            <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
+            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -603,7 +617,7 @@ function Sidebar({
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col">
+          <section className="flex min-h-0 min-w-0 max-w-full flex-col">
             <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
               PROJECTS
             </h2>
@@ -613,9 +627,10 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="mb-2 w-full shrink-0 rounded-xl border border-blue-400/15 bg-gradient-to-r from-blue-500/10 to-cyan-500/5 px-3 py-2.5 text-left text-sm font-medium text-blue-100 transition hover:border-blue-400/30 hover:from-blue-500/15"
+              className="mb-2 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.045] px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:border-white/[0.15] hover:bg-white/[0.07]"
             >
-              + New Project
+              <span className="text-base leading-none text-slate-500">+</span>
+              New project
             </button>
 
             <input
@@ -624,10 +639,10 @@ function Sidebar({
               placeholder="Search projects..."
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              className="mb-2 w-full shrink-0 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-lg border border-white/[0.07] bg-transparent px-3 py-2 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40 focus:bg-white/[0.025]"
             />
 
-            <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
+            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;
@@ -695,9 +710,20 @@ function Sidebar({
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
-            ✏️ Edit Items
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              className="h-4 w-4 text-slate-600"
+            >
+              <path d="m14 5 5 5L9 20H4v-5L14 5Z" />
+              <path d="m12 7 5 5" />
+            </svg>
+            Edit items
           </button>
 
           <button
@@ -705,9 +731,20 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
-            🗄️ Archived Items
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              className="h-4 w-4 text-slate-600"
+            >
+              <path d="M4 7h16v12H4z" />
+              <path d="M3 4h18v3H3zM9 11h6" />
+            </svg>
+            Archived items
           </button>
 
           <button
@@ -715,9 +752,20 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
           >
-            ⚙️ Settings
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              className="h-4 w-4 text-slate-600"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
+            </svg>
+            Settings
           </button>
         </div>
       </aside>
