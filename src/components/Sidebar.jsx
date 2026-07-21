@@ -448,7 +448,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="h-full min-h-0 w-[min(86vw,20rem)] shrink-0 bg-[#050B1A] border-r border-[#1B2540] text-white flex flex-col overflow-hidden overscroll-contain px-3 py-4 lg:w-64"
+        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-[#1B2540] bg-[#050B1A] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:h-full lg:w-64 lg:py-4"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -462,12 +462,12 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="mb-3 flex h-20 cursor-pointer items-center overflow-visible"
+            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:h-20 lg:pr-0"
           >
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-auto w-[190px] max-w-full translate-y-2 object-contain"
+              className="h-auto w-[158px] max-w-full translate-y-1 object-contain lg:w-[190px] lg:translate-y-2"
             />
           </div>
 
@@ -510,8 +510,8 @@ function Sidebar({
           </div>
         )}
 
-        <div className="grid grid-rows-[1fr_1fr] gap-3 min-h-0 flex-1">
-          <section className="min-h-0 flex flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 lg:grid lg:grid-rows-[1fr_1fr] lg:gap-3 lg:overflow-hidden lg:pr-0">
+          <section className="mb-5 flex min-h-0 flex-col lg:mb-0">
             <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
               CHATS
             </h2>
@@ -535,7 +535,7 @@ function Sidebar({
               className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
+            <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -603,7 +603,7 @@ function Sidebar({
             </div>
           </section>
 
-          <section className="min-h-0 flex flex-col">
+          <section className="flex min-h-0 flex-col">
             <h2 className="text-purple-400 font-semibold mb-2 shrink-0 text-xs tracking-wide">
               PROJECTS
             </h2>
@@ -627,7 +627,7 @@ function Sidebar({
               className="w-full py-2.5 px-3 rounded-xl bg-[#101827] border border-[#1B2540] outline-none mb-2 shrink-0 text-sm"
             />
 
-            <div className="space-y-1.5 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
+            <div className="min-h-0 space-y-1.5 overflow-x-hidden pr-1 lg:overflow-y-auto">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;

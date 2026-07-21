@@ -387,7 +387,7 @@ function App() {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [location.pathname]);
+  }, [location.pathname, page, selectedChat, selectedProject]);
 
   const handleLogout = async () => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -589,15 +589,15 @@ function App() {
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-[9000] h-full lg:static lg:z-auto lg:block ${
-          isMobileSidebarOpen ? "block" : "hidden"
+        className={`fixed inset-y-0 left-0 z-[9000] h-full transform-gpu transition-transform duration-300 ease-out lg:static lg:z-auto lg:translate-x-0 ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <button
           type="button"
           aria-label="Close navigation"
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="absolute right-3 top-3 z-[9100] flex h-10 w-10 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-2xl text-gray-200 lg:hidden"
+          className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[9100] flex h-10 w-10 items-center justify-center rounded-xl border border-[#1B2540] bg-[#101827] text-2xl text-gray-200 lg:hidden"
         >
           ×
         </button>

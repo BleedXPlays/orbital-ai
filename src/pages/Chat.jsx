@@ -10,6 +10,12 @@ import { analyzeTask, getOutputs } from "../utils/taskRouting";
 
 const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 const MAX_READABLE_FILE_BYTES = 3 * 1024 * 1024;
+const MOBILE_AUDIO_FORMATS = [
+  { mimeType: "audio/webm;codecs=opus", extension: "webm" },
+  { mimeType: "audio/mp4", extension: "mp4" },
+  { mimeType: "audio/webm", extension: "webm" },
+  { mimeType: "audio/ogg;codecs=opus", extension: "ogg" },
+];
 const SUPPORTED_DOCUMENT_EXTENSIONS = new Set([
   ".pdf",
   ".docx",
@@ -103,9 +109,6 @@ function Chat({
   });
 
   const mainScrollRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const imageInputRef = useRef(null);
-
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const voiceTimerRef = useRef(null);
@@ -551,16 +554,6 @@ function Chat({
     }
   };
 
-  const handleAttachFile = () => {
-    setActionMenuOpen(false);
-    fileInputRef.current?.click();
-  };
-
-  const handleUploadImage = () => {
-    setActionMenuOpen(false);
-    imageInputRef.current?.click();
-  };
-
   const selectAttachmentFile = (file, kind = "") => {
     if (!file) return false;
 
@@ -625,6 +618,7 @@ function Chat({
 
   const handleFileSelected = (event, kind) => {
     const file = event.target.files?.[0];
+    setActionMenuOpen(false);
     selectAttachmentFile(file, kind);
     event.target.value = "";
   };
@@ -707,6 +701,8 @@ function Chat({
     }
 
     try {
+      showNotice("Requesting microphone access...");
+
       if (attachmentPreviewUrl) {
         URL.revokeObjectURL(attachmentPreviewUrl);
       }
@@ -722,7 +718,17 @@ function Chat({
       voiceStreamRef.current = stream;
       audioChunksRef.current = [];
 
-      const recorder = new MediaRecorder(stream);
+      const supportedAudioFormat =
+        typeof MediaRecorder.isTypeSupported === "function"
+          ? MOBILE_AUDIO_FORMATS.find(({ mimeType }) =>
+              MediaRecorder.isTypeSupported(mimeType)
+            )
+          : null;
+      const recorder = supportedAudioFormat
+        ? new MediaRecorder(stream, {
+            mimeType: supportedAudioFormat.mimeType,
+          })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
       voiceStartTimeRef.current = Date.now();
 
@@ -733,14 +739,50 @@ function Chat({
       };
 
       recorder.onstop = () => {
+        setIsRecording(false);
+
+        if (voiceTimerRef.current) {
+          clearInterval(voiceTimerRef.current);
+          voiceTimerRef.current = null;
+        }
+
         const durationSeconds = Math.max(
           1,
           Math.round((Date.now() - voiceStartTimeRef.current) / 1000)
         );
 
+        const recordedMimeType =
+          recorder.mimeType ||
+          audioChunksRef.current[0]?.type ||
+          supportedAudioFormat?.mimeType ||
+          "audio/webm";
+        const normalizedMimeType = recordedMimeType.split(";")[0];
+        const extension =
+          MOBILE_AUDIO_FORMATS.find(({ mimeType }) =>
+            mimeType.startsWith(normalizedMimeType)
+          )?.extension || "webm";
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: normalizedMimeType,
         });
+
+        if (audioBlob.size === 0) {
+          showNotice(
+            "No audio was recorded. Check microphone permission and try again."
+          );
+
+          if (voiceStreamRef.current) {
+            voiceStreamRef.current
+              .getTracks()
+              .forEach((track) => track.stop());
+            voiceStreamRef.current = null;
+          }
+
+          selectedAttachmentFileRef.current = null;
+          mediaRecorderRef.current = null;
+          audioChunksRef.current = [];
+          voiceStartTimeRef.current = null;
+          return;
+        }
 
         selectedAttachmentFileRef.current = audioBlob;
 
@@ -750,8 +792,8 @@ function Chat({
           id: `attachment-${Date.now()}-${Math.random()
             .toString(36)
             .slice(2, 9)}`,
-          name: `voice-note-${Date.now()}.webm`,
-          type: "audio/webm",
+          name: `voice-note-${Date.now()}.${extension}`,
+          type: normalizedMimeType,
           size: audioBlob.size,
           sizeLabel: formatFileSize(audioBlob.size),
           kind: "voice",
@@ -776,6 +818,25 @@ function Chat({
         voiceStartTimeRef.current = null;
       };
 
+      recorder.onerror = () => {
+        setIsRecording(false);
+        showNotice("Voice recording stopped because the browser reported an error.");
+
+        if (voiceTimerRef.current) {
+          clearInterval(voiceTimerRef.current);
+          voiceTimerRef.current = null;
+        }
+
+        if (voiceStreamRef.current) {
+          voiceStreamRef.current.getTracks().forEach((track) => track.stop());
+          voiceStreamRef.current = null;
+        }
+
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+        voiceStartTimeRef.current = null;
+      };
+
       recorder.start();
       setIsRecording(true);
 
@@ -784,8 +845,23 @@ function Chat({
       }, 1000);
 
       showNotice("Recording started.");
-    } catch {
-      showNotice("Microphone permission was denied.");
+    } catch (error) {
+      if (voiceStreamRef.current) {
+        voiceStreamRef.current.getTracks().forEach((track) => track.stop());
+        voiceStreamRef.current = null;
+      }
+
+      if (error?.name === "NotAllowedError") {
+        showNotice(
+          "Microphone access is blocked. Allow it in your browser settings and try again."
+        );
+      } else if (error?.name === "NotFoundError") {
+        showNotice("No microphone was found on this device.");
+      } else {
+        showNotice(
+          "Voice recording could not start in this browser. Try Safari or Chrome with microphone access enabled."
+        );
+      }
     }
   };
 
@@ -1524,18 +1600,18 @@ function Chat({
       className="relative h-full min-h-0 bg-[#020817] text-white overflow-hidden"
     >
       <input
+        id="chat-file-input"
         accept=".pdf,.docx,.pptx,.xlsx,.odt,.odp,.ods,.epub,.txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.log,.yaml,.yml,.js,.jsx,.ts,.tsx,.css,.py,.java,.c,.cpp,.h,.sql"
-        ref={fileInputRef}
         type="file"
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFileSelected(e, "file")}
       />
 
       <input
-        ref={imageInputRef}
+        id="chat-image-input"
         type="file"
         accept="image/*"
-        className="hidden"
+        className="sr-only"
         onChange={(e) => handleFileSelected(e, "image")}
       />
 
@@ -1881,9 +1957,9 @@ function Chat({
                   </p>
 
                   <div className="space-y-1">
-                    <button
-                      onClick={handleAttachFile}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
+                    <label
+                      htmlFor="chat-file-input"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-left text-gray-100 transition hover:bg-[#101827]"
                     >
                       <span className="text-xl">📎</span>
                       <div>
@@ -1892,11 +1968,11 @@ function Chat({
                           Add a document or file
                         </p>
                       </div>
-                    </button>
+                    </label>
 
-                    <button
-                      onClick={handleUploadImage}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
+                    <label
+                      htmlFor="chat-image-input"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-left text-gray-100 transition hover:bg-[#101827]"
                     >
                       <span className="text-xl">🖼️</span>
                       <div>
@@ -1905,7 +1981,7 @@ function Chat({
                           Add an image to your chat
                         </p>
                       </div>
-                    </button>
+                    </label>
 
                     <button
                       onClick={handleClearInput}
