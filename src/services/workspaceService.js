@@ -6,7 +6,6 @@ export async function getOrCreateWorkspace(user) {
   }
 
   const userId = user.uid || user.id;
-  const email = user.email || "";
   const name = user.displayName || user.user_metadata?.full_name || "";
 
   const { data: existingWorkspace, error: fetchError } = await supabase

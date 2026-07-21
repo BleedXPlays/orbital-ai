@@ -189,10 +189,6 @@ function CommandPalette({
     };
   }, [isOpen, filteredCommands, selectedIndex]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
-
   if (!isOpen) return null;
 
   return (
@@ -206,7 +202,10 @@ function CommandPalette({
               autoFocus
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedIndex(0);
+              }}
               placeholder="Search chats, projects, pages..."
               className="flex-1 bg-transparent outline-none text-white placeholder:text-gray-500 text-lg"
             />

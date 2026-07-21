@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
@@ -7,16 +7,56 @@ import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService
 import Sidebar from "./components/Sidebar";
 import CommandPalette from "./components/CommandPalette";
 
-import Home from "./pages/Home";
-import Chat from "./pages/Chat";
-import Project from "./pages/Project";
-import Search from "./pages/Search";
-import BulkEdit from "./pages/BulkEdit";
-import AIWorkflow from "./pages/AIWorkflow";
-import Archived from "./pages/Archived";
-import Settings from "./pages/Settings";
-import Help from "./pages/Help";
-import Login from "./pages/Login";
+const Home = lazy(() => import("./pages/Home"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Project = lazy(() => import("./pages/Project"));
+const Search = lazy(() => import("./pages/Search"));
+const BulkEdit = lazy(() => import("./pages/BulkEdit"));
+const AIWorkflow = lazy(() => import("./pages/AIWorkflow"));
+const Archived = lazy(() => import("./pages/Archived"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Help = lazy(() => import("./pages/Help"));
+const Login = lazy(() => import("./pages/Login"));
+
+const PageLoadingFallback = () => (
+  <div className="flex h-full min-h-full items-center justify-center bg-[#020817] text-white">
+    Loading OrbitalAI...
+  </div>
+);
+
+const slugify = (value) => {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
+
+const getPathFromWorkspaceState = ({
+  page,
+  selectedChat,
+  selectedProject,
+}) => {
+  if (page === "chat") {
+    return selectedChat ? `/chat/${slugify(selectedChat)}` : "/chat";
+  }
+
+  if (page === "project") {
+    return selectedProject
+      ? `/project/${slugify(selectedProject)}`
+      : "/project";
+  }
+
+  if (page === "search") return "/search";
+  if (page === "bulk") return "/bulk-edit";
+  if (page === "workflow") return "/ai-workflow";
+  if (page === "archived") return "/archived";
+  if (page === "settings") return "/settings";
+  if (page === "help") return "/help";
+
+  return "/";
+};
 
 function App() {
   const saveTimer = useRef(null);
@@ -47,15 +87,6 @@ function App() {
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
 
-  const slugify = (value) => {
-    return String(value || "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
-  };
-
   const findItemBySlug = (items, slug) => {
     return items.find((item) => slugify(item) === slug) || "";
   };
@@ -63,27 +94,6 @@ function App() {
   const getAllChatNames = () => {
     const projectChatNames = Object.values(projectChats).flat();
     return [...chats, ...projectChatNames];
-  };
-
-  const getPathFromState = () => {
-    if (page === "chat") {
-      return selectedChat ? `/chat/${slugify(selectedChat)}` : "/chat";
-    }
-
-    if (page === "project") {
-      return selectedProject
-        ? `/project/${slugify(selectedProject)}`
-        : "/project";
-    }
-
-    if (page === "search") return "/search";
-    if (page === "bulk") return "/bulk-edit";
-    if (page === "workflow") return "/ai-workflow";
-    if (page === "archived") return "/archived";
-    if (page === "settings") return "/settings";
-    if (page === "help") return "/help";
-
-    return "/";
   };
 
   const addActivity = (type, title, details = "") => {
@@ -203,78 +213,82 @@ function App() {
   useEffect(() => {
     if (!user || dataLoading || !hasLoadedUserData) return;
 
-    const path = location.pathname;
-    const parts = path.split("/").filter(Boolean);
-    const firstPart = parts[0] || "";
-    const secondPart = parts[1] || "";
+    const frame = window.requestAnimationFrame(() => {
+      const path = location.pathname;
+      const parts = path.split("/").filter(Boolean);
+      const firstPart = parts[0] || "";
+      const secondPart = parts[1] || "";
 
-    if (path === "/") {
+      if (path === "/") {
+        setPage("home");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "chat") {
+        const matchedChat = secondPart
+          ? findItemBySlug(getAllChatNames(), secondPart)
+          : "";
+
+        setSelectedChat(matchedChat);
+        setSelectedProject("");
+        setPage("chat");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "project") {
+        const matchedProject = secondPart
+          ? findItemBySlug(projects, secondPart)
+          : "";
+
+        setSelectedProject(matchedProject);
+        setPage("project");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "search") {
+        setPage("search");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "bulk-edit") {
+        setPage("bulk");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "ai-workflow") {
+        setPage("workflow");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "archived") {
+        setPage("archived");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "settings") {
+        setPage("settings");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "help") {
+        setPage("help");
+        setRouteReady(true);
+        return;
+      }
+
       setPage("home");
       setRouteReady(true);
-      return;
-    }
+    });
 
-    if (firstPart === "chat") {
-      const matchedChat = secondPart
-        ? findItemBySlug(getAllChatNames(), secondPart)
-        : "";
-
-      setSelectedChat(matchedChat);
-      setSelectedProject("");
-      setPage("chat");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "project") {
-      const matchedProject = secondPart
-        ? findItemBySlug(projects, secondPart)
-        : "";
-
-      setSelectedProject(matchedProject);
-      setPage("project");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "search") {
-      setPage("search");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "bulk-edit") {
-      setPage("bulk");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "ai-workflow") {
-      setPage("workflow");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "archived") {
-      setPage("archived");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "settings") {
-      setPage("settings");
-      setRouteReady(true);
-      return;
-    }
-
-    if (firstPart === "help") {
-      setPage("help");
-      setRouteReady(true);
-      return;
-    }
-
-    setPage("home");
-    setRouteReady(true);
+    return () => window.cancelAnimationFrame(frame);
     // Route changes select workspace items. Local chat/project list changes
     // are handled by the state-to-route effect below, so they must not rerun
     // this effect with a stale URL during creation or automatic renaming.
@@ -284,7 +298,11 @@ function App() {
   useEffect(() => {
     if (!user || dataLoading || !hasLoadedUserData || !routeReady) return;
 
-    const nextPath = getPathFromState();
+    const nextPath = getPathFromWorkspaceState({
+      page,
+      selectedChat,
+      selectedProject,
+    });
 
     if (location.pathname !== nextPath) {
       navigate(nextPath);
@@ -297,6 +315,8 @@ function App() {
     dataLoading,
     hasLoadedUserData,
     routeReady,
+    location.pathname,
+    navigate,
   ]);
 
   useEffect(() => {
@@ -532,7 +552,13 @@ function App() {
     );
   }
 
-  if (!user) return <Login />;
+  if (!user) {
+    return (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <Login />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="relative flex h-dvh w-screen overflow-hidden bg-[#020817]">
@@ -604,7 +630,9 @@ function App() {
         ref={mainContentRef}
         className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#020817]"
       >
-        <div className="h-full min-h-0 w-full">{renderPage()}</div>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <div className="h-full min-h-0 w-full">{renderPage()}</div>
+        </Suspense>
       </main>
 
       <CommandPalette
