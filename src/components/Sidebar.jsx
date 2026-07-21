@@ -448,7 +448,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-white/[0.07] bg-[#060b16]/95 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white shadow-[20px_0_60px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:h-full lg:w-64 lg:py-4"
+        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-[#1B2540] bg-[#050B1A] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:h-full lg:w-64 lg:py-4"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -462,7 +462,7 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible rounded-2xl pr-12 transition hover:bg-white/[0.025] lg:h-20 lg:pr-0"
+            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:h-20 lg:pr-0"
           >
             <img
               src={logo}
@@ -471,28 +471,15 @@ function Sidebar({
             />
           </div>
 
-          <div className="relative mb-4 min-w-0">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="pointer-events-none absolute left-3 top-1/2 z-20 h-4 w-4 -translate-y-1/2 text-slate-600"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-            <input
-              onClick={(e) => {
-                e.stopPropagation();
-                setPage("search");
-              }}
-              type="text"
-              placeholder="Search workspace"
-              className="relative z-10 w-full min-w-0 cursor-pointer rounded-lg border border-white/[0.08] bg-white/[0.035] py-2.5 pl-9 pr-3 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 hover:border-white/[0.14]"
-            />
-          </div>
+          <input
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage("search");
+            }}
+            type="text"
+            placeholder="🔍 Global Search"
+            className="relative z-10 mb-3 w-full min-w-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none cursor-pointer"
+          />
         </div>
 
         {pinnedChats.length > 0 && (
@@ -524,8 +511,8 @@ function Sidebar({
         )}
 
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain lg:grid lg:grid-rows-[1fr_1fr] lg:gap-4 lg:overflow-hidden">
-          <section className="mb-6 flex min-h-0 min-w-0 max-w-full flex-col lg:mb-0">
-            <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
+          <section className="mb-5 flex min-h-0 min-w-0 max-w-full flex-col lg:mb-0">
+            <h2 className="mb-2 shrink-0 text-xs font-semibold tracking-wide text-purple-400">
               CHATS
             </h2>
 
@@ -534,10 +521,9 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="mb-2 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.045] px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:border-white/[0.15] hover:bg-white/[0.07]"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
             >
-              <span className="text-base leading-none text-slate-500">+</span>
-              New chat
+              + New Chat
             </button>
 
             <input
@@ -546,7 +532,7 @@ function Sidebar({
               placeholder="Search chats..."
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-lg border border-white/[0.07] bg-transparent px-3 py-2 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40 focus:bg-white/[0.025]"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none"
             />
 
             <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
@@ -618,7 +604,7 @@ function Sidebar({
           </section>
 
           <section className="flex min-h-0 min-w-0 max-w-full flex-col">
-            <h2 className="mb-2 shrink-0 text-[11px] font-semibold tracking-[0.16em] text-slate-500">
+            <h2 className="mb-2 shrink-0 text-xs font-semibold tracking-wide text-purple-400">
               PROJECTS
             </h2>
 
@@ -627,10 +613,9 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="mb-2 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.045] px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:border-white/[0.15] hover:bg-white/[0.07]"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
             >
-              <span className="text-base leading-none text-slate-500">+</span>
-              New project
+              + New Project
             </button>
 
             <input
@@ -639,7 +624,7 @@ function Sidebar({
               placeholder="Search projects..."
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-lg border border-white/[0.07] bg-transparent px-3 py-2 text-sm text-slate-300 outline-none transition placeholder:text-slate-600 focus:border-violet-400/40 focus:bg-white/[0.025]"
+              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none"
             />
 
             <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
@@ -704,26 +689,15 @@ function Sidebar({
           </section>
         </div>
 
-        <div className="mt-3 shrink-0 space-y-1 border-t border-white/[0.07] pt-2">
+        <div className="mt-3 shrink-0 space-y-1.5 border-t border-[#1B2540] pt-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              className="h-4 w-4 text-slate-600"
-            >
-              <path d="m14 5 5 5L9 20H4v-5L14 5Z" />
-              <path d="m12 7 5 5" />
-            </svg>
-            Edit items
+            ✏️ Edit Items
           </button>
 
           <button
@@ -731,20 +705,9 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              className="h-4 w-4 text-slate-600"
-            >
-              <path d="M4 7h16v12H4z" />
-              <path d="M3 4h18v3H3zM9 11h6" />
-            </svg>
-            Archived items
+            🗄️ Archived Items
           </button>
 
           <button
@@ -752,20 +715,9 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              className="h-4 w-4 text-slate-600"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
-            </svg>
-            Settings
+            ⚙️ Settings
           </button>
         </div>
       </aside>

@@ -8,42 +8,26 @@ function ProjectCard({
   return (
     <div
       onClick={onOpen}
-      className={`relative w-full min-w-0 max-w-full cursor-pointer overflow-hidden rounded-lg border px-2.5 py-2 transition ${
-        selectedProject === project
-          ? "border-white/[0.08] bg-white/[0.065] text-white"
-          : "border-transparent text-slate-400 hover:bg-white/[0.035] hover:text-slate-100"
+      className={`relative w-full min-w-0 max-w-full cursor-pointer overflow-hidden rounded-lg p-3 ${
+        selectedProject === project ? "bg-[#101827]" : "hover:bg-[#101827]"
       }`}
     >
-      <div className="flex items-center justify-between gap-2 min-w-0">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              className="mr-2 inline h-3.5 w-3.5 align-[-2px] text-slate-600"
-            >
-              <path d="M3.5 7.5h6l1.8 2h9.2v8.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V7.5Z" />
-              <path d="M3.5 10h17" />
-            </svg>
-            {project}
-          </p>
-        </div>
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">
+          📂 {project}
+        </p>
 
         <button
+          type="button"
           onClick={onMenuClick}
           aria-label={`Open menu for ${project}`}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-600 transition hover:bg-white/[0.06] hover:text-white"
+          className="shrink-0 px-2 text-gray-500 hover:text-white"
         >
           ⋮
         </button>
       </div>
 
-      <p className="mt-0.5 truncate pl-[22px] text-xs text-slate-600">
-        {count} chats
-      </p>
+      <p className="mt-1 truncate text-xs text-gray-500">{count} chats</p>
     </div>
   );
 }
