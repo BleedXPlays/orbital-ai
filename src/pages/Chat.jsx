@@ -5,6 +5,7 @@ import {
   getChatAttachmentUrl,
   uploadChatAttachment,
 } from "../services/attachmentService";
+import { apiFetch } from "../services/apiClient";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 
 const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
@@ -317,7 +318,7 @@ function Chat({
 
     const fileBase64 = await blobToBase64(attachmentFile);
 
-    const fileResponse = await fetch("/api/read-file", {
+    const fileResponse = await apiFetch("/api/read-file", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -363,7 +364,7 @@ function Chat({
       if (attachment?.kind === "voice" && attachmentFile) {
         const audioBase64 = await blobToBase64(attachmentFile);
 
-        const transcriptionResponse = await fetch("/api/transcribe", {
+        const transcriptionResponse = await apiFetch("/api/transcribe", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -392,7 +393,7 @@ function Chat({
         const answerTasks = analyzeTask(transcriptText);
         const answerOutputs = getOutputs(answerTasks);
 
-        const response = await fetch("/api/chat", {
+        const response = await apiFetch("/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -477,7 +478,7 @@ function Chat({
           ? await blobToBase64(attachmentFile)
           : "";
 
-      const response = await fetch("/api/chat", {
+      const response = await apiFetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

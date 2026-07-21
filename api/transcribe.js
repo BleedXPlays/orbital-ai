@@ -2,6 +2,7 @@
 
 import OpenAI from "openai";
 import { toFile } from "openai/uploads";
+import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 
@@ -15,6 +16,13 @@ export default async function handler(request, response) {
       error: "Method not allowed",
     });
   }
+
+  const authenticatedUser = await protectApiRoute(request, response, {
+    route: "transcribe",
+    minuteLimit: 10,
+    dailyLimit: 50,
+  });
+  if (!authenticatedUser) return;
 
   try {
     const { audioBase64, filename, mimeType } = request.body || {};

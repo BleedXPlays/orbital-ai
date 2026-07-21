@@ -3,6 +3,7 @@
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
 import mammoth from "mammoth";
+import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_EXTRACTED_TEXT_LENGTH = 45000;
@@ -248,6 +249,13 @@ export default async function handler(request, response) {
       error: "Method not allowed",
     });
   }
+
+  const authenticatedUser = await protectApiRoute(request, response, {
+    route: "read-file",
+    minuteLimit: 20,
+    dailyLimit: 150,
+  });
+  if (!authenticatedUser) return;
 
   try {
     const { fileBase64, filename, mimeType } = request.body || {};

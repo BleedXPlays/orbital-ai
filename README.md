@@ -18,9 +18,21 @@ to the Vercel project:
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GEMINI_API_KEY=
+FIREBASE_PROJECT_ID=orbital-ai-957b9
+SUPABASE_URL=https://yffkeluziizwhwlvgtnh.supabase.co
+SUPABASE_SECRET_KEY=
 ```
 
-The model variables in `.env.example` are optional overrides.
+`SUPABASE_SECRET_KEY` is server-only. A legacy
+`SUPABASE_SERVICE_ROLE_KEY` is also supported. Never prefix either key with
+`VITE_` or place it in frontend code. Before enabling it, run
+`supabase/migrations/20260720_api_rate_limits.sql` in the Supabase SQL Editor.
+Without this variable, OrbitalAI uses an instance-local limit suitable for
+development; the Supabase-backed limit is required for reliable enforcement
+across Vercel serverless instances.
+
+The Firebase project ID has a safe project-specific default, and the model
+variables in `.env.example` are optional overrides.
 
 ## Commands
 

@@ -2,6 +2,7 @@ import {
   generateWithProvider,
   getProviderErrorResponse,
 } from "./providers/providerRouter.js";
+import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_MESSAGE_LENGTH = 20000;
 const MAX_IMAGE_BASE64_LENGTH = 4 * 1024 * 1024;
@@ -12,6 +13,13 @@ export default async function handler(request, response) {
       error: "Method not allowed",
     });
   }
+
+  const authenticatedUser = await protectApiRoute(request, response, {
+    route: "chat",
+    minuteLimit: 15,
+    dailyLimit: 75,
+  });
+  if (!authenticatedUser) return;
 
   try {
     const {

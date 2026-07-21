@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/orbital-logo.png";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
+import { apiFetch } from "../services/apiClient";
 
 function Home({
   chats,
@@ -101,7 +102,7 @@ function Home({
     setHomeInput("");
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await apiFetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
