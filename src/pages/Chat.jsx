@@ -95,6 +95,7 @@ function Chat({
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [requestStage, setRequestStage] = useState("Selecting the best AI");
   const [isDraggingAttachment, setIsDraggingAttachment] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
@@ -359,12 +360,14 @@ function Chat({
     previousFileText,
     previousFileName,
     conversationHistory,
+    onStage = () => {},
   }) => {
     let newFileText = "";
     let transcriptText = "";
 
     try {
       if (attachment?.kind === "voice" && attachmentFile) {
+        onStage("Transcribing voice note");
         const audioBase64 = await blobToBase64(attachmentFile);
 
         const transcriptionResponse = await apiFetch("/api/transcribe", {
@@ -395,6 +398,10 @@ function Chat({
 
         const answerTasks = analyzeTask(transcriptText);
         const answerOutputs = getOutputs(answerTasks);
+
+        onStage(
+          `Generating response with ${answerTasks[0]?.ai || "OpenAI"}`
+        );
 
         const response = await apiFetch("/api/chat", {
           method: "POST",
@@ -464,6 +471,14 @@ function Chat({
         };
       }
 
+      if (attachment?.kind === "file") {
+        onStage(`Reading ${attachment.name || "document"}`);
+      } else if (attachment?.kind === "image") {
+        onStage("Preparing image for Gemini");
+      } else {
+        onStage("Selecting the best AI");
+      }
+
       newFileText =
         existingFileText ||
         (await getReadableFileText({
@@ -480,6 +495,8 @@ function Chat({
         attachment?.kind === "image" && attachmentFile
           ? await blobToBase64(attachmentFile)
           : "";
+
+      onStage(`Generating response with ${tasks[0]?.ai || "OpenAI"}`);
 
       const response = await apiFetch("/api/chat", {
         method: "POST",
@@ -1103,6 +1120,15 @@ function Chat({
     if ((!trimmedInput && !selectedAttachment) || isGenerating) return;
 
     setIsGenerating(true);
+    setRequestStage(
+      selectedAttachment?.kind === "voice"
+        ? "Preparing voice note"
+        : selectedAttachment?.kind === "file"
+        ? `Preparing ${selectedAttachment.name || "document"}`
+        : selectedAttachment?.kind === "image"
+        ? "Preparing image for Gemini"
+        : "Selecting the best AI"
+    );
     setActionMenuOpen(false);
 
     const now = new Date().toISOString();
@@ -1161,10 +1187,16 @@ function Chat({
 
     const loadingMessage = {
       role: "ai",
-      text: attachmentToSend
-        ? "OrbitalAI is generating a real response for your request and attachment..."
-        : "OrbitalAI is generating a real response...",
+      text: "OrbitalAI is working on your request.",
       isLoading: true,
+      loadingStage:
+        attachmentToSend?.kind === "voice"
+          ? "Preparing voice note"
+          : attachmentToSend?.kind === "file"
+          ? `Preparing ${attachmentToSend.name || "document"}`
+          : attachmentToSend?.kind === "image"
+          ? "Preparing image for Gemini"
+          : "Selecting the best AI",
       requestId,
     };
 
@@ -1286,6 +1318,7 @@ function Chat({
           previousFileText,
           previousFileName,
           conversationHistory,
+          onStage: setRequestStage,
         }),
         saveAttachment(newTitle),
       ]);
@@ -1299,6 +1332,7 @@ function Chat({
       }));
 
       setIsGenerating(false);
+      setRequestStage("Selecting the best AI");
       return;
     }
 
@@ -1346,6 +1380,7 @@ function Chat({
           previousFileText,
           previousFileName,
           conversationHistory,
+          onStage: setRequestStage,
         }),
         saveAttachment(newTitle),
       ]);
@@ -1359,6 +1394,7 @@ function Chat({
       }));
 
       setIsGenerating(false);
+      setRequestStage("Selecting the best AI");
       return;
     }
 
@@ -1388,6 +1424,7 @@ function Chat({
         previousFileText,
         previousFileName,
         conversationHistory,
+        onStage: setRequestStage,
       }),
       saveAttachment(selectedChat),
     ]);
@@ -1414,6 +1451,7 @@ function Chat({
     });
 
     setIsGenerating(false);
+    setRequestStage("Selecting the best AI");
   };
 
   const retryFailedMessage = async (failedMessage) => {
@@ -1468,6 +1506,7 @@ function Chat({
       }));
 
     setIsGenerating(true);
+    setRequestStage("Retrying request");
     setChatMessages((prev) => ({
       ...prev,
       [selectedChat]: (prev[selectedChat] || []).map((message) =>
@@ -1478,6 +1517,7 @@ function Chat({
               text: "OrbitalAI is retrying this request...",
               outputs: [],
               isLoading: true,
+              loadingStage: "Retrying request",
               failed: false,
             }
           : message
@@ -1511,6 +1551,7 @@ function Chat({
         previousFileText,
         previousFileName,
         conversationHistory,
+        onStage: setRequestStage,
       });
     } catch (error) {
       const errorMessage =
@@ -1589,6 +1630,7 @@ function Chat({
     }
 
     setIsGenerating(false);
+    setRequestStage("Selecting the best AI");
   };
 
   const activeProvider =
@@ -1837,18 +1879,54 @@ function Chat({
                               </span>
                             )}
 
-                            {message.isLoading && (
-                              <span className="flex gap-1 shrink-0">
-                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce" />
-                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:120ms]" />
-                                <span className="w-2 h-2 rounded-full bg-purple-300 animate-bounce [animation-delay:240ms]" />
-                              </span>
-                            )}
                           </div>
 
-                          <p className="break-words text-[15px] font-normal leading-7 text-gray-100 whitespace-pre-wrap">
-                            {message.text}
-                          </p>
+                          {message.isLoading ? (
+                            <div className="mt-1 min-w-[240px] max-w-md rounded-xl border border-blue-300/[0.12] bg-blue-400/[0.045] p-4">
+                              <div className="flex items-center gap-3">
+                                <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-400/20 bg-violet-500/10">
+                                  <span className="absolute h-3 w-3 animate-ping rounded-full bg-violet-400/30" />
+                                  <span className="relative h-2 w-2 rounded-full bg-violet-300" />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-medium text-slate-200">
+                                    {isGenerating
+                                      ? requestStage
+                                      : message.loadingStage ||
+                                        "Selecting the best AI"}
+                                  </p>
+                                  <p className="mt-1 text-xs text-slate-500">
+                                    Please keep this chat open.
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                                <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
+                              </div>
+                            </div>
+                          ) : message.failed ? (
+                            <div className="rounded-xl border border-red-400/20 bg-red-500/[0.07] p-4">
+                              <p className="text-sm font-semibold text-red-200">
+                                Request couldn’t be completed
+                              </p>
+                              <p className="mt-2 text-sm leading-6 text-red-100/70">
+                                {message.errorMessage ||
+                                  "Something interrupted the request. Your prompt is preserved."}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => retryFailedMessage(message)}
+                                disabled={isGenerating}
+                                className="mt-4 rounded-lg border border-red-300/20 bg-red-400/10 px-3.5 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-400/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Retry request
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="break-words whitespace-pre-wrap text-[15px] font-normal leading-7 text-gray-100">
+                              {message.text}
+                            </p>
+                          )}
 
                           {message.providerNotice && (
                             <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-200">
@@ -1856,16 +1934,6 @@ function Chat({
                             </p>
                           )}
 
-                          {message.failed && !message.isLoading && (
-                            <button
-                              type="button"
-                              onClick={() => retryFailedMessage(message)}
-                              disabled={isGenerating}
-                              className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Retry request
-                            </button>
-                          )}
                         </div>
 
                         {message.tasks &&

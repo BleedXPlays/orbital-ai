@@ -141,6 +141,7 @@ function Home({
     let fileText = "";
     if (pendingFile) {
       try {
+        showHomeNotice(`Reading ${pendingFile.name}…`);
         const fileBase64 = await blobToBase64(pendingFile);
         const fileResponse = await apiFetch("/api/read-file", {
           method: "POST",
@@ -189,8 +190,9 @@ function Home({
 
     const loadingMessage = {
       role: "ai",
-      text: "OrbitalAI is generating a real response...",
+      text: "OrbitalAI is working on your request.",
       isLoading: true,
+      loadingStage: `Generating response with ${tasks[0]?.ai || "OpenAI"}`,
       requestId,
     };
 
