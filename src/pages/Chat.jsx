@@ -1597,7 +1597,7 @@ function Chat({
         setActionMenuOpen(false);
         setExportMenuOpen(false);
       }}
-      className="relative h-full min-h-0 overflow-hidden bg-[#030712] text-white"
+      className="orbital-page relative h-full min-h-0 overflow-hidden text-white"
     >
       <input
         id="chat-file-input"
@@ -1631,7 +1631,7 @@ function Chat({
       />
 
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
-        <header className="shrink-0 border-b border-white/[0.07] bg-[#030712]/80 px-4 pb-4 pt-16 backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
+        <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/72 px-4 pb-4 pt-[4.75rem] backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
           <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-2">

@@ -6,6 +6,7 @@ import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService
 
 import Sidebar from "./components/Sidebar";
 import CommandPalette from "./components/CommandPalette";
+import logo from "./assets/orbital-logo.png";
 
 const Home = lazy(() => import("./pages/Home"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -563,23 +564,27 @@ function App() {
   }
 
   return (
-    <div className="relative flex h-dvh w-screen overflow-hidden bg-[#030712]">
+    <div className="orbital-app-shell relative flex h-dvh w-screen overflow-hidden">
       {appError && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[10000] max-w-xl rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3 text-sm shadow-2xl shadow-red-950/20">
           {appError}
         </div>
       )}
 
-      <button
-        type="button"
-        aria-label="Open navigation"
-        onClick={() => setIsMobileSidebarOpen(true)}
-        className={`fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[7000] flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.1] bg-[#0a1020]/90 text-lg text-white shadow-2xl backdrop-blur-xl transition hover:bg-[#111a2e] lg:hidden ${
-          isMobileSidebarOpen ? "hidden" : ""
-        }`}
-      >
-        ☰
-      </button>
+      <div className={`fixed inset-x-0 top-0 z-[7000] flex h-[calc(3.75rem+env(safe-area-inset-top))] items-end border-b border-blue-200/[0.1] bg-[#030b18]/88 px-3 pb-2.5 backdrop-blur-2xl lg:hidden ${isMobileSidebarOpen ? "hidden" : ""}`}>
+        <button
+          type="button"
+          aria-label="Open navigation"
+          onClick={() => setIsMobileSidebarOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] text-xl text-slate-200 transition hover:bg-white/[0.05]"
+        >
+          ☰
+        </button>
+        <button type="button" onClick={() => setPage("home")} className="absolute bottom-2.5 left-1/2 flex h-10 -translate-x-1/2 items-center">
+          <img src={logo} alt="OrbitalAI" className="h-auto w-[132px] object-contain" />
+        </button>
+        <span className="ml-auto flex h-10 items-center rounded-xl border border-blue-300/[0.12] bg-blue-400/[0.04] px-2.5 text-[10px] font-semibold tracking-[0.14em] text-blue-200/70">ONLINE</span>
+      </div>
 
       {isMobileSidebarOpen && (
         <button
@@ -630,7 +635,7 @@ function App() {
 
       <main
         ref={mainContentRef}
-        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#030712]"
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent"
       >
         <Suspense fallback={<PageLoadingFallback />}>
           <div className="h-full min-h-0 w-full">{renderPage()}</div>

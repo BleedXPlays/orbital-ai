@@ -9,6 +9,25 @@ import RenameModal from "./RenameModal";
 import ConfirmModal from "./ConfirmModal";
 import logo from "../assets/orbital-logo.png";
 
+function SearchIcon({ className = "h-4 w-4" }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={`${className} fill-none stroke-current`} strokeWidth="1.8">
+      <circle cx="10.7" cy="10.7" r="6.7" />
+      <path d="m16 16 4 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function FooterIcon({ type }) {
+  const paths = {
+    edit: <><path d="m4 16-.7 4 4-.7L18.6 8 15 4.4 4 16Z" /><path d="m13.8 5.6 3.6 3.6M3 21h18" /></>,
+    archive: <><path d="M4 8h16v11H4z" /><path d="M3 4h18v4H3zM9 12h6" /></>,
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.38.24.72.58.6 1v4c.12.42-.22.76-.6 1Z" /></>,
+  };
+
+  return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
+}
+
 const slugify = (value) => {
   return String(value || "")
     .toLowerCase()
@@ -448,7 +467,7 @@ function Sidebar({
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
         }}
-        className="flex h-dvh min-h-0 w-[min(92vw,22rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-[#1B2540] bg-[#050B1A] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:h-full lg:w-64 lg:py-4"
+        className="orbital-sidebar flex h-dvh min-h-0 w-[min(92vw,21rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-blue-300/[0.16] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white shadow-[18px_0_60px_rgba(0,0,0,0.2)] lg:h-full lg:w-[282px] lg:px-5 lg:py-5"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -462,24 +481,27 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="mb-3 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:h-20 lg:pr-0"
+            className="mb-4 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:h-[74px] lg:pr-0"
           >
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-auto w-[158px] max-w-full translate-y-1 object-contain lg:w-[190px] lg:translate-y-2"
+              className="h-auto w-[164px] max-w-full object-contain drop-shadow-[0_0_24px_rgba(96,118,255,0.28)] lg:w-[205px]"
             />
           </div>
 
-          <input
+          <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               setPage("search");
             }}
-            type="text"
-            placeholder="🔍 Global Search"
-            className="relative z-10 mb-3 w-full min-w-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none cursor-pointer"
-          />
+            className="orbital-nav-field relative z-10 mb-5 flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm text-slate-500 outline-none"
+          >
+            <SearchIcon className="h-[18px] w-[18px] shrink-0 text-slate-400" />
+            <span className="min-w-0 flex-1 truncate">Search workspace</span>
+            <kbd className="hidden text-[11px] text-slate-600 lg:inline">⌘K</kbd>
+          </button>
         </div>
 
         {pinnedChats.length > 0 && (
@@ -510,9 +532,9 @@ function Sidebar({
           </div>
         )}
 
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain lg:grid lg:grid-rows-[1fr_1fr] lg:gap-4 lg:overflow-hidden">
-          <section className="mb-5 flex min-h-0 min-w-0 max-w-full flex-col lg:mb-0">
-            <h2 className="mb-2 shrink-0 text-xs font-semibold tracking-wide text-purple-400">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-0.5">
+          <section className="mb-5 flex min-h-0 min-w-0 max-w-full flex-col">
+            <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400">
               CHATS
             </h2>
 
@@ -521,21 +543,17 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
+              className="orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100"
             >
               + New Chat
             </button>
 
-            <input
-              onClick={(e) => e.stopPropagation()}
-              type="text"
-              placeholder="Search chats..."
-              value={chatSearch}
-              onChange={(e) => setChatSearch(e.target.value)}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none"
-            />
+            <label className="orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500">
+              <SearchIcon className="h-4 w-4 shrink-0" />
+              <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search chats" value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
+            </label>
 
-            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
+            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -604,7 +622,7 @@ function Sidebar({
           </section>
 
           <section className="flex min-h-0 min-w-0 max-w-full flex-col">
-            <h2 className="mb-2 shrink-0 text-xs font-semibold tracking-wide text-purple-400">
+            <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400">
               PROJECTS
             </h2>
 
@@ -613,21 +631,17 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
+              className="orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100"
             >
               + New Project
             </button>
 
-            <input
-              onClick={(e) => e.stopPropagation()}
-              type="text"
-              placeholder="Search projects..."
-              value={projectSearch}
-              onChange={(e) => setProjectSearch(e.target.value)}
-              className="mb-2 w-full min-w-0 max-w-full shrink-0 rounded-xl border border-[#1B2540] bg-[#101827] px-3 py-2.5 text-sm outline-none"
-            />
+            <label className="orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500">
+              <SearchIcon className="h-4 w-4 shrink-0" />
+              <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search projects" value={projectSearch} onChange={(e) => setProjectSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
+            </label>
 
-            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden lg:overflow-y-auto lg:pr-1">
+            <div className="min-h-0 min-w-0 max-w-full space-y-1 overflow-x-hidden">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
                 const count = (projectChats[project] || []).length;
@@ -689,15 +703,15 @@ function Sidebar({
           </section>
         </div>
 
-        <div className="mt-3 shrink-0 space-y-1.5 border-t border-[#1B2540] pt-2">
+        <div className="mt-3 shrink-0 space-y-1 border-t border-blue-200/[0.14] pt-3">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setPage("bulk");
             }}
-            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
           >
-            ✏️ Edit Items
+            <FooterIcon type="edit" /> Edit Items
           </button>
 
           <button
@@ -705,9 +719,9 @@ function Sidebar({
               e.stopPropagation();
               setPage("archived");
             }}
-            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
           >
-            🗄️ Archived Items
+            <FooterIcon type="archive" /> Archived Items
           </button>
 
           <button
@@ -715,9 +729,9 @@ function Sidebar({
               e.stopPropagation();
               setPage("settings");
             }}
-            className="w-full rounded-xl bg-[#101827] px-3 py-2.5 text-left text-sm hover:bg-[#141f33]"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
           >
-            ⚙️ Settings
+            <FooterIcon type="settings" /> Settings
           </button>
         </div>
       </aside>

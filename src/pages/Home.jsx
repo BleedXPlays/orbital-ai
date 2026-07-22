@@ -217,7 +217,7 @@ function Home({
   };
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden bg-[#030712] text-white">
+    <div className="orbital-page relative h-full min-h-0 overflow-hidden text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(91,110,255,0.18),transparent_38%),radial-gradient(circle_at_90%_70%,rgba(147,51,234,0.10),transparent_30%)]" />
       <div className="pointer-events-none absolute inset-0 auth-grid opacity-[0.14]" />
 
