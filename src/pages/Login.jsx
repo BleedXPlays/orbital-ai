@@ -20,11 +20,17 @@ const getFriendlyAuthError = (error) => {
     "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
     "auth/weak-password": "Use a stronger password with at least 6 characters.",
     "auth/popup-closed-by-user": "Google sign-in was cancelled.",
+    "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
     "auth/operation-not-allowed": "This sign-in method is not enabled yet.",
+    "auth/unauthorized-domain": "Google sign-in is not authorized for this website domain yet.",
+    "auth/account-exists-with-different-credential": "An account already exists for this email using another sign-in method.",
   };
 
   return messages[error?.code] || "We could not complete that request. Please try again.";
 };
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
 function Login() {
   const [isSignup, setIsSignup] = useState(false);
@@ -99,7 +105,7 @@ function Login() {
 
     try {
       setIsSubmitting(true);
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const result = await signInWithPopup(auth, googleProvider);
 
       await setDoc(
         doc(db, "users", result.user.uid),
@@ -111,6 +117,7 @@ function Login() {
         { merge: true }
       );
     } catch (error) {
+      console.error("Google sign-in error:", error?.code, error?.message);
       setErrorMessage(getFriendlyAuthError(error));
     } finally {
       setIsSubmitting(false);
