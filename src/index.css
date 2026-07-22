@@ -136,6 +136,12 @@ body {
   box-shadow: none;
 }
 
+.orbital-chat-input:focus,
+.orbital-chat-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 @media (max-width: 640px) {
   .orbital-earth-horizon {
     background-position: center, 62% bottom;

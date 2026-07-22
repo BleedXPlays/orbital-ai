@@ -372,8 +372,7 @@ function Home({
               <button type="button" onClick={toggleVoiceRecording} disabled={isTranscribing} aria-label={isRecording ? "Stop voice recording" : "Record a voice note"} title="Voice note" className={`flex h-10 items-center gap-2 rounded-lg border px-2.5 transition ${isRecording ? "border-red-400/30 bg-red-500/10 text-red-300" : "border-transparent text-slate-300 hover:border-white/[0.1] hover:bg-white/[0.05] hover:text-white"}`}>
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6" strokeLinecap="round" /></svg><span className="hidden text-xs sm:inline">{isTranscribing ? "Transcribing" : isRecording ? "Stop" : "Voice note"}</span>
               </button>
-              <div className="ml-auto flex h-9 items-center gap-5 rounded-lg border border-white/[0.12] px-3 text-xs text-slate-400">Auto <span>⌄</span></div>
-              <button type="button" aria-label="Send prompt" onClick={() => createChatWithPrompt(homeInput)} disabled={(!homeInput.trim() && !pendingFile) || creatingChatRef.current || isRecording || isTranscribing} className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-base text-white shadow-[0_0_20px_rgba(124,92,255,0.28)] disabled:opacity-40">➤</button>
+              <button type="button" aria-label="Send prompt" onClick={() => createChatWithPrompt(homeInput)} disabled={(!homeInput.trim() && !pendingFile) || creatingChatRef.current || isRecording || isTranscribing} className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-base text-white shadow-[0_0_20px_rgba(124,92,255,0.28)] disabled:opacity-40">➤</button>
             </div>
           </div>
 

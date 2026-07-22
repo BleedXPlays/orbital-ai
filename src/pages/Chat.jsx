@@ -2142,7 +2142,7 @@ function Chat({
                       sendMessage();
                     }
                   }}
-                  className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 disabled:opacity-60 sm:text-lg"
+                  className="orbital-chat-input min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 disabled:opacity-60 sm:text-lg"
                 />
 
                 <button
