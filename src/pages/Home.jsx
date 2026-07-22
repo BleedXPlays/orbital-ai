@@ -19,7 +19,15 @@ function Home({
   addActivity,
 }) {
   const [homeInput, setHomeInput] = useState("");
+  const [pendingFile, setPendingFile] = useState(null);
+  const [homeNotice, setHomeNotice] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const creatingChatRef = useRef(false);
+  const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const voiceStreamRef = useRef(null);
   const navigate = useNavigate();
 
   const slugify = (value) => {
@@ -51,11 +59,107 @@ function Home({
     return title;
   };
 
+  const showHomeNotice = (message) => {
+    setHomeNotice(message);
+    window.setTimeout(() => setHomeNotice(""), 3200);
+  };
+
+  const blobToBase64 = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+  const transcribeRecording = async (audioBlob, mimeType) => {
+    setIsTranscribing(true);
+    try {
+      const audioBase64 = await blobToBase64(audioBlob);
+      const response = await apiFetch("/api/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioBase64,
+          filename: `voice-note-${Date.now()}.webm`,
+          mimeType: mimeType || "audio/webm",
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Voice transcription failed.");
+      setHomeInput(String(data.text || "").trim());
+      showHomeNotice("Voice note transcribed. Review it, then send.");
+    } catch (error) {
+      showHomeNotice(error.message || "Voice transcription failed.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const toggleVoiceRecording = async () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current?.state !== "inactive") mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      showHomeNotice("Voice recording is not supported in this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      voiceStreamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const mimeType = recorder.mimeType || "audio/webm";
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        voiceStreamRef.current?.getTracks().forEach((track) => track.stop());
+        voiceStreamRef.current = null;
+        if (audioBlob.size) transcribeRecording(audioBlob, mimeType);
+      };
+      recorder.start();
+      setIsRecording(true);
+      showHomeNotice("Recording… click the microphone again to stop.");
+    } catch (error) {
+      showHomeNotice(error?.name === "NotAllowedError" ? "Allow microphone access and try again." : "Could not start voice recording.");
+    }
+  };
+
   const createChatWithPrompt = async (promptText) => {
     const trimmedPrompt = promptText.trim();
-    if (!trimmedPrompt || creatingChatRef.current) return;
+    if ((!trimmedPrompt && !pendingFile) || creatingChatRef.current) return;
 
     creatingChatRef.current = true;
+
+    let fileText = "";
+    if (pendingFile) {
+      try {
+        const fileBase64 = await blobToBase64(pendingFile);
+        const fileResponse = await apiFetch("/api/read-file", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileBase64,
+            filename: pendingFile.name,
+            mimeType: pendingFile.type,
+          }),
+        });
+        const fileData = await fileResponse.json();
+        if (!fileResponse.ok) throw new Error(fileData.error || "Failed to read this file.");
+        fileText = fileData.text || "";
+      } catch (error) {
+        creatingChatRef.current = false;
+        showHomeNotice(error.message || "Failed to read this file.");
+        return;
+      }
+    }
 
     const now = new Date().toISOString();
     const chatTitle = generateChatTitle(trimmedPrompt);
@@ -67,8 +171,20 @@ function Home({
 
     const userMessage = {
       role: "user",
-      text: trimmedPrompt,
+      text: trimmedPrompt || "Analyze this document.",
       requestId,
+      ...(pendingFile
+        ? {
+            attachment: {
+              name: pendingFile.name,
+              type: pendingFile.type || "application/octet-stream",
+              sizeLabel: `${Math.max(0.1, pendingFile.size / 1024).toFixed(1)} KB`,
+              kind: "file",
+            },
+            fileText,
+            fileName: pendingFile.name,
+          }
+        : {}),
     };
 
     const loadingMessage = {
@@ -99,6 +215,8 @@ function Home({
     }
 
     setHomeInput("");
+    const submittedFile = pendingFile;
+    setPendingFile(null);
 
     try {
       const response = await apiFetch("/api/chat", {
@@ -107,9 +225,11 @@ function Home({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: trimmedPrompt,
+          message: trimmedPrompt || "Analyze this document.",
           tasks,
           outputs,
+          fileText,
+          fileName: submittedFile?.name || "",
           conversationHistory: [],
         }),
       });
@@ -223,7 +343,7 @@ function Home({
         <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col justify-center py-6 lg:py-0">
           <p className="text-center text-base font-medium text-slate-400 sm:text-lg">Good evening, Ashwin</p>
 
-          <div className="mx-auto mt-6 w-full max-w-[650px] rounded-2xl border border-slate-400/40 bg-[#0a1220]/72 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-5">
+          <div className="orbital-home-composer mx-auto mt-6 w-full max-w-[650px] rounded-2xl border border-slate-400/40 bg-[#0a1220]/78 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-5">
             <textarea
               aria-label="Ask OrbitalAI"
               placeholder="How can I help you today?"
@@ -238,13 +358,26 @@ function Home({
               rows={3}
               className="w-full resize-none bg-transparent text-[15px] leading-6 text-slate-100 outline-none placeholder:text-slate-500 sm:text-base"
             />
+            {pendingFile && (
+              <div className="mt-2 flex items-center gap-2 rounded-lg border border-blue-300/15 bg-blue-400/[0.06] px-3 py-2 text-xs text-slate-300">
+                <span className="text-blue-300">▤</span><span className="min-w-0 flex-1 truncate">{pendingFile.name}</span>
+                <button type="button" onClick={() => setPendingFile(null)} aria-label="Remove attached file" className="text-slate-500 hover:text-white">×</button>
+              </div>
+            )}
             <div className="mt-3 flex items-center gap-2">
-              <button type="button" aria-label="Attach a file" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white">⌕</button>
-              <button type="button" aria-label="Record a voice note" className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white">♩</button>
+              <input ref={fileInputRef} type="file" hidden accept=".pdf,.docx,.pptx,.xlsx,.odt,.odp,.ods,.epub,.txt,.md,.csv,.json,.rtf" onChange={(event) => { const file = event.target.files?.[0]; if (file) { setPendingFile(file); showHomeNotice(`${file.name} attached.`); } event.target.value = ""; }} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} aria-label="Add a file" title="Add a file" className="flex h-10 items-center gap-2 rounded-lg border border-transparent px-2.5 text-slate-300 transition hover:border-white/[0.1] hover:bg-white/[0.05] hover:text-white">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8"><path d="m8.5 12.5 5.9-5.9a3.2 3.2 0 0 1 4.5 4.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l7.4-7.4" strokeLinecap="round" strokeLinejoin="round" /></svg><span className="hidden text-xs sm:inline">Add file</span>
+              </button>
+              <button type="button" onClick={toggleVoiceRecording} disabled={isTranscribing} aria-label={isRecording ? "Stop voice recording" : "Record a voice note"} title="Voice note" className={`flex h-10 items-center gap-2 rounded-lg border px-2.5 transition ${isRecording ? "border-red-400/30 bg-red-500/10 text-red-300" : "border-transparent text-slate-300 hover:border-white/[0.1] hover:bg-white/[0.05] hover:text-white"}`}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6" strokeLinecap="round" /></svg><span className="hidden text-xs sm:inline">{isTranscribing ? "Transcribing" : isRecording ? "Stop" : "Voice note"}</span>
+              </button>
               <div className="ml-auto flex h-9 items-center gap-5 rounded-lg border border-white/[0.12] px-3 text-xs text-slate-400">Auto <span>⌄</span></div>
-              <button type="button" aria-label="Send prompt" onClick={() => createChatWithPrompt(homeInput)} disabled={!homeInput.trim() || creatingChatRef.current} className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-base text-white shadow-[0_0_20px_rgba(124,92,255,0.28)] disabled:opacity-40">➤</button>
+              <button type="button" aria-label="Send prompt" onClick={() => createChatWithPrompt(homeInput)} disabled={(!homeInput.trim() && !pendingFile) || creatingChatRef.current || isRecording || isTranscribing} className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-base text-white shadow-[0_0_20px_rgba(124,92,255,0.28)] disabled:opacity-40">➤</button>
             </div>
           </div>
+
+          {homeNotice && <p className="mx-auto mt-3 max-w-[650px] text-center text-xs text-violet-200">{homeNotice}</p>}
 
           <div className="mx-auto mt-8 grid w-full max-w-[650px] grid-cols-1 border-t border-white/[0.1] sm:grid-cols-2 sm:divide-x sm:divide-white/[0.1]">
             <section className="py-5 sm:pr-6">
