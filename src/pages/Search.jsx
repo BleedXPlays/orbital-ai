@@ -174,56 +174,46 @@ function Search({
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto overflow-x-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(91,110,255,0.12),transparent_35%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.07),transparent_30%)]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-35" />
 
-      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
-        <header className="mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
-            <span>🔍</span>
-            <span>Global Search</span>
-          </div>
-
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Search OrbitalAI
+      <div className="relative px-4 pb-12 pt-20 sm:px-6 sm:py-8 sm:pb-16 lg:px-8">
+        <header className="mb-6">
+          <h1 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+            Search workspace
           </h1>
-
-          <p className="text-gray-400 mt-3 max-w-2xl">
-            Find chats, projects, messages, files, images and notes across your
-            entire workspace.
-          </p>
         </header>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-6">
-          <main className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-            <div className="border-b border-[#1B2540] bg-[#020817]/50 p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-5">
+          <main className="overflow-hidden bg-transparent">
+            <div className="pb-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-[#1B2540] bg-[#101827] px-4 py-3 focus-within:border-purple-500/70 sm:rounded-3xl sm:px-5 sm:py-4">
-                  <span className="text-2xl text-gray-500">⌕</span>
+                <div className="orbital-content-panel flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 focus-within:border-purple-500/70 sm:px-5 sm:py-3.5">
+                  <span className="text-xl text-gray-500">⌕</span>
 
                   <input
                     type="text"
                     value={query}
                     placeholder="Search your workspace..."
                     onChange={(e) => setQuery(e.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 sm:text-lg"
+                    className="min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500"
                     autoFocus
                   />
                 </div>
 
                 <button
                   onClick={() => setQuery("")}
-                  className="rounded-2xl bg-[#101827] border border-[#1B2540] px-6 py-3 text-gray-300 hover:bg-[#141f33]"
+                  className="rounded-xl border border-[#1B2540] bg-[#101827]/70 px-5 py-3 text-gray-400 hover:text-white"
                 >
                   Clear
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-3 mt-5">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-5 py-3 rounded-2xl transition ${
+                    className={`rounded-lg border px-4 py-2 text-sm transition ${
                       activeTab === tab
                         ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
                         : "text-gray-400 bg-[#101827]/70 border border-transparent hover:border-[#1B2540]"
@@ -238,7 +228,7 @@ function Search({
               </div>
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div>
               {query.trim() === "" ? (
                 <div className="min-h-[420px] rounded-3xl bg-[#101827]/70 border border-[#1B2540] flex flex-col items-center justify-center text-center p-10">
                   <div className="w-20 h-20 rounded-3xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-4xl mb-6">
@@ -268,23 +258,23 @@ function Search({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#06101e]/62">
                   {visibleResults.map((result, index) => (
                     <button
                       key={result.key || `${result.title}-${index}`}
                       onClick={result.action}
-                      className="w-full text-left bg-[#101827] border border-[#1B2540] rounded-2xl p-5 flex items-center gap-5 hover:border-purple-500/60 transition"
+                      className="flex w-full items-center gap-4 border-b border-white/[0.08] bg-transparent px-4 py-4 text-left transition last:border-b-0 hover:bg-white/[0.035]"
                     >
-                      <div className="w-14 h-14 rounded-2xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-2xl shrink-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/15 bg-purple-600/[0.08] text-base">
                         {result.icon}
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-bold truncate">
+                        <h3 className="truncate text-sm font-medium">
                           {result.title}
                         </h3>
 
-                        <p className="text-gray-400 text-sm mt-1">
+                        <p className="mt-1 text-xs text-gray-500">
                           {result.desc}
                         </p>
 
@@ -295,7 +285,7 @@ function Search({
                         )}
                       </div>
 
-                      <span className="text-2xl text-purple-400">→</span>
+                      <span className="text-sm text-purple-400">→</span>
                     </button>
                   ))}
                 </div>
@@ -303,7 +293,7 @@ function Search({
             </div>
           </main>
 
-          <aside className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-6 h-fit shadow-2xl shadow-purple-950/10">
+          <aside className="hidden">
             <h2 className="text-xl font-bold mb-6">Search summary</h2>
 
             <div className="space-y-5">

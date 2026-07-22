@@ -19,6 +19,7 @@ function BulkEdit({
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [targetProject, setTargetProject] = useState("");
   const [notice, setNotice] = useState("");
+  const [activeCollection, setActiveCollection] = useState("chats");
 
   const showNotice = (message) => {
     setNotice(message);
@@ -155,7 +156,7 @@ function BulkEdit({
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto overflow-x-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(91,110,255,0.12),transparent_35%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.07),transparent_30%)]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-30" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
@@ -163,23 +164,19 @@ function BulkEdit({
         </div>
       )}
 
-      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
-        <header className="mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
-            <span>✏️</span>
-            <span>Bulk Edit</span>
-          </div>
-
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Bulk Edit Mode
+      <div className="relative px-4 pb-28 pt-20 sm:px-6 sm:py-8 sm:pb-24 lg:px-8">
+        <header className="mb-5">
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+            Edit Items
           </h1>
-
-          <p className="text-gray-400 mt-3 max-w-2xl">
-            Select multiple chats or projects and manage them together.
-          </p>
         </header>
 
-        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 sm:mb-8">
+        <div className="mb-4 grid grid-cols-2 rounded-lg border border-white/[0.12] bg-[#091323]/75 p-1 lg:hidden">
+          <button type="button" onClick={() => setActiveCollection("chats")} className={`rounded-md py-2 text-sm ${activeCollection === "chats" ? "bg-violet-500/25 text-white" : "text-slate-500"}`}>Chats</button>
+          <button type="button" onClick={() => setActiveCollection("projects")} className={`rounded-md py-2 text-sm ${activeCollection === "projects" ? "bg-violet-500/25 text-white" : "text-slate-500"}`}>Projects</button>
+        </div>
+
+        <section className="mb-6 hidden grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid">
           <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
             <p className="text-gray-400 text-sm">Selected items</p>
             <h2 className="text-3xl font-bold mt-2">{totalSelected}</h2>
@@ -200,15 +197,15 @@ function BulkEdit({
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
           <main className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
-            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-                <h2 className="text-2xl font-bold">Chats</h2>
+            <section className={`${activeCollection === "chats" ? "block" : "hidden"} overflow-hidden rounded-2xl border border-[#1B2540] bg-[#07101F]/80 shadow-2xl shadow-purple-950/10 lg:block`}>
+              <div className="border-b border-[#1B2540] bg-[#020817]/50 p-4 sm:p-6">
+                <h2 className="text-lg font-semibold sm:text-xl">Chats</h2>
                 <p className="text-gray-400 text-sm mt-1">
                   Select global chats for bulk actions.
                 </p>
               </div>
 
-              <div className="p-6">
+              <div className="p-3 sm:p-5">
                 {chats.length === 0 ? (
                   <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-8 text-gray-400 text-center">
                     No global chats available.
@@ -221,7 +218,7 @@ function BulkEdit({
                       return (
                         <label
                           key={chat}
-                          className={`flex items-center gap-4 rounded-2xl p-4 cursor-pointer border transition ${
+                          className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
                             selected
                               ? "bg-purple-600/15 border-purple-500/50"
                               : "bg-[#101827] border-[#1B2540] hover:border-purple-500/40"
@@ -234,7 +231,7 @@ function BulkEdit({
                             className="accent-purple-600"
                           />
 
-                          <span className="truncate">💬 {chat}</span>
+                          <span className="text-slate-500">▢</span><span className="truncate text-sm">{chat}</span>
                         </label>
                       );
                     })}
@@ -243,15 +240,15 @@ function BulkEdit({
               </div>
             </section>
 
-            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-                <h2 className="text-2xl font-bold">Projects</h2>
+            <section className={`${activeCollection === "projects" ? "block" : "hidden"} overflow-hidden rounded-2xl border border-[#1B2540] bg-[#07101F]/80 shadow-2xl shadow-purple-950/10 lg:block`}>
+              <div className="border-b border-[#1B2540] bg-[#020817]/50 p-4 sm:p-6">
+                <h2 className="text-lg font-semibold sm:text-xl">Projects</h2>
                 <p className="text-gray-400 text-sm mt-1">
                   Select project workspaces for bulk actions.
                 </p>
               </div>
 
-              <div className="p-6">
+              <div className="p-3 sm:p-5">
                 {projects.length === 0 ? (
                   <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-8 text-gray-400 text-center">
                     No projects available.
@@ -264,7 +261,7 @@ function BulkEdit({
                       return (
                         <label
                           key={project}
-                          className={`flex items-center gap-4 rounded-2xl p-4 cursor-pointer border transition ${
+                          className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
                             selected
                               ? "bg-purple-600/15 border-purple-500/50"
                               : "bg-[#101827] border-[#1B2540] hover:border-purple-500/40"
@@ -277,7 +274,7 @@ function BulkEdit({
                             className="accent-purple-600"
                           />
 
-                          <span className="truncate">📂 {project}</span>
+                          <span className="text-blue-400">◇</span><span className="truncate text-sm">{project}</span>
                         </label>
                       );
                     })}
@@ -287,20 +284,20 @@ function BulkEdit({
             </section>
           </main>
 
-          <aside className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-6 h-fit shadow-2xl shadow-purple-950/10">
-            <h2 className="text-xl font-bold mb-2">
+          <aside className="fixed inset-x-3 bottom-3 z-[120] rounded-2xl border border-white/[0.12] bg-[#07101F]/95 p-2 shadow-2xl backdrop-blur-xl sm:inset-x-6 lg:static lg:h-fit lg:p-6">
+            <h2 className="hidden text-xl font-bold mb-2 lg:block">
               {totalSelected} items selected
             </h2>
 
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="hidden text-gray-400 text-sm mb-6 lg:block">
               Choose an action to apply to the selected chats and projects.
             </p>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-1 lg:block lg:space-y-3">
               <button
                 onClick={duplicateSelected}
                 disabled={totalSelected === 0}
-                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+                className="hidden w-full rounded-xl border border-[#1B2540] bg-[#101827] p-4 text-left disabled:opacity-40 hover:border-purple-500/50 lg:block"
               >
                 📑 Duplicate
               </button>
@@ -308,7 +305,7 @@ function BulkEdit({
               <button
                 onClick={openMoveSelectedChatsModal}
                 disabled={selectedChats.length === 0}
-                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+                className="hidden w-full rounded-xl border border-[#1B2540] bg-[#101827] p-4 text-left disabled:opacity-40 hover:border-purple-500/50 lg:block"
               >
                 📁 Move selected chats
               </button>
@@ -316,7 +313,7 @@ function BulkEdit({
               <button
                 onClick={archiveSelected}
                 disabled={totalSelected === 0}
-                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+                className="w-full rounded-xl border border-[#1B2540] bg-[#101827] p-3 text-center text-xs disabled:opacity-40 hover:border-purple-500/50 lg:p-4 lg:text-left lg:text-base"
               >
                 🗄️ Archive
               </button>
@@ -324,7 +321,7 @@ function BulkEdit({
               <button
                 onClick={deleteSelected}
                 disabled={totalSelected === 0}
-                className="w-full bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-left text-red-300 disabled:opacity-40 hover:bg-red-500/20"
+                className="w-full rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-xs text-red-300 disabled:opacity-40 hover:bg-red-500/20 lg:p-4 lg:text-left lg:text-base"
               >
                 🗑️ Delete
               </button>
@@ -332,7 +329,7 @@ function BulkEdit({
               <button
                 onClick={clearSelection}
                 disabled={totalSelected === 0}
-                className="w-full bg-[#101827] border border-[#1B2540] rounded-2xl p-4 text-left disabled:opacity-40 hover:border-purple-500/50"
+                className="w-full rounded-xl border border-[#1B2540] bg-[#101827] p-3 text-center text-xs disabled:opacity-40 hover:border-purple-500/50 lg:p-4 lg:text-left lg:text-base"
               >
                 Clear selection
               </button>

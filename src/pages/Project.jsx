@@ -71,7 +71,7 @@ function Project({
   setPage,
   addActivity,
 }) {
-  const [activeTab, setActiveTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("overview");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
@@ -439,6 +439,7 @@ function Project({
   };
 
   const tabs = [
+    { id: "overview", label: "Overview", count: null },
     { id: "chats", label: "Chats", count: rawProjectChatList.length },
     { id: "files", label: "Files", count: files.length },
     { id: "images", label: "Images", count: images.length },
@@ -450,7 +451,7 @@ function Project({
       onClick={() => setOpenChatMenu(null)}
       className="orbital-page relative h-full min-h-0 overflow-y-auto overflow-x-hidden text-white"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(80,90,255,0.14),transparent_35%),linear-gradient(135deg,rgba(20,60,120,0.18),transparent_35%),linear-gradient(315deg,rgba(120,60,255,0.12),transparent_35%)]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-45" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
@@ -458,36 +459,31 @@ function Project({
         </div>
       )}
 
-      <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
-        <header className="mb-6 sm:mb-8">
+      <div className="relative px-4 pb-28 pt-20 sm:px-6 sm:py-8 sm:pb-28 lg:px-7">
+        <header className="mb-5 border-b border-white/[0.1] pb-5">
           <div className="flex flex-col items-stretch gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
-                <span>✦</span>
-                <span>Project Workspace</span>
-              </div>
-
-              <h1 className="break-words text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1 className="flex items-center gap-3 break-words text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+                <span className="text-blue-400">◇</span>
                 {selectedProject || "Untitled Project"}
               </h1>
 
-              <p className="text-gray-400 mt-3">
-                {rawProjectChatList.length} chats • {files.length} files •{" "}
-                {images.length} images • {notes.length} notes
+              <p className="ml-9 mt-1 text-sm text-slate-500">
+                Research, materials, and planning for this project.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
               <button
                 onClick={createProjectChat}
-                className="rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 px-4 py-3 text-center text-sm text-white shadow-lg shadow-purple-700/20 transition hover:scale-[1.02] sm:rounded-2xl sm:px-5 sm:text-base"
+                className="rounded-lg border border-violet-400/35 bg-violet-500/15 px-4 py-2.5 text-center text-sm text-white transition hover:bg-violet-500/25 sm:px-5"
               >
                 + New Chat
               </button>
 
               <label
                 htmlFor="headerFileUpload"
-                className="cursor-pointer rounded-xl border border-[#1B2540] bg-[#07101F] px-4 py-3 text-center text-sm text-gray-200 hover:bg-[#101827] sm:rounded-2xl sm:px-5 sm:text-base"
+                className="cursor-pointer rounded-lg border border-white/[0.12] bg-[#07101F]/80 px-4 py-2.5 text-center text-sm text-slate-300 hover:bg-[#101827] sm:px-5"
               >
                 {isUploading ? "Uploading..." : "Upload File"}
               </label>
@@ -504,7 +500,7 @@ function Project({
           </div>
         </header>
 
-        <section className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 xl:grid-cols-4">
+        <section className="mb-5 hidden grid-cols-2 gap-3 sm:grid xl:grid-cols-4">
           <div className="rounded-2xl bg-[#07101F]/90 border border-[#1B2540] p-4 sm:rounded-3xl sm:p-5">
             <p className="text-gray-400 text-sm">Chats</p>
             <h2 className="text-3xl font-bold mt-2">{rawProjectChatList.length}</h2>
@@ -526,9 +522,9 @@ function Project({
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-6">
-          <main className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-            <div className="flex gap-2 overflow-x-auto border-b border-[#1B2540] bg-[#020817]/50 p-3">
+        <div className="grid grid-cols-1 gap-5">
+          <main className="overflow-hidden bg-transparent">
+            <div className="flex gap-5 overflow-x-auto border-b border-white/[0.12] px-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -536,21 +532,59 @@ function Project({
                     e.stopPropagation();
                     setActiveTab(tab.id);
                   }}
-                  className={`shrink-0 px-4 py-3 rounded-2xl capitalize transition sm:px-5 ${
+                  className={`shrink-0 border-b-2 px-1 py-3 text-sm capitalize transition ${
                     activeTab === tab.id
-                      ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
-                      : "text-gray-400 hover:bg-[#101827] border border-transparent"
+                      ? "border-blue-400 text-slate-100"
+                      : "border-transparent text-slate-500 hover:text-slate-300"
                   }`}
                 >
                   {tab.label}
-                  <span className="ml-2 text-xs text-gray-500">
-                    {tab.count}
-                  </span>
+                  {tab.count !== null && <span className="ml-2 text-xs text-gray-600">{tab.count}</span>}
                 </button>
               ))}
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div className="py-5">
+              {activeTab === "overview" && (
+                <div className="space-y-5">
+                  <div className="grid gap-5 lg:grid-cols-2">
+                    <section className="orbital-content-panel rounded-2xl p-4 sm:p-5">
+                      <div className="mb-3 flex items-center justify-between border-b border-white/[0.09] pb-3">
+                        <h2 className="text-sm font-medium text-slate-200">Recent conversations</h2>
+                        <button type="button" onClick={() => setActiveTab("chats")} className="text-xs text-violet-300">View all</button>
+                      </div>
+                      <div className="divide-y divide-white/[0.08]">
+                        {projectChatList.slice(0, 5).map((chat) => (
+                          <button key={chat} type="button" onClick={() => { setSelectedChat(chat); setPage("chat"); }} className="flex w-full items-center gap-3 py-3 text-left text-sm text-slate-300 hover:text-white">
+                            <span className="text-slate-500">▣</span><span className="min-w-0 flex-1 truncate">{chat}</span><span className="text-xs text-slate-600">{formatUpdatedTime(chat)}</span>
+                          </button>
+                        ))}
+                        {projectChatList.length === 0 && <p className="py-8 text-center text-sm text-slate-600">No project conversations yet.</p>}
+                      </div>
+                    </section>
+
+                    <section className="orbital-content-panel rounded-2xl p-4 sm:p-5">
+                      <div className="mb-3 flex items-center justify-between border-b border-white/[0.09] pb-3">
+                        <h2 className="text-sm font-medium text-slate-200">Project files</h2>
+                        <button type="button" onClick={() => setActiveTab("files")} className="text-xs text-violet-300">View all</button>
+                      </div>
+                      {files.length === 0 ? (
+                        <label htmlFor="overviewFileUpload" className="flex cursor-pointer flex-col items-center rounded-xl border border-dashed border-slate-500/40 px-4 py-8 text-sm text-slate-500 hover:border-violet-400/50 hover:text-violet-300">⇧<span className="mt-2">Upload files</span><span className="mt-1 text-[10px] text-slate-600">PDF, DOCX, PPTX and more</span><input id="overviewFileUpload" type="file" multiple hidden onChange={handleUpload} /></label>
+                      ) : (
+                        <div className="divide-y divide-white/[0.08]">
+                          {files.slice(0, 5).map((file, index) => <button key={`${file.name}-${index}`} type="button" onClick={() => openFilePreview(file, index)} className="flex w-full items-center gap-3 py-3 text-left text-sm text-slate-300 hover:text-white"><span className="text-blue-400">▤</span><span className="min-w-0 flex-1 truncate">{file.name}</span><span className="text-xs text-slate-600">{file.size}</span></button>)}
+                        </div>
+                      )}
+                    </section>
+                  </div>
+
+                  <section className="orbital-content-panel rounded-2xl border-violet-400/15 p-5 sm:p-6">
+                    <p className="text-sm font-medium text-violet-300">✦ Project insight</p>
+                    <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">Keep related conversations, files, images and notes together here. OrbitalAI can use this project context to produce more focused answers.</p>
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500"><span>{rawProjectChatList.length} chats</span><span>•</span><span>{files.length} files</span><span>•</span><span>{notes.length} notes</span></div>
+                  </section>
+                </div>
+              )}
               {activeTab === "chats" && (
                 <>
                   <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -868,7 +902,7 @@ function Project({
             </div>
           </main>
 
-          <aside className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-6 h-fit shadow-2xl shadow-purple-950/10">
+          <aside className="hidden">
             <h2 className="text-xl font-bold mb-6">Project details</h2>
 
             <div className="space-y-5">

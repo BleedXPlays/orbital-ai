@@ -1591,6 +1591,10 @@ function Chat({
     setIsGenerating(false);
   };
 
+  const activeProvider =
+    [...messages].reverse().find((message) => message.provider)?.provider ||
+    "Auto";
+
   return (
     <div
       onClick={() => {
@@ -1615,7 +1619,7 @@ function Chat({
         onChange={(e) => handleFileSelected(e, "image")}
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(91,110,255,0.11),transparent_38%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.08),transparent_30%)]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-55" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-200 px-4 py-3 text-sm shadow-2xl shadow-purple-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-xl sm:-translate-x-1/2 sm:px-5">
@@ -1631,28 +1635,23 @@ function Chat({
       />
 
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
-        <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/72 px-4 pb-4 pt-[4.75rem] backdrop-blur-xl sm:px-6 sm:pt-6 lg:px-10 lg:pb-5 lg:pt-8">
-          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-400 shadow-[0_0_16px_rgba(74,222,128,0.8)] sm:h-3 sm:w-3" />
-                <p className="truncate text-xs text-green-300 sm:text-sm">
-                  Multi-AI collaboration active
-                </p>
-              </div>
-
-              <h1 className="truncate text-2xl font-semibold tracking-[-0.035em] text-slate-50 sm:text-3xl">
+        <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/78 px-4 pb-3 pt-[4.6rem] backdrop-blur-xl sm:px-6 sm:py-4 lg:px-7">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="text-lg text-slate-500">←</span>
+              <h1 className="truncate text-base font-medium tracking-[-0.02em] text-slate-200 sm:text-lg">
                 {selectedChat || "Untitled Chat"}
               </h1>
+              <span className="shrink-0 rounded-md border border-violet-400/25 bg-violet-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-300">{activeProvider}</span>
             </div>
 
-            <div className="flex shrink-0 gap-2 sm:gap-3">
+            <div className="flex shrink-0 gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShare();
                 }}
-                className="flex-1 rounded-xl border border-white/[0.09] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:flex-none sm:px-5"
+                className="hidden rounded-lg border border-white/[0.1] bg-white/[0.025] px-3 py-2 text-xs text-slate-400 transition hover:text-white sm:block"
               >
                 Share
               </button>
@@ -1666,7 +1665,7 @@ function Chat({
                     e.stopPropagation();
                     setExportMenuOpen((open) => !open);
                   }}
-                  className="w-full rounded-xl border border-white/[0.09] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:px-5"
+                  className="hidden w-full rounded-lg border border-white/[0.1] bg-white/[0.025] px-3 py-2 text-xs text-slate-400 transition hover:text-white sm:block"
                 >
                   Export ▾
                 </button>
@@ -1709,7 +1708,7 @@ function Chat({
 
         <main
           ref={mainScrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-6 pt-5 sm:px-6 sm:pb-8 sm:pt-7 lg:px-10 lg:pb-10 lg:pt-8"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-6 pt-5 sm:px-6 sm:pb-8 sm:pt-7 lg:px-7 lg:pb-10 lg:pt-7"
         >
           {messages.length === 0 && (
             <div className="flex min-h-full flex-col items-center justify-center py-8 text-center sm:min-h-[520px]">
@@ -1766,7 +1765,7 @@ function Chat({
             </div>
           )}
 
-          <div className="mx-auto max-w-6xl space-y-4 sm:space-y-7">
+          <div className="mx-auto max-w-[900px] space-y-5 sm:space-y-7">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -1775,9 +1774,9 @@ function Chat({
                 }`}
               >
                 {message.role === "user" ? (
-                  <div className="min-w-0 max-w-[94%] rounded-2xl rounded-tr-md bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-700 p-[1px] shadow-xl shadow-purple-950/30 sm:max-w-[620px] sm:rounded-3xl">
-                    <div className="rounded-2xl rounded-tr-md bg-[#111A2E]/90 p-4 sm:rounded-3xl sm:p-6">
-                      <p className="text-sm text-purple-200 mb-2">You</p>
+                  <div className="min-w-0 max-w-[94%] rounded-xl border border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 sm:max-w-[560px]">
+                    <div className="p-3.5 sm:p-4">
+                      <p className="mb-1 text-[11px] text-slate-500">You</p>
                       <p className="break-words text-gray-100 leading-relaxed">
                         {message.text}
                       </p>
@@ -1813,10 +1812,10 @@ function Chat({
                   </div>
                 ) : (
                   <div
-                    className={`w-full min-w-0 max-w-3xl rounded-2xl rounded-tl-md border bg-[#07101F]/95 p-4 shadow-xl shadow-purple-950/10 sm:w-fit sm:rounded-3xl sm:p-6 ${
+                    className={`w-full min-w-0 max-w-[820px] border-l-2 bg-[#06101e]/55 p-4 shadow-none sm:p-5 ${
                       message.failed
-                        ? "border-red-500/30"
-                        : "border-[#1B2540]"
+                        ? "border-red-500/50"
+                        : "border-violet-400/25"
                     }`}
                   >
                     <div className="mb-5 flex items-start gap-3 sm:mb-6 sm:gap-4">

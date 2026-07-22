@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/orbital-logo.png";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 import { apiFetch } from "../services/apiClient";
 
@@ -218,126 +217,76 @@ function Home({
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(91,110,255,0.18),transparent_38%),radial-gradient(circle_at_90%_70%,rgba(147,51,234,0.10),transparent_30%)]" />
-      <div className="pointer-events-none absolute inset-0 auth-grid opacity-[0.14]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0" />
 
-      <div className="relative h-full min-h-0 overflow-y-auto px-4 pb-40 pt-20 sm:px-8 sm:pb-44 sm:pt-14 lg:px-12 lg:pt-12">
-        <div className="mx-auto w-full max-w-[980px]">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-6 flex items-center gap-2.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3.5 py-2 text-xs font-medium text-emerald-300 sm:text-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
-              Your AI workspace is ready
-            </div>
+      <div className="relative h-full min-h-0 overflow-y-auto px-4 pb-8 pt-24 sm:px-8 sm:pt-20 lg:px-12 lg:py-14">
+        <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col justify-center py-6 lg:py-0">
+          <p className="text-center text-base font-medium text-slate-400 sm:text-lg">Good evening, Ashwin</p>
 
-            <img
-              src={logo}
-              alt="OrbitalAI"
-              className="mb-5 h-auto w-44 object-contain drop-shadow-[0_0_30px_rgba(124,92,255,0.3)] sm:w-52"
+          <div className="mx-auto mt-6 w-full max-w-[650px] rounded-2xl border border-slate-400/40 bg-[#0a1220]/72 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-5">
+            <textarea
+              aria-label="Ask OrbitalAI"
+              placeholder="How can I help you today?"
+              value={homeInput}
+              onChange={(event) => setHomeInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  createChatWithPrompt(homeInput);
+                }
+              }}
+              rows={3}
+              className="w-full resize-none bg-transparent text-[15px] leading-6 text-slate-100 outline-none placeholder:text-slate-500 sm:text-base"
             />
-
-            <h1 className="max-w-[780px] text-3xl font-semibold leading-tight tracking-[-0.04em] text-slate-50 sm:text-5xl lg:text-[3.5rem]">
-              What do you want to accomplish?
-            </h1>
-            <p className="mt-4 max-w-[620px] text-base leading-7 text-slate-400 sm:text-lg">
-              Ask once. OrbitalAI routes your work to OpenAI, Claude or Gemini
-              and keeps everything organized in one workspace.
-            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <button type="button" aria-label="Attach a file" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white">⌕</button>
+              <button type="button" aria-label="Record a voice note" className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white">♩</button>
+              <div className="ml-auto flex h-9 items-center gap-5 rounded-lg border border-white/[0.12] px-3 text-xs text-slate-400">Auto <span>⌄</span></div>
+              <button type="button" aria-label="Send prompt" onClick={() => createChatWithPrompt(homeInput)} disabled={!homeInput.trim() || creatingChatRef.current} className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-base text-white shadow-[0_0_20px_rgba(124,92,255,0.28)] disabled:opacity-40">➤</button>
+            </div>
           </div>
 
-          <div className="mt-9 grid grid-cols-1 gap-3 sm:mt-11 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                label: "Research & writing",
-                description: "Write a clear report about renewable energy",
-                accent: "from-blue-500/20 to-cyan-400/5",
-                icon: "✦",
-                action: () =>
-                  createChatWithPrompt(
-                    "Write a clear report about why renewable energy is important"
-                  ),
-              },
-              {
-                label: "Build a project",
-                description: "Create a Chandrayaan-3 research workspace",
-                accent: "from-violet-500/20 to-fuchsia-400/5",
-                icon: "◇",
-                action: createProjectFromSuggestion,
-              },
-              {
-                label: "Learn something",
-                description: "Explain photosynthesis in simple detail",
-                accent: "from-emerald-500/15 to-teal-400/5",
-                icon: "↗",
-                action: () =>
-                  createChatWithPrompt(
-                    "Explain photosynthesis in simple detail with examples"
-                  ),
-              },
-            ].map((suggestion) => (
-              <button
-                key={suggestion.label}
-                type="button"
-                onClick={suggestion.action}
-                className={`group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br ${suggestion.accent} p-5 text-left shadow-[0_18px_45px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-1 hover:border-violet-400/35 hover:bg-white/[0.06]`}
-              >
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.09] bg-black/20 text-lg text-violet-200">
-                  {suggestion.icon}
-                </div>
-                <p className="text-sm font-semibold text-slate-200">
-                  {suggestion.label}
-                </p>
-                <p className="mt-1.5 pr-5 text-sm leading-6 text-slate-400">
-                  {suggestion.description}
-                </p>
-                <span className="absolute bottom-5 right-5 text-slate-600 transition group-hover:translate-x-1 group-hover:text-violet-300">
-                  →
-                </span>
-              </button>
+          <div className="mx-auto mt-8 grid w-full max-w-[650px] grid-cols-1 border-t border-white/[0.1] sm:grid-cols-2 sm:divide-x sm:divide-white/[0.1]">
+            <section className="py-5 sm:pr-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-200">Recent chats</h2>
+                <button type="button" onClick={() => chats[0] && (setSelectedChat(chats[0]), setPage("chat"))} className="text-xs text-violet-300">View all</button>
+              </div>
+              <div className="divide-y divide-white/[0.08]">
+                {chats.slice(0, 3).map((chat, index) => (
+                  <button key={chat} type="button" onClick={() => { setSelectedChat(chat); setPage("chat"); }} className="flex w-full items-center gap-3 py-3 text-left text-xs text-slate-300 transition hover:text-white">
+                    <span className="text-slate-500">▢</span><span className="min-w-0 flex-1 truncate">{chat}</span><span className="text-[10px] text-slate-600">{index === 0 ? "Today" : index === 1 ? "Yesterday" : "2 days ago"}</span>
+                  </button>
+                ))}
+                {chats.length === 0 && <p className="py-5 text-xs text-slate-600">Your recent chats will appear here.</p>}
+              </div>
+            </section>
+
+            <section className="border-t border-white/[0.1] py-5 sm:border-t-0 sm:pl-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-200">Projects</h2>
+                <button type="button" onClick={() => projects[0] && (setSelectedProject(projects[0]), setPage("project"))} className="text-xs text-violet-300">View all</button>
+              </div>
+              <div className="divide-y divide-white/[0.08]">
+                {projects.slice(0, 3).map((project) => (
+                  <button key={project} type="button" onClick={() => { setSelectedProject(project); setPage("project"); }} className="flex w-full items-center gap-3 py-3 text-left text-xs text-slate-300 transition hover:text-white">
+                    <span className="text-blue-400">◇</span><span className="min-w-0 flex-1 truncate">{project}</span><span className="text-[10px] text-slate-600">{(projectChats[project] || []).length} chats</span>
+                  </button>
+                ))}
+                {projects.length === 0 && <button type="button" onClick={createProjectFromSuggestion} className="py-5 text-left text-xs text-slate-600 hover:text-violet-300">Create your first project →</button>}
+              </div>
+            </section>
+          </div>
+
+          <div className="mx-auto mt-8 flex w-full max-w-[520px] items-center justify-around rounded-2xl border border-white/[0.15] bg-[#0b1320]/78 px-4 py-3 backdrop-blur-xl">
+            {[["O", "OpenAI"], ["C", "Claude"], ["G", "Gemini"]].map(([letter, provider], index) => (
+              <div key={provider} className={`flex items-center gap-2 px-3 ${index ? "border-l border-white/[0.12]" : ""}`}>
+                <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${provider === "OpenAI" ? "bg-emerald-400/15 text-emerald-300" : provider === "Claude" ? "bg-orange-400/15 text-orange-300" : "bg-blue-400/15 text-blue-300"}`}>{letter}</span>
+                <span className="text-xs text-slate-200">{provider}<span className="mt-0.5 block text-[9px] text-emerald-400">● Available</span></span>
+              </div>
             ))}
           </div>
-
-          <div className="mt-8 flex items-center justify-center gap-3 text-xs text-slate-600 sm:text-sm">
-            <span>OpenAI</span>
-            <span className="h-1 w-1 rounded-full bg-slate-700" />
-            <span>Claude</span>
-            <span className="h-1 w-1 rounded-full bg-slate-700" />
-            <span>Gemini</span>
-          </div>
         </div>
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#030712] via-[#030712]/98 to-transparent px-3 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-8 sm:px-8 sm:pb-7 lg:px-12">
-        <div className="mx-auto flex w-full max-w-[820px] min-w-0 items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#0a1020]/90 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.48)] backdrop-blur-2xl sm:rounded-[22px] sm:p-2.5">
-          <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 text-violet-200 sm:flex">
-            ✦
-          </div>
-
-          <input
-            type="text"
-            aria-label="Ask OrbitalAI"
-            placeholder="Ask OrbitalAI anything..."
-            value={homeInput}
-            onChange={(event) => setHomeInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") createChatWithPrompt(homeInput);
-            }}
-            className="min-w-0 flex-1 bg-transparent px-3 py-3 text-[15px] text-slate-100 outline-none placeholder:text-slate-600 sm:text-base"
-          />
-
-          <button
-            type="button"
-            aria-label="Send prompt"
-            onClick={() => createChatWithPrompt(homeInput)}
-            disabled={!homeInput.trim() || creatingChatRef.current}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#557cff] to-[#963eff] text-xl text-white shadow-[0_10px_30px_rgba(109,74,255,0.3)] transition hover:scale-[1.03] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 sm:h-12 sm:w-12"
-          >
-            ↑
-          </button>
-        </div>
-
-        <p className="mt-3 hidden text-center text-xs text-slate-600 sm:block">
-          Press Enter to send · Files and voice notes can be added inside a chat
-        </p>
       </div>
     </div>
   );
