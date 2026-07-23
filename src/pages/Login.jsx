@@ -28,7 +28,8 @@ const getFriendlyAuthError = (error) => {
     "auth/weak-password": "Use a stronger password with at least 6 characters.",
     "auth/popup-closed-by-user": "Google sign-in was cancelled.",
     "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
-    "auth/operation-not-allowed": "This sign-in method is not enabled yet.",
+    "auth/operation-not-allowed":
+      "Google sign-in is disabled in Firebase. Enable the Google provider in Firebase Authentication.",
     "auth/account-exists-with-different-credential": "An account already exists for this email using another sign-in method.",
   };
 
@@ -40,6 +41,7 @@ googleProvider.setCustomParameters({ prompt: "select_account" });
 
 function Login() {
   const [isSignup, setIsSignup] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -130,25 +132,46 @@ function Login() {
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = async (event) => {
+    event?.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
 
     if (!email.trim()) {
-      setErrorMessage("Enter your email address first, then select Forgot password.");
+      setErrorMessage("Enter the email address connected to your account.");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       await sendPasswordResetEmail(auth, email.trim());
-      setSuccessMessage("Password reset email sent. Check your inbox.");
+      setSuccessMessage(
+        "Password reset link sent. Check your inbox and spam folder."
+      );
     } catch (error) {
       setErrorMessage(getFriendlyAuthError(error));
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const openPasswordReset = () => {
+    setIsPasswordReset(true);
+    setPassword("");
+    setShowPassword(false);
+    setErrorMessage("");
+    setSuccessMessage("");
+  };
+
+  const closePasswordReset = () => {
+    setIsPasswordReset(false);
+    setErrorMessage("");
+    setSuccessMessage("");
   };
 
   const switchMode = () => {
     setIsSignup((current) => !current);
+    setIsPasswordReset(false);
     setFullName("");
     setEmail("");
     setPassword("");
@@ -167,7 +190,7 @@ function Login() {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_25%,rgba(1,4,13,0.5)_100%)]" />
 
       <div className="relative mx-auto h-full min-h-0 w-full max-w-[1600px] p-0 sm:p-5 lg:p-8">
-        <div className="grid h-full min-h-0 overflow-hidden border-white/15 bg-[#030817]/30 shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-[2px] sm:rounded-[30px] sm:border lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="grid h-full min-h-0 overflow-hidden border-white/15 bg-[#030817]/30 shadow-[0_40px_120px_rgba(0,0,0,0.5)] sm:rounded-[30px] sm:border lg:grid-cols-[1.08fr_0.92fr]">
           <section className="relative hidden min-h-0 px-14 py-12 lg:flex lg:flex-col xl:px-20 xl:py-16">
             <div className="h-[104px] overflow-hidden">
               <img
@@ -216,10 +239,16 @@ function Login() {
               <div className="auth-form-card rounded-[24px] border border-white/20 bg-[#040a1a]/60 px-5 py-7 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-8 sm:py-9 lg:px-10">
                 <div className="auth-form-header mb-7 text-center">
                   <h2 className="text-3xl font-semibold tracking-[-0.035em] text-white">
-                    {isSignup ? "Create Account" : "Sign In"}
+                    {isPasswordReset
+                      ? "Reset Password"
+                      : isSignup
+                      ? "Create Account"
+                      : "Sign In"}
                   </h2>
                   <p className="mt-2 text-sm text-slate-300/80">
-                    {isSignup
+                    {isPasswordReset
+                      ? "We’ll email you a secure reset link"
+                      : isSignup
                       ? "Start your journey with OrbitalAI"
                       : "Welcome back to OrbitalAI"}
                   </p>
@@ -237,101 +266,180 @@ function Login() {
                   </div>
                 )}
 
-                <form onSubmit={handleAuth} className="auth-form-fields space-y-5">
-                  {isSignup && (
+                {isPasswordReset ? (
+                  <form
+                    onSubmit={handleForgotPassword}
+                    className="auth-form-fields space-y-5"
+                  >
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-slate-100">Name</span>
+                      <span className="mb-2 block text-sm font-medium text-slate-100">
+                        Email
+                      </span>
                       <input
-                        type="text"
-                        autoComplete="name"
-                        placeholder="Your full name"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@company.com"
                         className="auth-input"
-                        value={fullName}
-                        onChange={(event) => setFullName(event.target.value)}
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
                       />
                     </label>
-                  )}
 
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-slate-100">Email</span>
-                    <input
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@company.com"
-                      className="auth-input"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                    />
-                  </label>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isSubmitting && (
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      )}
+                      {isSubmitting ? "Sending reset link..." : "Send reset link"}
+                    </button>
 
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-slate-100">Password</span>
-                    <span className="relative block">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        autoComplete={isSignup ? "new-password" : "current-password"}
-                        placeholder={isSignup ? "Create a password" : "Enter your password"}
-                        className="auth-input pr-14"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                      />
+                    <button
+                      type="button"
+                      onClick={closePasswordReset}
+                      className="w-full rounded-lg border border-white/20 bg-white/[0.03] px-5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07] hover:text-white"
+                    >
+                      ← Back to sign in
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <form
+                      onSubmit={handleAuth}
+                      className="auth-form-fields space-y-5"
+                    >
+                      {isSignup && (
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-slate-100">
+                            Name
+                          </span>
+                          <input
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Your full name"
+                            className="auth-input"
+                            value={fullName}
+                            onChange={(event) =>
+                              setFullName(event.target.value)
+                            }
+                          />
+                        </label>
+                      )}
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-slate-100">
+                          Email
+                        </span>
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          placeholder="you@company.com"
+                          className="auth-input"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-slate-100">
+                          Password
+                        </span>
+                        <span className="relative block">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            autoComplete={
+                              isSignup ? "new-password" : "current-password"
+                            }
+                            placeholder={
+                              isSignup
+                                ? "Create a password"
+                                : "Enter your password"
+                            }
+                            className="auth-input pr-14"
+                            value={password}
+                            onChange={(event) =>
+                              setPassword(event.target.value)
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPassword((current) => !current)
+                            }
+                            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-white"
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                          >
+                            {showPassword ? "◉" : "◎"}
+                          </button>
+                        </span>
+                      </label>
+
+                      {!isSignup && (
+                        <div className="-mt-2 text-right">
+                          <button
+                            type="button"
+                            onClick={openPasswordReset}
+                            className="text-sm text-blue-300 transition hover:text-blue-200"
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSubmitting && (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        )}
+                        {isSubmitting
+                          ? isSignup
+                            ? "Creating account..."
+                            : "Signing in..."
+                          : isSignup
+                          ? "Create account"
+                          : "Continue"}
+                      </button>
+                    </form>
+
+                    <div className="auth-oauth-divider my-6 flex items-center gap-4 text-xs text-slate-400">
+                      <span className="h-px flex-1 bg-white/15" />
+                      or continue with
+                      <span className="h-px flex-1 bg-white/15" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGoogleAuth}
+                      disabled={isSubmitting}
+                      className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/25 bg-[#060c1b]/50 px-5 py-3.5 font-medium text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-[#4285f4]">
+                        G
+                      </span>
+                      Continue with Google
+                    </button>
+
+                    <p className="auth-form-footer mt-7 text-center text-sm text-slate-300/80">
+                      {isSignup
+                        ? "Already have an account?"
+                        : "Don’t have an account?"}{" "}
                       <button
                         type="button"
-                        onClick={() => setShowPassword((current) => !current)}
-                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-white"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        onClick={switchMode}
+                        className="font-medium text-blue-300 transition hover:text-blue-200"
                       >
-                        {showPassword ? "◉" : "◎"}
+                        {isSignup ? "Sign in" : "Create account"}
                       </button>
-                    </span>
-                  </label>
-
-                  {!isSignup && (
-                    <div className="-mt-2 text-right">
-                      <button type="button" onClick={handleForgotPassword} className="text-sm text-blue-300 transition hover:text-blue-200">
-                        Forgot password?
-                      </button>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
-                    {isSubmitting
-                      ? isSignup
-                        ? "Creating account..."
-                        : "Signing in..."
-                      : isSignup
-                      ? "Create account"
-                      : "Continue"}
-                  </button>
-                </form>
-
-                <div className="auth-oauth-divider my-6 flex items-center gap-4 text-xs text-slate-400">
-                  <span className="h-px flex-1 bg-white/15" />
-                  or continue with
-                  <span className="h-px flex-1 bg-white/15" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleGoogleAuth}
-                  disabled={isSubmitting}
-                  className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/25 bg-[#060c1b]/50 px-5 py-3.5 font-medium text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-[#4285f4]">G</span>
-                  Continue with Google
-                </button>
-
-                <p className="auth-form-footer mt-7 text-center text-sm text-slate-300/80">
-                  {isSignup ? "Already have an account?" : "Don’t have an account?"}{" "}
-                  <button type="button" onClick={switchMode} className="font-medium text-blue-300 transition hover:text-blue-200">
-                    {isSignup ? "Sign in" : "Create account"}
-                  </button>
-                </p>
+                    </p>
+                  </>
+                )}
               </div>
 
               <p className="auth-privacy-note mx-auto mt-4 max-w-sm text-center text-xs leading-5 text-slate-400/65">
