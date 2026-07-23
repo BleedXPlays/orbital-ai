@@ -5,6 +5,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
+import ConfirmModal from "../components/ConfirmModal";
 
 function Settings({
   user,
@@ -26,6 +27,7 @@ function Settings({
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const totalProjectChats = Object.values(projectChats || {}).flat().length;
   const totalNotes = Object.values(projectNotes || {}).flat().length;
@@ -174,7 +176,7 @@ function Settings({
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full bg-[#07101F] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                    className="w-full bg-[#07101F] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
                   />
 
                   <button
@@ -220,7 +222,7 @@ function Settings({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Current password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
                 />
 
                 <input
@@ -228,7 +230,7 @@ function Settings({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="New password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
                 />
 
                 <input
@@ -236,7 +238,7 @@ function Settings({
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                   placeholder="Confirm new password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-purple-500/70"
+                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
                 />
 
                 <button
@@ -293,7 +295,7 @@ function Settings({
             </div>
 
             <button
-              onClick={handleLogout}
+              onClick={() => setLogoutConfirmOpen(true)}
               className="w-full px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20"
             >
               Logout
@@ -301,6 +303,20 @@ function Settings({
           </aside>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={logoutConfirmOpen}
+        title="Log out of OrbitalAI?"
+        message="You will be signed out from this device. Your chats, projects and saved workspace will remain available when you sign in again."
+        confirmText="Log out"
+        cancelText="Stay signed in"
+        danger={true}
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={async () => {
+          setLogoutConfirmOpen(false);
+          await handleLogout();
+        }}
+      />
     </div>
   );
 }

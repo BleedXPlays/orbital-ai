@@ -51,7 +51,7 @@ function RenameModal({
           ref={inputRef}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded-xl bg-[#101827] border border-[#24304B] px-4 py-3 text-white outline-none focus:border-purple-500"
+          className="w-full rounded-xl bg-[#101827] border border-[#24304B] px-4 py-3 text-white outline-none focus:border-blue-300/40"
         />
 
         <div className="flex justify-end gap-3 mt-8">
