@@ -13,6 +13,13 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 
 const getFriendlyAuthError = (error) => {
+  if (error?.code === "auth/unauthorized-domain") {
+    const hostname =
+      typeof window !== "undefined" ? window.location.hostname : "this website";
+
+    return `Google sign-in needs ${hostname} added to Firebase Authorized domains.`;
+  }
+
   const messages = {
     "auth/email-already-in-use": "An account already exists for this email.",
     "auth/invalid-credential": "The email or password you entered is incorrect.",
@@ -22,7 +29,6 @@ const getFriendlyAuthError = (error) => {
     "auth/popup-closed-by-user": "Google sign-in was cancelled.",
     "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
     "auth/operation-not-allowed": "This sign-in method is not enabled yet.",
-    "auth/unauthorized-domain": "Google sign-in is not authorized for this website domain yet.",
     "auth/account-exists-with-different-credential": "An account already exists for this email using another sign-in method.",
   };
 
@@ -152,16 +158,16 @@ function Login() {
   };
 
   return (
-    <main className="auth-shell relative min-h-dvh overflow-x-hidden bg-[#02050f] text-white">
+    <main className="auth-shell relative h-dvh overflow-hidden bg-[#02050f] text-white">
       <div
         className="pointer-events-none fixed inset-0 bg-cover bg-[36%_center] lg:bg-center"
-        style={{ backgroundImage: "url('/orbital-auth-bg.png')" }}
+        style={{ backgroundImage: "url('/orbital-auth-bg-hd.jpg')" }}
       />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(1,5,15,0.28),rgba(1,5,15,0.06)_45%,rgba(1,5,15,0.38))]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_25%,rgba(1,4,13,0.5)_100%)]" />
 
-      <div className="relative mx-auto min-h-dvh w-full max-w-[1600px] p-0 sm:p-5 lg:p-8">
-        <div className="grid min-h-dvh overflow-hidden border-white/15 bg-[#030817]/30 shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-[2px] sm:min-h-[calc(100dvh-2.5rem)] sm:rounded-[30px] sm:border lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="relative mx-auto h-full min-h-0 w-full max-w-[1600px] p-0 sm:p-5 lg:p-8">
+        <div className="grid h-full min-h-0 overflow-hidden border-white/15 bg-[#030817]/30 shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-[2px] sm:rounded-[30px] sm:border lg:grid-cols-[1.08fr_0.92fr]">
           <section className="relative hidden min-h-0 px-14 py-12 lg:flex lg:flex-col xl:px-20 xl:py-16">
             <div className="h-[104px] overflow-hidden">
               <img
@@ -197,7 +203,7 @@ function Login() {
             </div>
           </section>
 
-          <section className="flex min-h-dvh items-center justify-center px-5 py-8 sm:min-h-[calc(100dvh-2.5rem)] sm:px-8 lg:px-14 xl:px-20">
+          <section className="auth-form-section flex h-full min-h-0 items-center justify-center overflow-y-auto px-5 py-6 sm:px-8 lg:overflow-hidden lg:px-14 xl:px-20">
             <div className="w-full max-w-[500px]">
               <div className="mb-5 flex h-[78px] justify-center overflow-hidden lg:hidden">
                 <img
@@ -207,8 +213,8 @@ function Login() {
                 />
               </div>
 
-              <div className="rounded-[24px] border border-white/20 bg-[#040a1a]/60 px-5 py-7 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-8 sm:py-9 lg:px-10">
-                <div className="mb-7 text-center">
+              <div className="auth-form-card rounded-[24px] border border-white/20 bg-[#040a1a]/60 px-5 py-7 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-8 sm:py-9 lg:px-10">
+                <div className="auth-form-header mb-7 text-center">
                   <h2 className="text-3xl font-semibold tracking-[-0.035em] text-white">
                     {isSignup ? "Create Account" : "Sign In"}
                   </h2>
@@ -231,7 +237,7 @@ function Login() {
                   </div>
                 )}
 
-                <form onSubmit={handleAuth} className="space-y-5">
+                <form onSubmit={handleAuth} className="auth-form-fields space-y-5">
                   {isSignup && (
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-slate-100">Name</span>
@@ -304,7 +310,7 @@ function Login() {
                   </button>
                 </form>
 
-                <div className="my-6 flex items-center gap-4 text-xs text-slate-400">
+                <div className="auth-oauth-divider my-6 flex items-center gap-4 text-xs text-slate-400">
                   <span className="h-px flex-1 bg-white/15" />
                   or continue with
                   <span className="h-px flex-1 bg-white/15" />
@@ -320,7 +326,7 @@ function Login() {
                   Continue with Google
                 </button>
 
-                <p className="mt-7 text-center text-sm text-slate-300/80">
+                <p className="auth-form-footer mt-7 text-center text-sm text-slate-300/80">
                   {isSignup ? "Already have an account?" : "Don’t have an account?"}{" "}
                   <button type="button" onClick={switchMode} className="font-medium text-blue-300 transition hover:text-blue-200">
                     {isSignup ? "Sign in" : "Create account"}
@@ -328,7 +334,7 @@ function Login() {
                 </p>
               </div>
 
-              <p className="mx-auto mt-4 max-w-sm text-center text-xs leading-5 text-slate-400/65">
+              <p className="auth-privacy-note mx-auto mt-4 max-w-sm text-center text-xs leading-5 text-slate-400/65">
                 Your workspace is private. Provider keys remain securely on the server.
               </p>
             </div>

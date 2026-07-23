@@ -156,7 +156,7 @@ function BulkEdit({
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto overflow-x-hidden text-white">
-      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-30" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-55" />
 
       {notice && (
         <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 sm:left-1/2 sm:right-auto sm:top-5 sm:max-w-md sm:-translate-x-1/2">
