@@ -42,6 +42,7 @@ googleProvider.setCustomParameters({ prompt: "select_account" });
 function Login() {
   const [isSignup, setIsSignup] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -145,9 +146,7 @@ function Login() {
     try {
       setIsSubmitting(true);
       await sendPasswordResetEmail(auth, email.trim());
-      setSuccessMessage(
-        "Password reset link sent. Check your inbox and spam folder."
-      );
+      setResetEmailSent(true);
     } catch (error) {
       setErrorMessage(getFriendlyAuthError(error));
     } finally {
@@ -157,6 +156,7 @@ function Login() {
 
   const openPasswordReset = () => {
     setIsPasswordReset(true);
+    setResetEmailSent(false);
     setPassword("");
     setShowPassword(false);
     setErrorMessage("");
@@ -165,6 +165,7 @@ function Login() {
 
   const closePasswordReset = () => {
     setIsPasswordReset(false);
+    setResetEmailSent(false);
     setErrorMessage("");
     setSuccessMessage("");
   };
@@ -172,6 +173,7 @@ function Login() {
   const switchMode = () => {
     setIsSignup((current) => !current);
     setIsPasswordReset(false);
+    setResetEmailSent(false);
     setFullName("");
     setEmail("");
     setPassword("");
@@ -238,16 +240,67 @@ function Login() {
 
               <div className="auth-form-card rounded-[24px] border border-white/20 bg-[#040a1a]/60 px-5 py-7 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:px-8 sm:py-9 lg:px-10">
                 <div className="auth-form-header mb-7 text-center">
+                  {isPasswordReset && (
+                    <span
+                      className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl shadow-[0_12px_36px_rgba(55,67,238,0.18)] ${
+                        resetEmailSent
+                          ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"
+                          : "border-blue-300/20 bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-blue-200"
+                      }`}
+                    >
+                      {resetEmailSent ? (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="h-7 w-7"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="m5 12.5 4.2 4.2L19 7"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="h-7 w-7"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M4.5 7.5h15v10h-15v-10Z"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="m5.25 8.25 6.75 5 6.75-5"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                  )}
                   <h2 className="text-3xl font-semibold tracking-[-0.035em] text-white">
                     {isPasswordReset
-                      ? "Reset Password"
+                      ? resetEmailSent
+                        ? "Check your email"
+                        : "Forgot your password?"
                       : isSignup
                       ? "Create Account"
                       : "Sign In"}
                   </h2>
-                  <p className="mt-2 text-sm text-slate-300/80">
+                  <p className="mx-auto mt-2 max-w-[360px] text-sm leading-6 text-slate-300/80">
                     {isPasswordReset
-                      ? "We’ll email you a secure reset link"
+                      ? resetEmailSent
+                        ? "Use the secure link in your email to choose a new password."
+                        : "Enter your email and we’ll send you a secure link to choose a new password."
                       : isSignup
                       ? "Start your journey with OrbitalAI"
                       : "Welcome back to OrbitalAI"}
@@ -260,50 +313,91 @@ function Login() {
                   </div>
                 )}
 
-                {successMessage && (
+                {successMessage && !isPasswordReset && (
                   <div role="status" className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
                     {successMessage}
                   </div>
                 )}
 
                 {isPasswordReset ? (
-                  <form
-                    onSubmit={handleForgotPassword}
-                    className="auth-form-fields space-y-5"
-                  >
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-slate-100">
-                        Email
-                      </span>
-                      <input
-                        type="email"
-                        autoComplete="email"
-                        placeholder="you@company.com"
-                        className="auth-input"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                      />
-                    </label>
+                  resetEmailSent ? (
+                    <div className="text-center">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.025] px-5 py-4">
+                        <p className="text-sm text-slate-400">
+                          Password reset link sent to
+                        </p>
+                        <p className="mt-1 break-all font-medium text-white">
+                          {email.trim()}
+                        </p>
+                      </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isSubmitting && (
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      )}
-                      {isSubmitting ? "Sending reset link..." : "Send reset link"}
-                    </button>
+                      <p className="mx-auto mt-4 max-w-[340px] text-xs leading-5 text-slate-400">
+                        It may take a minute to arrive. Check your spam folder
+                        if you don’t see it.
+                      </p>
 
-                    <button
-                      type="button"
-                      onClick={closePasswordReset}
-                      className="w-full rounded-lg border border-white/20 bg-white/[0.03] px-5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07] hover:text-white"
+                      <button
+                        type="button"
+                        onClick={closePasswordReset}
+                        className="mt-6 flex w-full items-center justify-center rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110"
+                      >
+                        Back to sign in
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={isSubmitting}
+                        className="mx-auto mt-3 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-slate-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSubmitting && (
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                        )}
+                        {isSubmitting ? "Sending again..." : "Resend email"}
+                      </button>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={handleForgotPassword}
+                      className="auth-form-fields space-y-5"
                     >
-                      ← Back to sign in
-                    </button>
-                  </form>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-slate-100">
+                          Email
+                        </span>
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          autoFocus
+                          placeholder="you@company.com"
+                          className="auth-input"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                        />
+                      </label>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSubmitting && (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        )}
+                        {isSubmitting
+                          ? "Sending reset link..."
+                          : "Send reset link"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={closePasswordReset}
+                        className="mx-auto flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
+                      >
+                        ← Back to sign in
+                      </button>
+                    </form>
+                  )
                 ) : (
                   <>
                     <form

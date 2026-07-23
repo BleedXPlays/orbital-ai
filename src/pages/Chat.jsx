@@ -101,6 +101,7 @@ function Chat({
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
 
   const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribingVoice, setIsTranscribingVoice] = useState(false);
   const [voiceDuration, setVoiceDuration] = useState(0);
 
   const [outputModal, setOutputModal] = useState({
@@ -313,6 +314,54 @@ function Chat({
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
+  };
+
+  const transcribeVoiceToDraft = async ({
+    audioBlob,
+    filename,
+    mimeType,
+  }) => {
+    setIsTranscribingVoice(true);
+    showNotice("Transcribing voice note...");
+
+    try {
+      const audioBase64 = await blobToBase64(audioBlob);
+      const response = await apiFetch("/api/transcribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          audioBase64,
+          filename,
+          mimeType,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          getApiErrorMessage(data, "Voice transcription failed.")
+        );
+      }
+
+      const transcript = String(data.text || "").trim();
+      if (!transcript) {
+        throw new Error("No speech was detected in that recording.");
+      }
+
+      setInput((current) =>
+        [current.trim(), transcript].filter(Boolean).join(" ")
+      );
+      showNotice("Voice note transcribed. Review it, then send.");
+    } catch (error) {
+      showNotice(
+        String(error?.message || "").trim() ||
+          "OrbitalAI could not transcribe that voice note."
+      );
+    } finally {
+      setIsTranscribingVoice(false);
+    }
   };
   
   const getReadableFileText = async ({ attachment, attachmentFile }) => {
@@ -700,7 +749,7 @@ function Chat({
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
 
-    if (isGenerating || isRecording) {
+    if (isGenerating || isRecording || isTranscribingVoice) {
       showNotice("Wait for the current action to finish before adding a file.");
       return;
     }
@@ -710,7 +759,7 @@ function Chat({
   };
 
   const startVoiceRecording = async () => {
-    if (isGenerating) return;
+    if (isGenerating || isTranscribingVoice) return;
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showNotice("Voice recording is not supported in this browser.");
@@ -725,14 +774,7 @@ function Chat({
     try {
       showNotice("Requesting microphone access...");
 
-      if (attachmentPreviewUrl) {
-        URL.revokeObjectURL(attachmentPreviewUrl);
-      }
-
       setActionMenuOpen(false);
-      setSelectedAttachment(null);
-      setAttachmentPreviewUrl("");
-      selectedAttachmentFileRef.current = null;
       setVoiceDuration(0);
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -768,11 +810,6 @@ function Chat({
           voiceTimerRef.current = null;
         }
 
-        const durationSeconds = Math.max(
-          1,
-          Math.round((Date.now() - voiceStartTimeRef.current) / 1000)
-        );
-
         const recordedMimeType =
           recorder.mimeType ||
           audioChunksRef.current[0]?.type ||
@@ -799,36 +836,11 @@ function Chat({
             voiceStreamRef.current = null;
           }
 
-          selectedAttachmentFileRef.current = null;
           mediaRecorderRef.current = null;
           audioChunksRef.current = [];
           voiceStartTimeRef.current = null;
           return;
         }
-
-        selectedAttachmentFileRef.current = audioBlob;
-
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        const attachment = {
-          id: `attachment-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2, 9)}`,
-          name: `voice-note-${Date.now()}.${extension}`,
-          type: normalizedMimeType,
-          size: audioBlob.size,
-          sizeLabel: formatFileSize(audioBlob.size),
-          kind: "voice",
-          durationLabel: formatDuration(durationSeconds),
-          createdAt: new Date().toISOString(),
-        };
-
-        setSelectedAttachment(attachment);
-        setAttachmentPreviewUrl(audioUrl);
-
-        setInput((prev) => prev);
-
-        showNotice("Voice note recorded.");
 
         if (voiceStreamRef.current) {
           voiceStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -838,6 +850,12 @@ function Chat({
         mediaRecorderRef.current = null;
         audioChunksRef.current = [];
         voiceStartTimeRef.current = null;
+
+        transcribeVoiceToDraft({
+          audioBlob,
+          filename: `voice-note-${Date.now()}.${extension}`,
+          mimeType: normalizedMimeType,
+        });
       };
 
       recorder.onerror = () => {
@@ -923,8 +941,12 @@ function Chat({
   };
 
   const handleClearInput = () => {
-    if (isRecording) {
-      showNotice("Stop recording first.");
+    if (isRecording || isTranscribingVoice) {
+      showNotice(
+        isRecording
+          ? "Stop recording first."
+          : "Wait for the voice transcription to finish."
+      );
       return;
     }
 
@@ -1117,7 +1139,7 @@ function Chat({
   const sendMessage = async () => {
     const trimmedInput = input.trim();
 
-    if (isRecording) {
+    if (isRecording || isTranscribingVoice) {
       showNotice("Stop recording before sending.");
       return;
     }
@@ -2100,6 +2122,25 @@ function Chat({
                 </div>
               )}
 
+              {isTranscribingVoice && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="mb-3 rounded-2xl border border-blue-400/20 bg-blue-500/10 p-3 shadow-xl shadow-blue-950/20 sm:rounded-3xl sm:p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200/25 border-t-blue-200" />
+                    <div>
+                      <p className="font-semibold text-blue-100">
+                        Transcribing voice note
+                      </p>
+                      <p className="mt-1 text-sm text-slate-400">
+                        Your text will appear in the message box.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {selectedAttachment && (
                 <div
                   onClick={(e) => e.stopPropagation()}
@@ -2168,9 +2209,11 @@ function Chat({
               >
                 <button
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
-                  disabled={isGenerating || isRecording}
+                  disabled={
+                    isGenerating || isRecording || isTranscribingVoice
+                  }
                   className={`h-11 w-11 shrink-0 rounded-xl border text-2xl text-white transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-3xl ${
-                    isGenerating || isRecording
+                    isGenerating || isRecording || isTranscribingVoice
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
                       : actionMenuOpen
                       ? "bg-[#16213A] border-purple-500/60 shadow-lg shadow-purple-900/20"
@@ -2182,11 +2225,11 @@ function Chat({
 
                 <button
                   onClick={handleVoiceInput}
-                  disabled={isGenerating}
+                  disabled={isGenerating || isTranscribingVoice}
                   className={`h-11 w-11 shrink-0 rounded-xl border text-xl transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl ${
                     isRecording
                       ? "bg-red-500/10 border-red-500/40 text-red-200 hover:bg-red-500/20"
-                      : isGenerating
+                      : isGenerating || isTranscribingVoice
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
                       : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
                   }`}
@@ -2200,13 +2243,17 @@ function Chat({
                   placeholder={
                     isRecording
                       ? "Recording voice note..."
+                      : isTranscribingVoice
+                      ? "Transcribing voice note..."
                       : isGenerating
                       ? "OrbitalAI is working..."
                       : selectedAttachment
                       ? "Add a message for this attachment..."
                       : "Ask OrbitalAI anything..."
                   }
-                  disabled={isGenerating || isRecording}
+                  disabled={
+                    isGenerating || isRecording || isTranscribingVoice
+                  }
                   onChange={(e) => setInput(e.target.value)}
                   onPaste={handleAttachmentPaste}
                   onKeyDown={(e) => {
@@ -2220,9 +2267,11 @@ function Chat({
 
                 <button
                   onClick={sendMessage}
-                  disabled={isGenerating || isRecording}
+                  disabled={
+                    isGenerating || isRecording || isTranscribingVoice
+                  }
                   className={`h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl shadow-lg shadow-purple-700/30 transition sm:h-16 sm:w-16 sm:rounded-2xl sm:text-3xl ${
-                    isGenerating || isRecording
+                    isGenerating || isRecording || isTranscribingVoice
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:scale-[1.03]"
                   }`}
