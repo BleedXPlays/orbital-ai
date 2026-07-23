@@ -30,6 +30,10 @@ export const generateWithClaude = async ({
     fileText,
     fileName,
   });
+  const maxTokens = Math.min(
+    8192,
+    Math.max(512, Number(process.env.CLAUDE_MAX_TOKENS) || 4096)
+  );
 
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
     signal: getProviderAbortSignal(),
@@ -41,7 +45,7 @@ export const generateWithClaude = async ({
     },
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
-      max_tokens: 8192,
+      max_tokens: maxTokens,
       system: PROVIDER_SYSTEM_PROMPT,
       tools: [
         {

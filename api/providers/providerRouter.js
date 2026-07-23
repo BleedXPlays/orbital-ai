@@ -1,3 +1,5 @@
+/* global process */
+
 import { generateWithOpenAI } from "./openaiProvider.js";
 import { generateWithClaude } from "./claudeProvider.js";
 import { generateWithGemini } from "./geminiProvider.js";
@@ -9,6 +11,7 @@ const PROVIDER_LABELS = {
 };
 
 export const getProviderForRequest = ({
+  message,
   tasks = [],
   attachment,
   fileText,
@@ -24,19 +27,20 @@ export const getProviderForRequest = ({
     return "gemini";
   }
 
-  if (
-    fileText ||
-    taskNames.some((task) =>
-      [
-        "Document Analysis",
-        "Coding",
-        "Decision Support",
-        "Research",
-        "Writing",
-        "Content Plan",
-      ].includes(task)
-    )
-  ) {
+  const explicitlyRequestsClaude =
+    /\b(?:use|ask|choose|select|route(?:\s+this)?\s+to|with)\s+claude\b/i.test(
+      String(message || "")
+    );
+  const isCodingRequest = taskNames.includes("Coding");
+  const longDocumentMinimum = Math.max(
+    5000,
+    Number(process.env.CLAUDE_DOCUMENT_MIN_CHARS) || 20000
+  );
+  const isLongDocumentRequest =
+    taskNames.includes("Document Analysis") &&
+    String(fileText || "").length >= longDocumentMinimum;
+
+  if (explicitlyRequestsClaude || isCodingRequest || isLongDocumentRequest) {
     return "claude";
   }
 
@@ -85,6 +89,16 @@ export const classifyProviderError = (error, provider) => {
     providerCode.includes("unauthorized")
   ) {
     return { provider, code: "authentication" };
+  }
+
+  if (
+    status === 404 ||
+    ((status === 400 || providerCode.includes("invalid_argument")) &&
+      (message.includes("model") ||
+        message.includes("not found") ||
+        message.includes("not supported")))
+  ) {
+    return { provider, code: "model_access" };
   }
 
   if (
@@ -157,6 +171,10 @@ export const getProviderErrorResponse = (error) => {
       return `${label} timed out`;
     }
 
+    if (code === "model_access") {
+      return `${label}'s selected model is unavailable for this API key`;
+    }
+
     return `${label} is temporarily unavailable`;
   });
   const finalFailure = failures[failures.length - 1];
@@ -185,6 +203,11 @@ export const getProviderErrorResponse = (error) => {
       status: 504,
       errorCode: "provider_timeout",
       action: "Please try again.",
+    },
+    model_access: {
+      status: 503,
+      errorCode: "provider_model_access",
+      action: "Check the provider model setting and try again.",
     },
     unavailable: {
       status: 503,
@@ -222,7 +245,12 @@ export const generateWithProvider = async (
   },
   providers = defaultProviders
 ) => {
-  const provider = getProviderForRequest({ tasks, attachment, fileText });
+  const provider = getProviderForRequest({
+    message,
+    tasks,
+    attachment,
+    fileText,
+  });
   const providerInput = {
     message,
     tasks,
@@ -239,9 +267,22 @@ export const generateWithProvider = async (
     return await providers[provider](providerInput);
   } catch (primaryError) {
     const primaryFailure = classifyProviderError(primaryError, provider);
+    const isImageRequest =
+      attachment?.kind === "image" || Boolean(imageBase64);
 
     if (provider === "openai") {
       primaryError.provider = "openai";
+      primaryError.providerFailures = [primaryFailure];
+      throw primaryError;
+    }
+
+    if (provider === "gemini" && isImageRequest) {
+      console.error("Gemini image analysis failed:", {
+        status: Number(primaryError?.status || 0),
+        code: String(primaryError?.code || "").slice(0, 80),
+        message: String(primaryError?.message || "").slice(0, 300),
+      });
+      primaryError.provider = "gemini";
       primaryError.providerFailures = [primaryFailure];
       throw primaryError;
     }

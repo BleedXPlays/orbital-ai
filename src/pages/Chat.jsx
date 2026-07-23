@@ -196,6 +196,20 @@ function Chat({
   };
 
   const openStoredAttachment = async (attachment) => {
+    if (attachment?.storageStatus === "saving") {
+      showNotice(
+        "This attachment is still being saved. Open it after the AI response finishes."
+      );
+      return;
+    }
+
+    if (attachment?.storageStatus === "failed") {
+      showNotice(
+        "This attachment could not be saved to storage. Attach the original file again."
+      );
+      return;
+    }
+
     if (!attachment?.path && !attachment?.url) {
       showNotice("This older attachment was not saved to storage.");
       return;
@@ -1208,7 +1222,12 @@ function Chat({
     const userMessage = {
       role: "user",
       text: messageText,
-      attachment: attachmentToSend,
+      attachment: attachmentToSend
+        ? {
+            ...attachmentToSend,
+            storageStatus: attachmentFileToSend ? "saving" : "unavailable",
+          }
+        : null,
       requestId,
     };
 
@@ -1292,6 +1311,7 @@ function Chat({
         return {
           ...attachmentToSend,
           ...uploadedAttachment,
+          storageStatus: "saved",
           sizeLabel:
             attachmentToSend.sizeLabel ||
             formatFileSize(uploadedAttachment.size),
@@ -1301,7 +1321,10 @@ function Chat({
         showNotice(
           "The AI processed the attachment, but the original file could not be saved."
         );
-        return attachmentToSend;
+        return {
+          ...attachmentToSend,
+          storageStatus: "failed",
+        };
       }
     };
 
@@ -1834,7 +1857,7 @@ function Chat({
             </div>
           )}
 
-          <div className="mx-auto max-w-[900px] space-y-5 sm:space-y-7">
+          <div className="mx-auto max-w-[900px] space-y-5 sm:space-y-7 lg:max-w-[1040px] xl:max-w-[1100px]">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -1873,6 +1896,16 @@ function Chat({
                             message.attachment.url) && (
                             <p className="text-xs text-purple-300 mt-2">
                               Open attachment ↗
+                            </p>
+                          )}
+                          {message.attachment.storageStatus === "saving" && (
+                            <p className="mt-2 text-xs text-blue-300">
+                              Saving attachment…
+                            </p>
+                          )}
+                          {message.attachment.storageStatus === "failed" && (
+                            <p className="mt-2 text-xs text-red-300">
+                              Attachment was not saved
                             </p>
                           )}
                         </button>

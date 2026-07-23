@@ -7,7 +7,12 @@ export const analyzeTask = (text = "") => {
       lowerText
     )
   ) {
-    detectedTasks.push({ task: "Document Analysis", ai: "Claude" });
+    detectedTasks.push({
+      task: "Document Analysis",
+      ai: /\b(long document|large document|use claude)\b/.test(lowerText)
+        ? "Claude"
+        : "OpenAI",
+    });
   }
 
   if (
@@ -23,19 +28,19 @@ export const analyzeTask = (text = "") => {
       lowerText
     )
   ) {
-    detectedTasks.push({ task: "Decision Support", ai: "Claude" });
+    detectedTasks.push({ task: "Decision Support", ai: "OpenAI" });
   }
 
   if (
     /\b(research|information|facts|sources|investigate)\b/.test(lowerText)
   ) {
-    detectedTasks.push({ task: "Research", ai: "Claude" });
+    detectedTasks.push({ task: "Research", ai: "OpenAI" });
   }
 
   if (
     /\b(write|writing|essay|report|content|detailed|detail)\b/.test(lowerText)
   ) {
-    detectedTasks.push({ task: "Writing", ai: "Claude" });
+    detectedTasks.push({ task: "Writing", ai: "OpenAI" });
   }
 
   if (
@@ -51,7 +56,7 @@ export const analyzeTask = (text = "") => {
       lowerText
     )
   ) {
-    detectedTasks.push({ task: "Content Plan", ai: "Claude" });
+    detectedTasks.push({ task: "Content Plan", ai: "OpenAI" });
   }
 
   if (/\b(translate|translation|language)\b/.test(lowerText)) {
