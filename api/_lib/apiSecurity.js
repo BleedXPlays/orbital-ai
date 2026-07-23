@@ -14,10 +14,11 @@ const certificateCache = {
 const localUsage = new Map();
 
 class ApiSecurityError extends Error {
-  constructor(message, status, errorCode) {
+  constructor(message, status, errorCode, details = {}) {
     super(message);
     this.status = status;
     this.errorCode = errorCode;
+    this.details = details;
   }
 }
 
@@ -172,33 +173,69 @@ export const verifyFirebaseIdToken = async (token) => {
   };
 };
 
-const consumeLocalLimit = ({ userId, route, minuteLimit, dailyLimit }) => {
+const consumeLocalLimit = ({
+  userId,
+  route,
+  minuteLimit,
+  windowLimit,
+  windowHours,
+}) => {
   const now = Date.now();
-  const dayAgo = now - 24 * 60 * 60 * 1000;
+  const windowMilliseconds = windowHours * 60 * 60 * 1000;
+  const windowStart = now - windowMilliseconds;
   const minuteAgo = now - 60 * 1000;
   const key = `${userId}:${route}`;
   const recentEvents = (localUsage.get(key) || []).filter(
-    (timestamp) => timestamp > dayAgo
+    (timestamp) => timestamp > windowStart
   );
-  const minuteCount = recentEvents.filter(
+  const minuteEvents = recentEvents.filter(
     (timestamp) => timestamp > minuteAgo
-  ).length;
+  );
 
-  if (minuteCount >= minuteLimit || recentEvents.length >= dailyLimit) {
+  if (minuteEvents.length >= minuteLimit) {
     localUsage.set(key, recentEvents);
-    return false;
+    return {
+      allowed: false,
+      reason: "minute",
+      limit: minuteLimit,
+      remaining: 0,
+      resetAt: new Date(minuteEvents[0] + 60 * 1000).toISOString(),
+      windowHours: 1 / 60,
+    };
+  }
+
+  if (recentEvents.length >= windowLimit) {
+    localUsage.set(key, recentEvents);
+    return {
+      allowed: false,
+      reason: "window",
+      limit: windowLimit,
+      remaining: 0,
+      resetAt: new Date(
+        recentEvents[0] + windowMilliseconds
+      ).toISOString(),
+      windowHours,
+    };
   }
 
   recentEvents.push(now);
   localUsage.set(key, recentEvents);
-  return true;
+  return {
+    allowed: true,
+    reason: "",
+    limit: windowLimit,
+    remaining: Math.max(0, windowLimit - recentEvents.length),
+    resetAt: new Date(recentEvents[0] + windowMilliseconds).toISOString(),
+    windowHours,
+  };
 };
 
 const consumeSupabaseLimit = async ({
   userId,
   route,
   minuteLimit,
-  dailyLimit,
+  windowLimit,
+  windowHours,
 }) => {
   const serverKey =
     process.env.SUPABASE_SECRET_KEY ||
@@ -207,7 +244,7 @@ const consumeSupabaseLimit = async ({
 
   const supabaseUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const response = await fetch(
-    `${supabaseUrl}/rest/v1/rpc/check_api_rate_limit`,
+    `${supabaseUrl}/rest/v1/rpc/check_api_usage_window`,
     {
       method: "POST",
       headers: {
@@ -218,12 +255,17 @@ const consumeSupabaseLimit = async ({
         p_user_id: userId,
         p_route: route,
         p_minute_limit: minuteLimit,
-        p_daily_limit: dailyLimit,
+        p_window_limit: windowLimit,
+        p_window_hours: windowHours,
       }),
     }
   );
 
   if (!response.ok) {
+    if (response.status === 404) {
+      return null;
+    }
+
     throw new ApiSecurityError(
       "Usage protection is temporarily unavailable. Please try again.",
       503,
@@ -231,7 +273,15 @@ const consumeSupabaseLimit = async ({
     );
   }
 
-  return Boolean(await response.json());
+  const result = await response.json();
+  return {
+    allowed: Boolean(result?.allowed),
+    reason: String(result?.reason || ""),
+    limit: Number(result?.limit || windowLimit),
+    remaining: Number(result?.remaining || 0),
+    resetAt: String(result?.reset_at || ""),
+    windowHours: Number(result?.window_hours || windowHours),
+  };
 };
 
 const consumeRateLimit = async (options) => {
@@ -243,7 +293,13 @@ const consumeRateLimit = async (options) => {
 export const protectApiRoute = async (
   request,
   response,
-  { route, minuteLimit, dailyLimit }
+  {
+    route,
+    minuteLimit,
+    dailyLimit,
+    windowLimit = dailyLimit,
+    windowHours = 24,
+  }
 ) => {
   try {
     const token = getBearerToken(request);
@@ -256,22 +312,39 @@ export const protectApiRoute = async (
     }
 
     const user = await verifyFirebaseIdToken(token);
-    const allowed = await consumeRateLimit({
+    const usage = await consumeRateLimit({
       userId: user.uid,
       route,
       minuteLimit,
-      dailyLimit,
+      windowLimit,
+      windowHours,
     });
 
-    if (!allowed) {
+    if (!usage.allowed) {
+      const isAccountWindow = usage.reason === "window";
       throw new ApiSecurityError(
-        "You have reached the current usage limit. Wait briefly and try again.",
+        isAccountWindow
+          ? `You have used all ${usage.limit} AI messages available in this ${windowHours}-hour period.`
+          : "You are sending messages too quickly. Wait briefly and try again.",
         429,
-        "user_rate_limit"
+        isAccountWindow ? "account_usage_limit" : "user_rate_limit",
+        {
+          route,
+          limit: usage.limit,
+          remaining: 0,
+          resetAt: usage.resetAt,
+          windowHours: isAccountWindow ? windowHours : undefined,
+        }
       );
     }
 
-    return user;
+    if (usage.remaining !== undefined) {
+      response.setHeader("X-OrbitalAI-Limit", String(usage.limit));
+      response.setHeader("X-OrbitalAI-Remaining", String(usage.remaining));
+      response.setHeader("X-OrbitalAI-Reset", String(usage.resetAt || ""));
+    }
+
+    return { ...user, usage };
   } catch (error) {
     const status = Number(error?.status || 500);
     response.status(status).json({
@@ -279,6 +352,7 @@ export const protectApiRoute = async (
         error?.message ||
         "OrbitalAI could not verify this request. Please try again.",
       errorCode: error?.errorCode || "api_security_failed",
+      ...(error?.details || {}),
     });
     return null;
   }

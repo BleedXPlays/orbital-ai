@@ -1,4 +1,4 @@
-/* global Buffer */
+/* global Buffer, process */
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
@@ -7,6 +7,15 @@ import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_EXTRACTED_TEXT_LENGTH = 45000;
+const DOCUMENT_WINDOW_LIMIT =
+  Number.parseInt(process.env.DOCUMENT_WINDOW_LIMIT || "30", 10) || 30;
+const DOCUMENT_WINDOW_HOURS =
+  Number.parseInt(
+    process.env.USAGE_WINDOW_HOURS ||
+      process.env.CHAT_WINDOW_HOURS ||
+      "8",
+    10
+  ) || 8;
 
 const PLAIN_TEXT_EXTENSIONS = new Set([
   ".txt",
@@ -253,7 +262,8 @@ export default async function handler(request, response) {
   const authenticatedUser = await protectApiRoute(request, response, {
     route: "read-file",
     minuteLimit: 20,
-    dailyLimit: 150,
+    windowLimit: Math.max(1, DOCUMENT_WINDOW_LIMIT),
+    windowHours: Math.max(1, DOCUMENT_WINDOW_HOURS),
   });
   if (!authenticatedUser) return;
 

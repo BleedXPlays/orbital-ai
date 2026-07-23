@@ -1,3 +1,5 @@
+/* global process */
+
 import {
   generateWithProvider,
   getProviderErrorResponse,
@@ -6,6 +8,15 @@ import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_MESSAGE_LENGTH = 20000;
 const MAX_IMAGE_BASE64_LENGTH = 4 * 1024 * 1024;
+const AI_MESSAGE_WINDOW_LIMIT =
+  Number.parseInt(process.env.AI_MESSAGE_WINDOW_LIMIT || "24", 10) || 24;
+const USAGE_WINDOW_HOURS =
+  Number.parseInt(
+    process.env.USAGE_WINDOW_HOURS ||
+      process.env.CHAT_WINDOW_HOURS ||
+      "8",
+    10
+  ) || 8;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -17,7 +28,8 @@ export default async function handler(request, response) {
   const authenticatedUser = await protectApiRoute(request, response, {
     route: "chat",
     minuteLimit: 15,
-    dailyLimit: 75,
+    windowLimit: Math.max(1, AI_MESSAGE_WINDOW_LIMIT),
+    windowHours: Math.max(1, USAGE_WINDOW_HOURS),
   });
   if (!authenticatedUser) return;
 

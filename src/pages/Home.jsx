@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
-import { apiFetch } from "../services/apiClient";
+import { apiFetch, getApiErrorMessage } from "../services/apiClient";
 
 function Home({
   chats,
@@ -153,7 +153,11 @@ function Home({
           }),
         });
         const fileData = await fileResponse.json();
-        if (!fileResponse.ok) throw new Error(fileData.error || "Failed to read this file.");
+        if (!fileResponse.ok) {
+          throw new Error(
+            getApiErrorMessage(fileData, "Failed to read this file.")
+          );
+        }
         fileText = fileData.text || "";
       } catch (error) {
         creatingChatRef.current = false;
@@ -239,7 +243,9 @@ function Home({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to generate AI response.");
+        throw new Error(
+          getApiErrorMessage(data, "Failed to generate AI response.")
+        );
       }
 
       const generatedOutputs = Array.isArray(data.generatedOutputs)

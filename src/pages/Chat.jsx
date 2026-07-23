@@ -5,7 +5,7 @@ import {
   getChatAttachmentUrl,
   uploadChatAttachment,
 } from "../services/attachmentService";
-import { apiFetch } from "../services/apiClient";
+import { apiFetch, getApiErrorMessage } from "../services/apiClient";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 
 const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
@@ -337,7 +337,7 @@ function Chat({
     const fileData = await fileResponse.json();
 
     if (!fileResponse.ok) {
-      throw new Error(fileData.error || "Failed to read file.");
+      throw new Error(getApiErrorMessage(fileData, "Failed to read file."));
     }
 
     if (fileData.wasTruncated) {
@@ -421,7 +421,10 @@ function Chat({
 
         if (!response.ok) {
           throw new Error(
-            data.error || "Failed to answer the transcribed voice note."
+            getApiErrorMessage(
+              data,
+              "Failed to answer the transcribed voice note."
+            )
           );
         }
 
@@ -519,7 +522,9 @@ function Chat({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to generate AI response.");
+        throw new Error(
+          getApiErrorMessage(data, "Failed to generate AI response.")
+        );
       }
 
       const generatedOutputs = Array.isArray(data.generatedOutputs)
