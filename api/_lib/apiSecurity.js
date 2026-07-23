@@ -287,6 +287,18 @@ const consumeSupabaseLimit = async ({
 const consumeRateLimit = async (options) => {
   const supabaseResult = await consumeSupabaseLimit(options);
   if (supabaseResult !== null) return supabaseResult;
+
+  if (
+    process.env.VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production"
+  ) {
+    throw new ApiSecurityError(
+      "Usage protection is temporarily unavailable. Please try again.",
+      503,
+      "rate_limit_unavailable"
+    );
+  }
+
   return consumeLocalLimit(options);
 };
 

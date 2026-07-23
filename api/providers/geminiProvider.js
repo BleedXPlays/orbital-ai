@@ -5,6 +5,7 @@ import {
   normalizeConversationHistory,
   normalizeProviderResult,
   PROVIDER_SYSTEM_PROMPT,
+  getProviderAbortSignal,
 } from "./providerUtils.js";
 
 export const generateWithGemini = async ({
@@ -55,6 +56,7 @@ export const generateWithGemini = async ({
   const apiResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
+      signal: getProviderAbortSignal(),
       method: "POST",
       headers: {
         "Content-Type": "application/json",

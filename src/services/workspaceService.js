@@ -52,6 +52,22 @@ export async function getOrCreateWorkspace(user) {
     .single();
 
   if (insertError) {
+    // A second tab may have created the one-per-user row after our initial
+    // lookup. Read that row instead of treating the harmless race as a load
+    // failure.
+    if (insertError.code === "23505") {
+      const { data: concurrentWorkspace, error: concurrentFetchError } =
+        await supabase
+          .from("workspaces")
+          .select("*")
+          .eq("user_id", userId)
+          .single();
+
+      if (!concurrentFetchError && concurrentWorkspace) {
+        return mapWorkspaceFromSupabase(concurrentWorkspace);
+      }
+    }
+
     throw new Error(insertError.message);
   }
 
@@ -65,7 +81,8 @@ export async function saveWorkspace(user, workspaceData) {
 
   const { error } = await supabase
     .from("workspaces")
-    .update({
+    .upsert({
+      user_id: userId,
       chats: workspaceData.chats || [],
       chat_messages: workspaceData.chatMessages || {},
       projects: workspaceData.projects || [],
@@ -80,12 +97,74 @@ export async function saveWorkspace(user, workspaceData) {
       chat_activity: workspaceData.chatActivity || {},
       activity_log: workspaceData.activityLog || [],
       updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", userId);
+    }, {
+      onConflict: "user_id",
+    });
 
   if (error) {
     throw new Error(error.message);
   }
+}
+
+const collectStoredPaths = (value, userId, paths = new Set()) => {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectStoredPaths(item, userId, paths));
+    return paths;
+  }
+
+  if (!value || typeof value !== "object") return paths;
+
+  if (
+    typeof value.path === "string" &&
+    value.path.startsWith(`${userId}/`)
+  ) {
+    paths.add(value.path);
+  }
+
+  Object.values(value).forEach((item) =>
+    collectStoredPaths(item, userId, paths)
+  );
+  return paths;
+};
+
+const removeStoredPaths = async (bucket, paths) => {
+  const allPaths = [...paths];
+  for (let index = 0; index < allPaths.length; index += 100) {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove(allPaths.slice(index, index + 100));
+    if (error) throw new Error(error.message);
+  }
+};
+
+export async function deleteWorkspaceData(user, workspaceData) {
+  if (!user) throw new Error("User missing.");
+
+  const userId = user.uid || user.id;
+  const projectPaths = collectStoredPaths(
+    {
+      projectFiles: workspaceData.projectFiles,
+      archivedProjects: workspaceData.archivedProjects,
+    },
+    userId
+  );
+  const attachmentPaths = collectStoredPaths(
+    {
+      chatMessages: workspaceData.chatMessages,
+      archivedChats: workspaceData.archivedChats,
+    },
+    userId
+  );
+
+  await removeStoredPaths("orbital-files", projectPaths);
+  await removeStoredPaths("orbital-attachments", attachmentPaths);
+
+  const { error } = await supabase
+    .from("workspaces")
+    .delete()
+    .eq("user_id", userId);
+
+  if (error) throw new Error(error.message);
 }
 
 function mapWorkspaceFromSupabase(data) {

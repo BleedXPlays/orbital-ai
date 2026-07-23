@@ -1,3 +1,5 @@
+/* global process */
+
 export const cleanProviderText = (text = "") => {
   return String(text)
     .replace(/\*\*(.*?)\*\*/g, "$1")
@@ -5,6 +7,17 @@ export const cleanProviderText = (text = "") => {
     .replace(/#{1,6}\s/g, "")
     .trim();
 };
+
+export const getProviderTimeoutMs = () => {
+  const configured = Number.parseInt(
+    process.env.PROVIDER_TIMEOUT_MS || "45000",
+    10
+  );
+  return Math.min(120000, Math.max(5000, configured || 45000));
+};
+
+export const getProviderAbortSignal = () =>
+  AbortSignal.timeout(getProviderTimeoutMs());
 
 export const extractProviderJson = (text = "") => {
   try {
@@ -38,16 +51,17 @@ export const normalizeProviderResult = (rawText, provider) => {
 
   const generatedOutputs = Array.isArray(parsed.generatedOutputs)
     ? parsed.generatedOutputs
+        .slice(0, 12)
         .filter((item) => item && item.title && item.content)
         .map((item) => ({
-          title: cleanProviderText(item.title),
-          content: cleanProviderText(item.content),
+          title: cleanProviderText(item.title).slice(0, 200),
+          content: cleanProviderText(item.content).slice(0, 80000),
         }))
     : [];
 
   return {
     reply:
-      cleanProviderText(parsed.reply) ||
+      cleanProviderText(parsed.reply).slice(0, 50000) ||
       "OrbitalAI generated a response, but no text was returned.",
     generatedOutputs,
     provider,

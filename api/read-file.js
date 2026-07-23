@@ -7,6 +7,12 @@ import { protectApiRoute } from "./_lib/apiSecurity.js";
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_EXTRACTED_TEXT_LENGTH = 45000;
+const MAX_FILENAME_LENGTH = 255;
+const MAX_ARCHIVE_ENTRIES = 500;
+const MAX_ARCHIVE_UNCOMPRESSED_BYTES = 15 * 1024 * 1024;
+const MAX_ARCHIVE_ENTRY_BYTES = 8 * 1024 * 1024;
+const MAX_ARCHIVE_COMPRESSION_RATIO = 150;
+const MAX_PDF_PAGES = 200;
 const DOCUMENT_WINDOW_LIMIT =
   Number.parseInt(process.env.DOCUMENT_WINDOW_LIMIT || "30", 10) || 30;
 const DOCUMENT_WINDOW_HOURS =
@@ -55,6 +61,12 @@ const getFileExtension = (filename = "") => {
   return match?.[0] || "";
 };
 
+const hasControlCharacters = (value) =>
+  [...String(value || "")].some((character) => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
+
 const decodeXmlEntities = (value = "") => {
   return String(value)
     .replace(/&#x([0-9a-f]+);/gi, (_, code) =>
@@ -101,8 +113,51 @@ const sortNumberedXmlFiles = (files, pattern) => {
   });
 };
 
+const validateArchive = (archive) => {
+  const entries = Object.values(archive.files);
+  if (entries.length > MAX_ARCHIVE_ENTRIES) {
+    const error = new Error("Archive contains too many entries.");
+    error.code = "archive_limits_exceeded";
+    throw error;
+  }
+
+  let totalUncompressedBytes = 0;
+  for (const entry of entries) {
+    if (entry.dir) continue;
+
+    const compressedBytes = Number(entry?._data?.compressedSize || 0);
+    const uncompressedBytes = Number(entry?._data?.uncompressedSize || 0);
+    totalUncompressedBytes += uncompressedBytes;
+
+    const suspiciousRatio =
+      uncompressedBytes > 1024 * 1024 &&
+      compressedBytes > 0 &&
+      uncompressedBytes / compressedBytes > MAX_ARCHIVE_COMPRESSION_RATIO;
+
+    if (
+      uncompressedBytes > MAX_ARCHIVE_ENTRY_BYTES ||
+      totalUncompressedBytes > MAX_ARCHIVE_UNCOMPRESSED_BYTES ||
+      suspiciousRatio
+    ) {
+      const error = new Error("Archive expands beyond safe limits.");
+      error.code = "archive_limits_exceeded";
+      throw error;
+    }
+  }
+
+  return archive;
+};
+
+const loadSafeArchive = async (fileBuffer) =>
+  validateArchive(
+    await JSZip.loadAsync(fileBuffer, {
+      checkCRC32: false,
+      createFolders: false,
+    })
+  );
+
 const extractPptxText = async (fileBuffer) => {
-  const archive = await JSZip.loadAsync(fileBuffer);
+  const archive = await loadSafeArchive(fileBuffer);
   const slideFiles = sortNumberedXmlFiles(
     Object.keys(archive.files).filter((name) =>
       /^ppt\/slides\/slide\d+\.xml$/i.test(name)
@@ -122,7 +177,7 @@ const extractPptxText = async (fileBuffer) => {
 };
 
 const extractXlsxText = async (fileBuffer) => {
-  const archive = await JSZip.loadAsync(fileBuffer);
+  const archive = await loadSafeArchive(fileBuffer);
   const sharedStringsFile = archive.file("xl/sharedStrings.xml");
   const sharedStringsXml = sharedStringsFile
     ? await sharedStringsFile.async("string")
@@ -176,7 +231,7 @@ const extractXlsxText = async (fileBuffer) => {
 };
 
 const extractOpenDocumentText = async (fileBuffer) => {
-  const archive = await JSZip.loadAsync(fileBuffer);
+  const archive = await loadSafeArchive(fileBuffer);
   const contentFile = archive.file("content.xml");
   if (!contentFile) return "";
 
@@ -185,7 +240,7 @@ const extractOpenDocumentText = async (fileBuffer) => {
 };
 
 const extractEpubText = async (fileBuffer) => {
-  const archive = await JSZip.loadAsync(fileBuffer);
+  const archive = await loadSafeArchive(fileBuffer);
   const contentFiles = Object.keys(archive.files)
     .filter((name) => /\.(xhtml|html|htm)$/i.test(name))
     .sort();
@@ -219,8 +274,15 @@ const extractPdfText = async (fileBuffer) => {
   });
   const document = await loadingTask.promise;
   const pages = [];
+  let extractedCharacters = 0;
 
   try {
+    if (document.numPages > MAX_PDF_PAGES) {
+      const error = new Error("PDF contains too many pages.");
+      error.code = "document_limits_exceeded";
+      throw error;
+    }
+
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent({
@@ -244,6 +306,11 @@ const extractPdfText = async (fileBuffer) => {
       });
 
       pages.push(pageText);
+      extractedCharacters += pageText.length;
+
+      if (extractedCharacters > MAX_EXTRACTED_TEXT_LENGTH) {
+        break;
+      }
     }
   } finally {
     await document.destroy();
@@ -270,9 +337,30 @@ export default async function handler(request, response) {
   try {
     const { fileBase64, filename, mimeType } = request.body || {};
 
-    if (!fileBase64) {
+    if (
+      typeof fileBase64 !== "string" ||
+      !fileBase64 ||
+      (filename !== undefined &&
+        (typeof filename !== "string" ||
+          filename.length > MAX_FILENAME_LENGTH ||
+          hasControlCharacters(filename) ||
+          filename.includes("/") ||
+          filename.includes("\\"))) ||
+      (mimeType !== undefined &&
+        (typeof mimeType !== "string" || mimeType.length > 160))
+    ) {
       return response.status(400).json({
-        error: "File is required.",
+        error: !fileBase64
+          ? "File is required."
+          : "The file metadata is invalid.",
+        errorCode: !fileBase64 ? "file_required" : "invalid_file_metadata",
+      });
+    }
+
+    if (fileBase64.length > Math.ceil(MAX_FILE_BYTES / 3) * 4 + 1024) {
+      return response.status(413).json({
+        error: "This document is larger than 3 MB. Upload a smaller file.",
+        errorCode: "file_too_large",
       });
     }
 
@@ -340,6 +428,7 @@ export default async function handler(request, response) {
       ) ||
       extension === ".docx"
     ) {
+      await loadSafeArchive(fileBuffer);
       const result = await mammoth.extractRawText({ buffer: fileBuffer });
       text = result.value;
     } else if (
@@ -403,8 +492,22 @@ export default async function handler(request, response) {
       wasTruncated,
     });
   } catch (error) {
-    console.error("File reading API error:", error);
+    console.error("File reading API error:", {
+      name: String(error?.name || "Error").slice(0, 80),
+      code: String(error?.code || "").slice(0, 80),
+    });
     const errorMessage = String(error?.message || "").toLowerCase();
+
+    if (
+      error?.code === "archive_limits_exceeded" ||
+      error?.code === "document_limits_exceeded"
+    ) {
+      return response.status(413).json({
+        error:
+          "This document is too complex or expands beyond safe processing limits.",
+        errorCode: "document_processing_limit",
+      });
+    }
 
     if (
       errorMessage.includes("password") ||

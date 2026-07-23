@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { auth } from "../firebase";
-import { db } from "../firestore";
 import logo from "../assets/orbital-logo.png";
 import {
   createUserWithEmailAndPassword,
@@ -10,7 +9,6 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 
 const getFriendlyAuthError = (error) => {
   if (error?.code === "auth/unauthorized-domain") {
@@ -85,19 +83,6 @@ function Login() {
           displayName: fullName.trim(),
         });
 
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-          name: fullName.trim(),
-          email: email.trim(),
-          createdAt: new Date().toISOString(),
-          chats: [],
-          projects: [],
-          projectChats: {},
-          projectFiles: {},
-          projectNotes: {},
-          chatMessages: {},
-          archivedChats: [],
-          archivedProjects: [],
-        });
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       }
@@ -114,17 +99,7 @@ function Login() {
 
     try {
       setIsSubmitting(true);
-      const result = await signInWithPopup(auth, googleProvider);
-
-      await setDoc(
-        doc(db, "users", result.user.uid),
-        {
-          name: result.user.displayName || "OrbitalAI User",
-          email: result.user.email || "",
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Google sign-in error:", error?.code, error?.message);
       setErrorMessage(getFriendlyAuthError(error));

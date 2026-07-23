@@ -89,8 +89,11 @@ export const classifyProviderError = (error, provider) => {
 
   if (
     status === 408 ||
+    error?.name === "AbortError" ||
+    error?.name === "TimeoutError" ||
     message.includes("timeout") ||
     message.includes("timed out") ||
+    providerCode.includes("etimedout") ||
     providerCode.includes("timeout")
   ) {
     return { provider, code: "timeout" };

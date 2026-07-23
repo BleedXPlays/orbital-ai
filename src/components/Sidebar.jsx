@@ -45,6 +45,12 @@ function Sidebar({
   setProjects,
   projectChats,
   setProjectChats,
+  projectFiles,
+  setProjectFiles,
+  projectNotes,
+  setProjectNotes,
+  chatMessages,
+  setChatMessages,
   selectedChat,
   setSelectedChat,
   selectedProject,
@@ -217,6 +223,10 @@ function Sidebar({
     const trimmedName = newName.trim();
 
     if (!oldName || !trimmedName) return;
+    if (oldName !== trimmedName && (chats.includes(trimmedName) || Object.values(projectChats).flat().includes(trimmedName))) {
+      showNotice("A chat with that name already exists.");
+      return;
+    }
 
     const updatedChats = [...chats];
     updatedChats[index] = trimmedName;
@@ -237,6 +247,12 @@ function Sidebar({
     }
 
     setProjectChats(updatedProjectChats);
+    const updatedChatMessages = { ...chatMessages };
+    if (Object.prototype.hasOwnProperty.call(updatedChatMessages, oldName)) {
+      updatedChatMessages[trimmedName] = updatedChatMessages[oldName];
+      delete updatedChatMessages[oldName];
+      setChatMessages(updatedChatMessages);
+    }
     setChatActivity(updatedChatActivity);
 
     setPinnedChats(
@@ -256,6 +272,10 @@ function Sidebar({
     const trimmedName = newName.trim();
 
     if (!oldName || !trimmedName) return;
+    if (oldName !== trimmedName && projects.includes(trimmedName)) {
+      showNotice("A project with that name already exists.");
+      return;
+    }
 
     const updatedProjects = [...projects];
     updatedProjects[index] = trimmedName;
@@ -266,6 +286,18 @@ function Sidebar({
     delete updatedProjectChats[oldName];
 
     setProjectChats(updatedProjectChats);
+    const updatedProjectFiles = { ...projectFiles };
+    if (Object.prototype.hasOwnProperty.call(updatedProjectFiles, oldName)) {
+      updatedProjectFiles[trimmedName] = updatedProjectFiles[oldName];
+      delete updatedProjectFiles[oldName];
+      setProjectFiles(updatedProjectFiles);
+    }
+    const updatedProjectNotes = { ...projectNotes };
+    if (Object.prototype.hasOwnProperty.call(updatedProjectNotes, oldName)) {
+      updatedProjectNotes[trimmedName] = updatedProjectNotes[oldName];
+      delete updatedProjectNotes[oldName];
+      setProjectNotes(updatedProjectNotes);
+    }
 
     if (selectedProject === oldName) {
       setSelectedProject(trimmedName);
@@ -300,6 +332,9 @@ function Sidebar({
         });
 
         setProjectChats(updatedProjectChats);
+        const updatedChatMessages = { ...chatMessages };
+        delete updatedChatMessages[chatToDelete];
+        setChatMessages(updatedChatMessages);
 
         if (selectedChat === chatToDelete) {
           setSelectedChat(updatedChats[0] || "");
@@ -336,6 +371,15 @@ function Sidebar({
         const updatedProjectChats = { ...projectChats };
         delete updatedProjectChats[projectToDelete];
         setProjectChats(updatedProjectChats);
+        const updatedProjectFiles = { ...projectFiles };
+        delete updatedProjectFiles[projectToDelete];
+        setProjectFiles(updatedProjectFiles);
+        const updatedProjectNotes = { ...projectNotes };
+        delete updatedProjectNotes[projectToDelete];
+        setProjectNotes(updatedProjectNotes);
+        const updatedChatMessages = { ...chatMessages };
+        projectChatList.forEach((chat) => delete updatedChatMessages[chat]);
+        setChatMessages(updatedChatMessages);
 
         if (selectedProject === projectToDelete) {
           setSelectedProject(updatedProjects[0] || "");
@@ -386,7 +430,15 @@ function Sidebar({
     const updatedProjects = projects.filter((_, i) => i !== index);
     const projectChatList = projectChats[projectToArchive] || [];
 
-    setArchivedProjects([...archivedProjects, projectToArchive]);
+    setArchivedProjects([
+      ...archivedProjects,
+      {
+        name: projectToArchive,
+        chats: [...projectChatList],
+        files: [...(projectFiles[projectToArchive] || [])],
+        notes: [...(projectNotes[projectToArchive] || [])],
+      },
+    ]);
     setProjects(updatedProjects);
 
     const updatedChatActivity = { ...chatActivity };
@@ -398,6 +450,12 @@ function Sidebar({
     const updatedProjectChats = { ...projectChats };
     delete updatedProjectChats[projectToArchive];
     setProjectChats(updatedProjectChats);
+    const updatedProjectFiles = { ...projectFiles };
+    delete updatedProjectFiles[projectToArchive];
+    setProjectFiles(updatedProjectFiles);
+    const updatedProjectNotes = { ...projectNotes };
+    delete updatedProjectNotes[projectToArchive];
+    setProjectNotes(updatedProjectNotes);
 
     if (selectedProject === projectToArchive) {
       setSelectedProject(updatedProjects[0] || "");

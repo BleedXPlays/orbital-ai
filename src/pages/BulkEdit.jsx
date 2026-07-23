@@ -8,6 +8,16 @@ function BulkEdit({
   setProjects,
   projectChats,
   setProjectChats,
+  projectFiles,
+  setProjectFiles,
+  projectNotes,
+  setProjectNotes,
+  chatMessages,
+  setChatMessages,
+  pinnedChats,
+  setPinnedChats,
+  chatActivity,
+  setChatActivity,
   archivedChats,
   setArchivedChats,
   archivedProjects,
@@ -46,8 +56,26 @@ function BulkEdit({
   };
 
   const archiveSelected = () => {
-    setArchivedChats([...archivedChats, ...selectedChats]);
-    setArchivedProjects([...archivedProjects, ...selectedProjects]);
+    const selectedProjectChats = selectedProjects.flatMap(
+      (project) => projectChats[project] || []
+    );
+    const chatsLeavingWorkspace = new Set([
+      ...selectedChats,
+      ...selectedProjectChats,
+    ]);
+    setArchivedChats([
+      ...archivedChats,
+      ...selectedChats.map((name) => ({ name, sourceProject: null })),
+    ]);
+    setArchivedProjects([
+      ...archivedProjects,
+      ...selectedProjects.map((name) => ({
+        name,
+        chats: [...(projectChats[name] || [])],
+        files: [...(projectFiles[name] || [])],
+        notes: [...(projectNotes[name] || [])],
+      })),
+    ]);
 
     setChats(chats.filter((chat) => !selectedChats.includes(chat)));
     setProjects(projects.filter((project) => !selectedProjects.includes(project)));
@@ -63,6 +91,18 @@ function BulkEdit({
     });
 
     setProjectChats(updatedProjectChats);
+    const updatedProjectFiles = { ...projectFiles };
+    const updatedProjectNotes = { ...projectNotes };
+    selectedProjects.forEach((project) => {
+      delete updatedProjectFiles[project];
+      delete updatedProjectNotes[project];
+    });
+    setProjectFiles(updatedProjectFiles);
+    setProjectNotes(updatedProjectNotes);
+    setPinnedChats(pinnedChats.filter((chat) => !chatsLeavingWorkspace.has(chat)));
+    const updatedChatActivity = { ...chatActivity };
+    chatsLeavingWorkspace.forEach((chat) => delete updatedChatActivity[chat]);
+    setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
   };
@@ -87,25 +127,93 @@ function BulkEdit({
     });
 
     setProjectChats(updatedProjectChats);
+    const deletedProjectChats = selectedProjects.flatMap(
+      (project) => projectChats[project] || []
+    );
+    const chatsToDelete = new Set([...selectedChats, ...deletedProjectChats]);
+    const updatedChatMessages = { ...chatMessages };
+    chatsToDelete.forEach((chat) => delete updatedChatMessages[chat]);
+    setChatMessages(updatedChatMessages);
+
+    const updatedProjectFiles = { ...projectFiles };
+    const updatedProjectNotes = { ...projectNotes };
+    selectedProjects.forEach((project) => {
+      delete updatedProjectFiles[project];
+      delete updatedProjectNotes[project];
+    });
+    setProjectFiles(updatedProjectFiles);
+    setProjectNotes(updatedProjectNotes);
+    setPinnedChats(pinnedChats.filter((chat) => !chatsToDelete.has(chat)));
+    const updatedChatActivity = { ...chatActivity };
+    chatsToDelete.forEach((chat) => delete updatedChatActivity[chat]);
+    setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
     setConfirmModalOpen(false);
   };
 
   const duplicateSelected = () => {
-    const duplicatedChats = selectedChats.map((chat) => `${chat} Copy`);
-    const duplicatedProjects = selectedProjects.map((project) => `${project} Copy`);
+    const usedChatNames = new Set([
+      ...chats,
+      ...Object.values(projectChats).flat(),
+    ]);
+    const usedProjectNames = new Set(projects);
+    const uniqueName = (base, used) => {
+      let candidate = `${base} Copy`;
+      let suffix = 2;
+      while (used.has(candidate)) candidate = `${base} Copy ${suffix++}`;
+      used.add(candidate);
+      return candidate;
+    };
+    const chatCopies = selectedChats.map((chat) => ({
+      source: chat,
+      copy: uniqueName(chat, usedChatNames),
+    }));
+    const projectCopies = selectedProjects.map((project) => ({
+      source: project,
+      copy: uniqueName(project, usedProjectNames),
+    }));
+    const duplicatedChats = chatCopies.map(({ copy }) => copy);
+    const duplicatedProjects = projectCopies.map(({ copy }) => copy);
 
     setChats([...chats, ...duplicatedChats]);
     setProjects([...projects, ...duplicatedProjects]);
 
     const updatedProjectChats = { ...projectChats };
+    const updatedProjectFiles = { ...projectFiles };
+    const updatedProjectNotes = { ...projectNotes };
+    const updatedChatMessages = { ...chatMessages };
 
-    selectedProjects.forEach((project) => {
-      updatedProjectChats[`${project} Copy`] = [...(projectChats[project] || [])];
+    chatCopies.forEach(({ source, copy }) => {
+      updatedChatMessages[copy] = [...(chatMessages[source] || [])];
+    });
+
+    projectCopies.forEach(({ source, copy }) => {
+      const copiedProjectChats = (projectChats[source] || []).map((chat) => {
+        const copiedChatName = uniqueName(chat, usedChatNames);
+        updatedChatMessages[copiedChatName] = [...(chatMessages[chat] || [])];
+        return copiedChatName;
+      });
+      updatedProjectChats[copy] = copiedProjectChats;
+      updatedProjectFiles[copy] = [...(projectFiles[source] || [])];
+      updatedProjectNotes[copy] = [...(projectNotes[source] || [])];
     });
 
     setProjectChats(updatedProjectChats);
+    setProjectFiles(updatedProjectFiles);
+    setProjectNotes(updatedProjectNotes);
+    setChatMessages(updatedChatMessages);
+    const updatedChatActivity = { ...chatActivity };
+    const now = new Date().toISOString();
+    chatCopies.forEach(({ copy }) => {
+      updatedChatActivity[copy] = now;
+    });
+    projectCopies.forEach(({ copy }) => {
+      (updatedProjectChats[copy] || []).forEach((chat) => {
+        updatedChatActivity[chat] = now;
+      });
+    });
+    setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
   };

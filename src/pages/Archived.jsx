@@ -5,6 +5,12 @@ function Archived({
   setProjects,
   projectChats,
   setProjectChats,
+  projectFiles,
+  setProjectFiles,
+  projectNotes,
+  setProjectNotes,
+  chatMessages,
+  setChatMessages,
   archivedChats,
   setArchivedChats,
   archivedProjects,
@@ -24,7 +30,7 @@ function Archived({
     const chatName = getChatName(archivedChat);
     const sourceProject = getSourceProject(archivedChat);
 
-    if (sourceProject) {
+    if (sourceProject && projects.includes(sourceProject)) {
       const currentProjectChats = projectChats[sourceProject] || [];
 
       setProjectChats({
@@ -54,32 +60,55 @@ function Archived({
     const archivedChat = archivedChats[index];
     const chatName = getChatName(archivedChat);
 
+    if (!window.confirm(`Permanently delete "${chatName}" and all of its messages?`)) return;
     setArchivedChats(archivedChats.filter((_, i) => i !== index));
+    const updatedChatMessages = { ...chatMessages };
+    delete updatedChatMessages[chatName];
+    setChatMessages(updatedChatMessages);
     addActivity("archive", "Archived chat permanently deleted", chatName);
   };
 
   const restoreProject = (index) => {
-    const project = archivedProjects[index];
+    const archivedProject = archivedProjects[index];
+    const project = typeof archivedProject === "string" ? archivedProject : archivedProject.name;
+    const savedChats = typeof archivedProject === "string" ? [] : archivedProject.chats || [];
+    const savedFiles = typeof archivedProject === "string" ? [] : archivedProject.files || [];
+    const savedNotes = typeof archivedProject === "string" ? [] : archivedProject.notes || [];
 
-    if (!projects.includes(project)) {
-      setProjects([...projects, project]);
+    if (projects.includes(project)) {
+      window.alert(`A project named "${project}" already exists. Rename the active project before restoring this one.`);
+      return;
     }
 
-    if (!projectChats[project]) {
-      setProjectChats({
-        ...projectChats,
-        [project]: [],
-      });
-    }
+    setProjects([...projects, project]);
+
+    setProjectChats({ ...projectChats, [project]: savedChats });
+    setProjectFiles({ ...projectFiles, [project]: savedFiles });
+    setProjectNotes({ ...projectNotes, [project]: savedNotes });
 
     setArchivedProjects(archivedProjects.filter((_, i) => i !== index));
     addActivity("archive", "Project restored", project);
   };
 
   const deleteArchivedProject = (index) => {
-    const project = archivedProjects[index];
+    const archivedProject = archivedProjects[index];
+    const project = typeof archivedProject === "string" ? archivedProject : archivedProject.name;
+    const savedChats = typeof archivedProject === "string" ? [] : archivedProject.chats || [];
 
+    if (!window.confirm(`Permanently delete "${project}", its files, notes, chats, and chat history?`)) return;
     setArchivedProjects(archivedProjects.filter((_, i) => i !== index));
+    const updatedProjectChats = { ...projectChats };
+    const updatedProjectFiles = { ...projectFiles };
+    const updatedProjectNotes = { ...projectNotes };
+    delete updatedProjectChats[project];
+    delete updatedProjectFiles[project];
+    delete updatedProjectNotes[project];
+    setProjectChats(updatedProjectChats);
+    setProjectFiles(updatedProjectFiles);
+    setProjectNotes(updatedProjectNotes);
+    const updatedChatMessages = { ...chatMessages };
+    savedChats.forEach((chat) => delete updatedChatMessages[chat]);
+    setChatMessages(updatedChatMessages);
     addActivity("archive", "Archived project permanently deleted", project);
   };
 
@@ -203,12 +232,18 @@ function Archived({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {archivedProjects.map((project, index) => (
+                  {archivedProjects.map((archivedProject, index) => {
+                    const project = typeof archivedProject === "string" ? archivedProject : archivedProject.name;
+                    const chatCount = typeof archivedProject === "string" ? 0 : (archivedProject.chats || []).length;
+                    return (
                     <div
                       key={`${project}-${index}`}
                       className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-[#1B2540] bg-[#101827] p-5 transition hover:border-purple-500/50 sm:flex-row sm:items-center sm:gap-5"
                     >
-                      <p className="font-semibold truncate">📂 {project}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">📂 {project}</p>
+                        <p className="mt-1 text-sm text-gray-500">{chatCount} saved chat{chatCount === 1 ? "" : "s"}</p>
+                      </div>
 
                       <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:gap-3">
                         <button
@@ -226,7 +261,8 @@ function Archived({
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

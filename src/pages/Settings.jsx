@@ -1,11 +1,15 @@
 import { useState } from "react";
 import {
+  deleteUser,
   updateProfile,
   updatePassword,
   EmailAuthProvider,
+  GoogleAuthProvider,
   reauthenticateWithCredential,
+  reauthenticateWithPopup,
 } from "firebase/auth";
 import ConfirmModal from "../components/ConfirmModal";
+import { deleteWorkspaceData } from "../services/workspaceService";
 
 function Settings({
   user,
@@ -13,7 +17,13 @@ function Settings({
   projects,
   projectChats,
   projectNotes,
+  projectFiles,
+  chatMessages,
   pinnedChats,
+  chatActivity,
+  activityLog,
+  selectedChat,
+  selectedProject,
   archivedChats,
   archivedProjects,
   handleLogout,
@@ -28,10 +38,111 @@ function Settings({
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const supportsPasswordChange = Boolean(
+    user?.providerData?.some((provider) => provider.providerId === "password")
+  );
+  const supportsGoogleSignIn = Boolean(
+    user?.providerData?.some((provider) => provider.providerId === "google.com")
+  );
 
   const totalProjectChats = Object.values(projectChats || {}).flat().length;
   const totalNotes = Object.values(projectNotes || {}).flat().length;
   const archivedTotal = archivedChats.length + archivedProjects.length;
+
+  const exportWorkspace = () => {
+    const workspaceExport = {
+      exportedAt: new Date().toISOString(),
+      account: {
+        uid: user?.uid || "",
+        email: user?.email || "",
+        displayName: user?.displayName || "",
+      },
+      workspace: {
+        chats,
+        chatMessages: chatMessages || {},
+        projects,
+        projectChats: projectChats || {},
+        projectFiles: projectFiles || {},
+        projectNotes: projectNotes || {},
+        selectedChat: selectedChat || "",
+        selectedProject: selectedProject || "",
+        pinnedChats: pinnedChats || [],
+        chatActivity: chatActivity || {},
+        activityLog: activityLog || [],
+        archivedChats: archivedChats || [],
+        archivedProjects: archivedProjects || [],
+      },
+    };
+    const blob = new Blob([JSON.stringify(workspaceExport, null, 2)], {
+      type: "application/json",
+    });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeDate = new Date().toISOString().slice(0, 10);
+    link.href = downloadUrl;
+    link.download = `orbitalai-workspace-${safeDate}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadUrl);
+  };
+
+  const deleteAccount = async () => {
+    setDeleteMessage("");
+
+    if (!user) {
+      setDeleteMessage("Account not found. Please sign in again.");
+      return;
+    }
+
+    if (supportsPasswordChange && !deletePassword) {
+      setDeleteMessage("Enter your current password before deleting the account.");
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      if (supportsPasswordChange) {
+        const credential = EmailAuthProvider.credential(
+          user.email,
+          deletePassword
+        );
+        await reauthenticateWithCredential(user, credential);
+      } else if (supportsGoogleSignIn) {
+        await reauthenticateWithPopup(user, new GoogleAuthProvider());
+      }
+
+      await deleteWorkspaceData(user, {
+        projectFiles,
+        chatMessages,
+        archivedProjects,
+        archivedChats,
+      });
+      await deleteUser(user);
+    } catch (error) {
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/wrong-password"
+      ) {
+        setDeleteMessage("The password you entered is incorrect.");
+      } else if (error.code === "auth/popup-closed-by-user") {
+        setDeleteMessage("Account deletion was cancelled.");
+      } else if (error.code === "auth/requires-recent-login") {
+        setDeleteMessage("Please sign out, sign in again, and retry account deletion.");
+      } else {
+        setDeleteMessage(
+          error.message || "The account could not be deleted. Please try again."
+        );
+      }
+    } finally {
+      setDeleteConfirmOpen(false);
+      setIsDeletingAccount(false);
+    }
+  };
 
   const saveDisplayName = async () => {
     const trimmedName = displayName.trim();
@@ -212,47 +323,57 @@ function Settings({
               <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
                 <h2 className="text-2xl font-bold">Change password</h2>
                 <p className="text-gray-400 text-sm mt-1">
-                  Enter your current password first, then set a new password.
+                  {supportsPasswordChange
+                    ? "Enter your current password first, then set a new password."
+                    : "This account signs in through Google, so its password is managed by Google."}
                 </p>
               </div>
 
-              <div className="p-6 grid grid-cols-1 gap-4 max-w-2xl">
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Current password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
-                />
+              {supportsPasswordChange ? (
+                <div className="p-6 grid grid-cols-1 gap-4 max-w-2xl">
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Current password"
+                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                  />
 
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
-                />
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password"
+                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                  />
 
-                <input
-                  type="password"
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
-                />
+                  <input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                  />
 
-                <button
-                  onClick={changePassword}
-                  disabled={isChangingPassword}
-                  className="w-fit px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {isChangingPassword ? "Changing..." : "Change password"}
-                </button>
+                  <button
+                    onClick={changePassword}
+                    disabled={isChangingPassword}
+                    className="w-fit px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {isChangingPassword ? "Changing..." : "Change password"}
+                  </button>
 
-                {passwordMessage && (
-                  <p className="text-sm text-gray-400">{passwordMessage}</p>
-                )}
-              </div>
+                  {passwordMessage && (
+                    <p className="text-sm text-gray-400">{passwordMessage}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6">
+                  <p className="max-w-2xl rounded-2xl border border-blue-300/15 bg-blue-400/[0.06] p-4 text-sm leading-6 text-slate-300">
+                    To change your password, open your Google Account security settings. OrbitalAI never receives or stores your Google password.
+                  </p>
+                </div>
+              )}
             </section>
 
             <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
@@ -288,6 +409,20 @@ function Settings({
             <h2 className="text-xl font-bold mb-5">Account actions</h2>
 
             <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 mb-5">
+              <p className="font-semibold mb-2">Export workspace</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Download a JSON backup of your chats, projects, notes, and saved workspace details.
+              </p>
+              <button
+                type="button"
+                onClick={exportWorkspace}
+                className="mt-4 w-full rounded-xl border border-blue-300/20 bg-blue-400/[0.07] px-4 py-2.5 text-sm font-semibold text-blue-100 transition hover:bg-blue-400/[0.12]"
+              >
+                Download backup
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 mb-5">
               <p className="font-semibold mb-2">Logout</p>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Sign out from this device. Your workspace data remains saved.
@@ -300,6 +435,43 @@ function Settings({
             >
               Logout
             </button>
+
+            <div className="mt-6 border-t border-white/10 pt-6">
+              <p className="font-semibold text-red-200">Delete account</p>
+              <p className="mt-2 text-sm leading-6 text-gray-400">
+                Permanently remove your workspace, stored files, and Firebase account. Download a backup first if needed.
+              </p>
+              {supportsPasswordChange && (
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => setDeletePassword(event.target.value)}
+                  placeholder="Current password"
+                  autoComplete="current-password"
+                  className="mt-4 w-full rounded-xl border border-red-400/20 bg-[#101827] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-red-300/40"
+                />
+              )}
+              {deleteMessage && (
+                <p className="mt-3 text-sm leading-5 text-red-300" role="alert">
+                  {deleteMessage}
+                </p>
+              )}
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => {
+                  setDeleteMessage("");
+                  if (supportsPasswordChange && !deletePassword) {
+                    setDeleteMessage("Enter your current password before deleting the account.");
+                    return;
+                  }
+                  setDeleteConfirmOpen(true);
+                }}
+                className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+              >
+                {isDeletingAccount ? "Deleting account…" : "Delete account"}
+              </button>
+            </div>
           </aside>
         </div>
       </div>
@@ -316,6 +488,16 @@ function Settings({
           setLogoutConfirmOpen(false);
           await handleLogout();
         }}
+      />
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        title="Permanently delete your account?"
+        message="This removes your chats, projects, notes, stored files, and login account. This action cannot be undone."
+        confirmText="Delete permanently"
+        cancelText="Keep account"
+        danger={true}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onConfirm={deleteAccount}
       />
     </div>
   );

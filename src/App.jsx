@@ -1,4 +1,11 @@
-import { lazy, Suspense, useState, useEffect, useRef } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
@@ -67,6 +74,12 @@ const getPathFromWorkspaceState = ({
 
 function App() {
   const saveTimer = useRef(null);
+  const saveQueue = useRef(Promise.resolve());
+  const latestWorkspace = useRef(null);
+  const currentUserRef = useRef(null);
+  const persistenceReady = useRef(false);
+  const saveRevision = useRef(0);
+  const savedRevision = useRef(0);
   const mainContentRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,6 +90,8 @@ function App() {
   const [hasLoadedUserData, setHasLoadedUserData] = useState(false);
   const [routeReady, setRouteReady] = useState(false);
   const [appError, setAppError] = useState("");
+  const [saveStatus, setSaveStatus] = useState("saved");
+  const [saveError, setSaveError] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [page, setPage] = useState("home");
@@ -93,6 +108,66 @@ function App() {
   const [pinnedChats, setPinnedChats] = useState([]);
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
+
+  const enqueueWorkspaceSave = useCallback(({ force = false } = {}) => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+
+    const owner = currentUserRef.current;
+    const snapshot = latestWorkspace.current;
+    const revision = saveRevision.current;
+
+    if (!owner || !snapshot || !persistenceReady.current) {
+      return Promise.resolve();
+    }
+
+    if (!force && revision <= savedRevision.current) {
+      return saveQueue.current;
+    }
+
+    const ownerId = owner.uid || owner.id;
+    setSaveStatus("saving");
+    setSaveError("");
+
+    const saveTask = async () => {
+      try {
+        await saveWorkspace(owner, snapshot);
+        savedRevision.current = Math.max(savedRevision.current, revision);
+
+        const activeUserId =
+          currentUserRef.current?.uid || currentUserRef.current?.id || "";
+
+        if (activeUserId === ownerId) {
+          if (savedRevision.current >= saveRevision.current) {
+            setSaveStatus("saved");
+            setSaveError("");
+          } else {
+            setSaveStatus("unsaved");
+          }
+        }
+      } catch (error) {
+        const message = error.message || "Failed to save workspace.";
+        const activeUserId =
+          currentUserRef.current?.uid || currentUserRef.current?.id || "";
+
+        if (activeUserId === ownerId) {
+          setSaveStatus("error");
+          setSaveError(message);
+        }
+
+        throw error;
+      }
+    };
+
+    const queuedSave = saveQueue.current
+      .catch(() => undefined)
+      .then(saveTask);
+
+    saveQueue.current = queuedSave;
+    return queuedSave;
+  }, []);
 
   const findItemBySlug = (items, slug) => {
     return items.find((item) => slugify(item) === slug) || "";
@@ -160,6 +235,13 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
 
+      currentUserRef.current = currentUser;
+      persistenceReady.current = false;
+      latestWorkspace.current = null;
+      saveRevision.current = 0;
+      savedRevision.current = 0;
+      setSaveStatus("saved");
+      setSaveError("");
       setAuthLoading(false);
       setDataLoading(true);
       setHasLoadedUserData(false);
@@ -206,8 +288,10 @@ function App() {
         setPinnedChats(Array.isArray(data.pinnedChats) ? data.pinnedChats : []);
         setChatActivity(data.chatActivity || {});
         setActivityLog(Array.isArray(data.activityLog) ? data.activityLog : []);
+        persistenceReady.current = true;
       } catch (error) {
         setAppError(error.message || "Failed to load workspace.");
+        persistenceReady.current = false;
       }
 
       setHasLoadedUserData(true);
@@ -327,38 +411,46 @@ function App() {
   ]);
 
   useEffect(() => {
-    const saveUserData = async () => {
-      if (!user || dataLoading || !hasLoadedUserData) return;
+    if (
+      !user ||
+      dataLoading ||
+      !hasLoadedUserData ||
+      !persistenceReady.current
+    ) {
+      return;
+    }
 
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-
-      saveTimer.current = setTimeout(async () => {
-        try {
-          await saveWorkspace(user, {
-            chats,
-            chatMessages,
-            projects,
-            projectChats,
-            projectFiles,
-            projectNotes,
-            selectedChat,
-            selectedProject,
-            archivedChats,
-            archivedProjects,
-            pinnedChats,
-            chatActivity,
-            activityLog,
-          });
-        } catch (error) {
-          console.error("Failed to save workspace:", error.message);
-        }
-      }, 600);
+    latestWorkspace.current = {
+      chats,
+      chatMessages,
+      projects,
+      projectChats,
+      projectFiles,
+      projectNotes,
+      selectedChat,
+      selectedProject,
+      archivedChats,
+      archivedProjects,
+      pinnedChats,
+      chatActivity,
+      activityLog,
     };
+    saveRevision.current += 1;
+    setSaveStatus("unsaved");
+    setSaveError("");
 
-    saveUserData();
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      enqueueWorkspaceSave().catch((error) => {
+        console.error("Failed to save workspace:", error.message);
+      });
+    }, 700);
 
     return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
     };
   }, [
     user,
@@ -377,7 +469,32 @@ function App() {
     pinnedChats,
     chatActivity,
     activityLog,
+    enqueueWorkspaceSave,
   ]);
+
+  useEffect(() => {
+    const flushPendingChanges = () => {
+      if (!persistenceReady.current) return;
+
+      enqueueWorkspaceSave({ force: true }).catch((error) => {
+        console.error("Failed to flush workspace:", error.message);
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushPendingChanges();
+      }
+    };
+
+    window.addEventListener("pagehide", flushPendingChanges);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pagehide", flushPendingChanges);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enqueueWorkspaceSave]);
 
   useEffect(() => {
     if (!mainContentRef.current) return;
@@ -397,8 +514,18 @@ function App() {
   }, [location.pathname, page, selectedChat, selectedProject]);
 
   const handleLogout = async () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+    try {
+      await enqueueWorkspaceSave({ force: true });
+    } catch (error) {
+      setAppError(
+        `Your latest workspace changes could not be saved. Please retry before signing out. ${
+          error.message || ""
+        }`.trim()
+      );
+      return;
+    }
 
+    persistenceReady.current = false;
     resetWorkspace();
     setHasLoadedUserData(false);
     setDataLoading(true);
@@ -478,6 +605,16 @@ function App() {
             setProjects={setProjects}
             projectChats={projectChats}
             setProjectChats={setProjectChats}
+            projectFiles={projectFiles}
+            setProjectFiles={setProjectFiles}
+            projectNotes={projectNotes}
+            setProjectNotes={setProjectNotes}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
+            pinnedChats={pinnedChats}
+            setPinnedChats={setPinnedChats}
+            chatActivity={chatActivity}
+            setChatActivity={setChatActivity}
             archivedChats={archivedChats}
             setArchivedChats={setArchivedChats}
             archivedProjects={archivedProjects}
@@ -497,6 +634,12 @@ function App() {
             setProjects={setProjects}
             projectChats={projectChats}
             setProjectChats={setProjectChats}
+            projectFiles={projectFiles}
+            setProjectFiles={setProjectFiles}
+            projectNotes={projectNotes}
+            setProjectNotes={setProjectNotes}
+            chatMessages={chatMessages}
+            setChatMessages={setChatMessages}
             archivedChats={archivedChats}
             setArchivedChats={setArchivedChats}
             archivedProjects={archivedProjects}
@@ -513,7 +656,13 @@ function App() {
             projects={projects}
             projectChats={projectChats}
             projectNotes={projectNotes}
+            projectFiles={projectFiles}
+            chatMessages={chatMessages}
             pinnedChats={pinnedChats}
+            chatActivity={chatActivity}
+            activityLog={activityLog}
+            selectedChat={selectedChat}
+            selectedProject={selectedProject}
             archivedChats={archivedChats}
             archivedProjects={archivedProjects}
             handleLogout={handleLogout}
@@ -571,6 +720,46 @@ function App() {
         </div>
       )}
 
+      {saveStatus !== "saved" && (
+        <div
+          className={`fixed bottom-4 right-4 z-[10000] flex max-w-sm items-center gap-3 rounded-xl border px-3.5 py-2.5 text-xs shadow-2xl backdrop-blur-xl ${
+            saveStatus === "error"
+              ? "border-red-400/30 bg-[#241018]/95 text-red-200"
+              : "border-blue-300/15 bg-[#071120]/95 text-slate-300"
+          }`}
+          title={saveError}
+          role={saveStatus === "error" ? "alert" : "status"}
+        >
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${
+              saveStatus === "error"
+                ? "bg-red-400"
+                : "animate-pulse bg-blue-400"
+            }`}
+          />
+          <span>
+            {saveStatus === "saving"
+              ? "Saving workspace…"
+              : saveStatus === "error"
+                ? "Workspace changes are not saved."
+                : "Workspace changes pending…"}
+          </span>
+          {saveStatus === "error" && (
+            <button
+              type="button"
+              onClick={() => {
+                enqueueWorkspaceSave({ force: true }).catch((error) => {
+                  console.error("Failed to retry workspace save:", error.message);
+                });
+              }}
+              className="rounded-lg border border-red-300/20 px-2 py-1 font-semibold text-red-100 transition hover:bg-red-300/10"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
       <div className={`fixed inset-x-0 top-0 z-[7000] flex h-[calc(3.75rem+env(safe-area-inset-top))] items-end border-b border-blue-200/[0.1] bg-[#030b18]/88 px-3 pb-2.5 backdrop-blur-2xl lg:hidden ${isMobileSidebarOpen ? "hidden" : ""}`}>
         <button
           type="button"
@@ -617,6 +806,12 @@ function App() {
           setProjects={setProjects}
           projectChats={projectChats}
           setProjectChats={setProjectChats}
+          projectFiles={projectFiles}
+          setProjectFiles={setProjectFiles}
+          projectNotes={projectNotes}
+          setProjectNotes={setProjectNotes}
+          chatMessages={chatMessages}
+          setChatMessages={setChatMessages}
           selectedChat={selectedChat}
           setSelectedChat={setSelectedChat}
           selectedProject={selectedProject}

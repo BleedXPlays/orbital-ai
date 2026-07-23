@@ -5,6 +5,7 @@ import {
   normalizeConversationHistory,
   normalizeProviderResult,
   PROVIDER_SYSTEM_PROMPT,
+  getProviderAbortSignal,
 } from "./providerUtils.js";
 
 export const generateWithClaude = async ({
@@ -31,6 +32,7 @@ export const generateWithClaude = async ({
   });
 
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    signal: getProviderAbortSignal(),
     method: "POST",
     headers: {
       "content-type": "application/json",

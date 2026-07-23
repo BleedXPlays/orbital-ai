@@ -1,9 +1,12 @@
 /* global process */
 
 import OpenAI from "openai";
+import { getProviderTimeoutMs } from "./providerUtils.js";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: getProviderTimeoutMs(),
+  maxRetries: 1,
 });
 
 const cleanAiText = (text = "") => {
@@ -183,16 +186,17 @@ Return only JSON.`;
 
   const generatedOutputs = Array.isArray(parsed.generatedOutputs)
     ? parsed.generatedOutputs
+        .slice(0, 12)
         .filter((item) => item && item.title && item.content)
         .map((item) => ({
-          title: cleanAiText(item.title),
-          content: cleanAiText(item.content),
+          title: cleanAiText(item.title).slice(0, 200),
+          content: cleanAiText(item.content).slice(0, 80000),
         }))
     : [];
 
   return {
     reply:
-      cleanAiText(parsed.reply) ||
+      cleanAiText(parsed.reply).slice(0, 50000) ||
       "OrbitalAI generated a response, but no text was returned.",
     generatedOutputs,
     provider: "openai",

@@ -4,5 +4,39 @@
     "api/read-file.js": {
       "includeFiles": "node_modules/{@napi-rs/canvas*,pdfjs-dist}/**"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/chat/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/project/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bulk-edit",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ai-workflow",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/archived",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/help",
+      "destination": "/index.html"
+    }
+  ]
 }
