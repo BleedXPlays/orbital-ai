@@ -25,6 +25,7 @@ const Archived = lazy(() => import("./pages/Archived"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
 const Login = lazy(() => import("./pages/Login"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const PageLoadingFallback = () => (
   <div className="flex h-full min-h-full items-center justify-center bg-[#030712] text-white">
@@ -700,7 +701,19 @@ function App() {
     }
   };
 
-  if (authLoading || dataLoading) {
+  if (authLoading) {
+    return <PageLoadingFallback />;
+  }
+
+  if (location.pathname === "/reset-password") {
+    return (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <ResetPassword />
+      </Suspense>
+    );
+  }
+
+  if (dataLoading) {
     return <PageLoadingFallback />;
   }
 
