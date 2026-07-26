@@ -187,7 +187,7 @@ function Login() {
                 {[
                   ["◎", "OpenAI", "General chat, reasoning and voice transcription.", "text-emerald-300"],
                   ["AI", "Claude", "Detailed writing, documents and coding.", "text-orange-300"],
-                  ["✦", "Gemini", "Image understanding and multimodal research.", "text-blue-300"],
+                  ["✦", "Gemini", "Image generation, understanding and multimodal research.", "text-blue-300"],
                 ].map(([icon, name, description, color]) => (
                   <div key={name} className="flex items-center gap-4 py-4 first:pt-0">
                     <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-[#050b1b]/65 text-lg font-semibold ${color}`}>

@@ -23,7 +23,7 @@ const providers = [
     status: "Active",
     role: "Multimodal",
     description:
-      "Image understanding, visual-data analysis, and multimodal research.",
+      "Image generation, visual-data analysis, and multimodal research.",
     color: "from-blue-400/25 to-indigo-400/10 text-blue-200 border-blue-300/25",
   },
 ];

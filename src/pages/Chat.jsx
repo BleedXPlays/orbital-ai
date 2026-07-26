@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OutputPreviewModal from "../components/OutputPreviewModal";
+import GeneratedImageContent from "../components/GeneratedImageContent";
 import {
   getChatAttachmentUrl,
   uploadChatAttachment,
@@ -71,6 +72,17 @@ const slugify = (value) => {
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+};
+
+const base64ToFile = ({ data, mimeType, name }) => {
+  const binary = window.atob(data);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new File([bytes], name, { type: mimeType });
 };
 
 function Chat({
@@ -281,6 +293,66 @@ function Chat({
       title: "",
       outputs: [],
     });
+  };
+
+  const saveGeneratedImages = async (result, chatName) => {
+    const generatedImages = Array.isArray(result?.generatedImages)
+      ? result.generatedImages
+      : [];
+
+    if (generatedImages.length === 0 || !user?.uid) return result;
+
+    try {
+      const savedImages = await Promise.all(
+        generatedImages.map(async (image, index) => {
+          const mimeType = image.mimeType || "image/png";
+          const extension = mimeType === "image/jpeg" ? "jpg" : "png";
+          const filename = `orbitalai-gemini-${Date.now()}-${
+            index + 1
+          }.${extension}`;
+          const file = base64ToFile({
+            data: image.data,
+            mimeType,
+            name: filename,
+          });
+          const uploaded = await uploadChatAttachment({
+            userId: user.uid,
+            chatName,
+            file,
+            filename,
+          });
+
+          return {
+            kind: "generated-image",
+            ...uploaded,
+            storageStatus: "saved",
+            sizeLabel: formatFileSize(uploaded.size),
+          };
+        })
+      );
+
+      return {
+        ...result,
+        generatedImages: [],
+        outputs: (result.outputs || []).map((output) =>
+          output[1] === "Generated Image"
+            ? [...output.slice(0, 3), savedImages[0]]
+            : output
+        ),
+      };
+    } catch (error) {
+      console.error("Generated image storage error:", error);
+      return {
+        ...result,
+        generatedImages: [],
+        outputs: [],
+        failed: true,
+        errorMessage:
+          "Gemini created the image, but OrbitalAI could not save it. Please try again.",
+        reply:
+          "Gemini created the image, but OrbitalAI could not save it. Please try again.",
+      };
+    }
   };
 
   const generateChatTitle = (text) => {
@@ -620,6 +692,9 @@ function Chat({
         provider: data.provider,
         fallbackFrom: data.fallbackFrom || "",
         providerNotice: data.providerNotice || "",
+        generatedImages: Array.isArray(data.generatedImages)
+          ? data.generatedImages
+          : [],
       };
     } catch (error) {
       console.error("AI response error:", error);
@@ -1358,7 +1433,7 @@ function Chat({
 
       addActivity("chat", "Chat created", newTitle);
 
-      const [result, savedAttachment] = await Promise.all([
+      const [rawResult, savedAttachment] = await Promise.all([
         getRealAiReply({
           message: messageText,
           tasks,
@@ -1372,6 +1447,7 @@ function Chat({
         }),
         saveAttachment(newTitle),
       ]);
+      const result = await saveGeneratedImages(rawResult, newTitle);
 
       setChatMessages((prev) => ({
         ...prev,
@@ -1420,7 +1496,7 @@ function Chat({
 
       addActivity("chat", "Chat renamed automatically", newTitle);
 
-      const [result, savedAttachment] = await Promise.all([
+      const [rawResult, savedAttachment] = await Promise.all([
         getRealAiReply({
           message: messageText,
           tasks,
@@ -1434,6 +1510,7 @@ function Chat({
         }),
         saveAttachment(newTitle),
       ]);
+      const result = await saveGeneratedImages(rawResult, newTitle);
 
       setChatMessages((prev) => ({
         ...prev,
@@ -1464,7 +1541,7 @@ function Chat({
       selectedChat
     );
 
-    const [result, savedAttachment] = await Promise.all([
+    const [rawResult, savedAttachment] = await Promise.all([
       getRealAiReply({
         message: messageText,
         tasks,
@@ -1478,6 +1555,7 @@ function Chat({
       }),
       saveAttachment(selectedChat),
     ]);
+    const result = await saveGeneratedImages(rawResult, selectedChat);
 
     setChatMessages((prev) => {
       const currentMessages = prev[selectedChat] || [];
@@ -1603,6 +1681,7 @@ function Chat({
         conversationHistory,
         onStage: setRequestStage,
       });
+      result = await saveGeneratedImages(result, selectedChat);
     } catch (error) {
       const errorMessage =
         String(error?.message || "").trim() ||
@@ -2052,6 +2131,15 @@ function Chat({
                                 <p className="text-gray-400 text-sm">
                                   {output[2]}
                                 </p>
+                                {typeof output[3] === "object" &&
+                                  output[3]?.kind === "generated-image" && (
+                                    <div className="mt-4">
+                                      <GeneratedImageContent
+                                        image={output[3]}
+                                        compact
+                                      />
+                                    </div>
+                                  )}
                               </button>
                             ))}
                           </div>

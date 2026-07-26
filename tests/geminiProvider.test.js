@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 const originalFetch = globalThis.fetch;
 const originalApiKey = process.env.GEMINI_API_KEY;
 const originalModel = process.env.GEMINI_MODEL;
+const originalImageModel = process.env.GEMINI_IMAGE_MODEL;
 
 test("sends inline image data to the compatible default Gemini model", async () => {
   process.env.GEMINI_API_KEY = "test-key";
@@ -64,6 +65,55 @@ test("sends inline image data to the compatible default Gemini model", async () 
   assert.equal(result.reply, "The image was inspected.");
 });
 
+test("uses Gemini native image generation and returns image data", async () => {
+  process.env.GEMINI_API_KEY = "test-key";
+  delete process.env.GEMINI_IMAGE_MODEL;
+
+  let requestUrl = "";
+  let requestBody;
+  globalThis.fetch = async (url, options) => {
+    requestUrl = String(url);
+    requestBody = JSON.parse(options.body);
+
+    return {
+      ok: true,
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: "image/png",
+                    data: "aW1hZ2U=",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    };
+  };
+
+  const { generateWithGemini } = await import(
+    "../api/providers/geminiProvider.js"
+  );
+  const result = await generateWithGemini({
+    message: "Generate a futuristic illustration",
+    tasks: [{ ai: "Gemini", task: "Image Generation" }],
+    outputs: [["🎨", "Generated Image", "Gemini-created visual"]],
+  });
+
+  assert.match(
+    requestUrl,
+    /models\/gemini-3\.1-flash-lite-image:generateContent$/
+  );
+  assert.deepEqual(requestBody.generationConfig.responseModalities, ["IMAGE"]);
+  assert.equal(result.generatedImages[0].data, "aW1hZ2U=");
+  assert.equal(result.provider, "gemini");
+});
+
 test.after(() => {
   globalThis.fetch = originalFetch;
 
@@ -77,5 +127,11 @@ test.after(() => {
     delete process.env.GEMINI_MODEL;
   } else {
     process.env.GEMINI_MODEL = originalModel;
+  }
+
+  if (originalImageModel === undefined) {
+    delete process.env.GEMINI_IMAGE_MODEL;
+  } else {
+    process.env.GEMINI_IMAGE_MODEL = originalImageModel;
   }
 });

@@ -1,6 +1,13 @@
 export const analyzeTask = (text = "") => {
   const lowerText = String(text).toLowerCase();
   const detectedTasks = [];
+  const visualTerms =
+    /\b(image|images|illustration|illustrations|artwork|picture|pictures|poster|posters|logo|logos|visual|visuals|photo|photos|photograph|photographs)\b/;
+  const imageGenerationRequest =
+    visualTerms.test(lowerText) &&
+    /\b(create|generate|draw|design|make|produce|render|illustrate)\b/.test(
+      lowerText
+    );
 
   if (
     /\b(pdf|document|documents|file|files|long document|summarize|summary)\b/.test(
@@ -43,7 +50,9 @@ export const analyzeTask = (text = "") => {
     detectedTasks.push({ task: "Writing", ai: "OpenAI" });
   }
 
-  if (
+  if (imageGenerationRequest) {
+    detectedTasks.push({ task: "Image Generation", ai: "Gemini" });
+  } else if (
     /\b(image|images|poster|posters|diagram|diagrams|chart|charts|graph|graphs|logo|logos|visual|visuals|photo|photos|photograph|photographs|picture|pictures)\b/.test(
       lowerText
     )
@@ -100,6 +109,10 @@ export const getOutputs = (tasks = []) => {
 
     if (item.task === "Visual Analysis") {
       outputs.push(["🖼️", "Visual Analysis", "Image and visual findings"]);
+    }
+
+    if (item.task === "Image Generation") {
+      outputs.push(["🎨", "Generated Image", "Gemini-created visual"]);
     }
 
     if (item.task === "Coding") {

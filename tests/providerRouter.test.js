@@ -70,6 +70,16 @@ test("keeps image understanding on Gemini", () => {
   );
 });
 
+test("routes native image generation to Gemini", () => {
+  assert.equal(
+    getProviderForRequest({
+      message: "Generate a futuristic illustration",
+      tasks: [{ task: "Image Generation" }],
+    }),
+    "gemini"
+  );
+});
+
 test("does not replace a failed Gemini image analysis with a guessed fallback", async () => {
   let openAiWasCalled = false;
   const geminiError = Object.assign(new Error("Model is not available"), {

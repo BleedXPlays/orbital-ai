@@ -34,7 +34,7 @@ const helpItems = [
     steps: [
       "OpenAI handles general conversation, follow-up questions, and voice transcription.",
       "Claude handles detailed writing, longer documents, decision support, and coding.",
-      "Gemini handles images, visual data, and multimodal research.",
+      "Gemini handles image generation, image understanding, visual data, and multimodal research.",
     ],
   },
   {

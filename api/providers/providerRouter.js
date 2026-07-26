@@ -22,7 +22,8 @@ export const getProviderForRequest = ({
 
   if (
     attachment?.kind === "image" ||
-    taskNames.includes("Visual Analysis")
+    taskNames.includes("Visual Analysis") ||
+    taskNames.includes("Image Generation")
   ) {
     return "gemini";
   }
@@ -268,7 +269,9 @@ export const generateWithProvider = async (
   } catch (primaryError) {
     const primaryFailure = classifyProviderError(primaryError, provider);
     const isImageRequest =
-      attachment?.kind === "image" || Boolean(imageBase64);
+      attachment?.kind === "image" ||
+      Boolean(imageBase64) ||
+      tasks?.some((item) => item?.task === "Image Generation");
 
     if (provider === "openai") {
       primaryError.provider = "openai";
@@ -277,7 +280,7 @@ export const generateWithProvider = async (
     }
 
     if (provider === "gemini" && isImageRequest) {
-      console.error("Gemini image analysis failed:", {
+      console.error("Gemini image request failed:", {
         status: Number(primaryError?.status || 0),
         code: String(primaryError?.code || "").slice(0, 80),
         message: String(primaryError?.message || "").slice(0, 300),

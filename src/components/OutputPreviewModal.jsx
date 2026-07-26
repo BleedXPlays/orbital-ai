@@ -1,4 +1,5 @@
 import { useState } from "react";
+import GeneratedImageContent from "./GeneratedImageContent";
 
 function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
   const [copyStatus, setCopyStatus] = useState({
@@ -27,6 +28,13 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
 
   const formatGeneratedContent = (content, outputTitle, outputIndex) => {
     if (!content) return null;
+
+    if (
+      typeof content === "object" &&
+      content.kind === "generated-image"
+    ) {
+      return <GeneratedImageContent image={content} />;
+    }
 
     if (String(outputTitle || "").toLowerCase().includes("code")) {
       const code = String(content)
