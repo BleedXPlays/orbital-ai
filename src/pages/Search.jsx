@@ -14,7 +14,7 @@ function Search({
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.trim().toLowerCase();
   const allResults = [];
 
   chats.forEach((chat) => {
@@ -146,9 +146,7 @@ function Search({
   });
 
   const visibleResults =
-    query.trim() === ""
-      ? []
-      : activeTab === "All"
+    activeTab === "All"
       ? allResults
       : allResults.filter((result) => result.type === activeTab);
 
@@ -221,7 +219,7 @@ function Search({
                   >
                     {tab}
                     <span className="ml-2 text-xs text-gray-500">
-                      {query.trim() ? countByType[tab] : 0}
+                      {countByType[tab]}
                     </span>
                   </button>
                 ))}
@@ -229,22 +227,7 @@ function Search({
             </div>
 
             <div>
-              {query.trim() === "" ? (
-                <div className="min-h-[420px] rounded-3xl bg-[#101827]/70 border border-[#1B2540] flex flex-col items-center justify-center text-center p-10">
-                  <div className="w-20 h-20 rounded-3xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-4xl mb-6">
-                    🔍
-                  </div>
-
-                  <h2 className="text-2xl font-bold mb-2">
-                    Start typing to search
-                  </h2>
-
-                  <p className="text-gray-400 max-w-md">
-                    Search across global chats, project chats, messages, files,
-                    uploaded images and notes.
-                  </p>
-                </div>
-              ) : visibleResults.length === 0 ? (
+              {visibleResults.length === 0 ? (
                 <div className="min-h-[420px] rounded-3xl bg-[#101827]/70 border border-[#1B2540] flex flex-col items-center justify-center text-center p-10">
                   <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-4xl mb-6">
                     ✕
@@ -253,8 +236,14 @@ function Search({
                   <h2 className="text-2xl font-bold mb-2">No results found</h2>
 
                   <p className="text-gray-400">
-                    No results found for{" "}
-                    <span className="text-purple-300">“{query}”</span>.
+                    {query.trim() ? (
+                      <>
+                        No results found for{" "}
+                        <span className="text-purple-300">“{query}”</span>.
+                      </>
+                    ) : (
+                      "There are no saved items in this category yet."
+                    )}
                   </p>
                 </div>
               ) : (
@@ -332,7 +321,7 @@ function Search({
                   <div key={tab} className="flex justify-between">
                     <span className="text-gray-400">{tab}</span>
                     <span className="text-gray-200">
-                      {query.trim() ? countByType[tab] : 0}
+                      {countByType[tab]}
                     </span>
                   </div>
                 ))}

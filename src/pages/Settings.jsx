@@ -228,7 +228,8 @@ function Settings({
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto overflow-x-hidden text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(91,110,255,0.12),transparent_35%),radial-gradient(circle_at_90%_75%,rgba(147,51,234,0.07),transparent_30%)]" />
+      <div className="orbital-earth-horizon pointer-events-none absolute inset-0 opacity-45" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_4%,rgba(77,126,255,0.18),transparent_34%),radial-gradient(circle_at_82%_28%,rgba(139,92,246,0.12),transparent_28%),linear-gradient(180deg,rgba(2,7,19,0.16)_0%,rgba(2,7,19,0.5)_58%,rgba(2,7,19,0.74)_100%)]" />
 
       <div className="relative px-4 pb-12 pt-16 sm:px-6 sm:py-8 sm:pb-16 lg:px-10">
         <header className="mb-8">

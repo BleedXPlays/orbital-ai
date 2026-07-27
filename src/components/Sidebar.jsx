@@ -590,8 +590,8 @@ function Sidebar({
           </div>
         )}
 
-        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 overflow-hidden pr-0.5">
-          <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
+        <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+          <section className="flex min-w-0 max-w-full flex-col">
             <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400">
               CHATS
             </h2>
@@ -611,7 +611,7 @@ function Sidebar({
               <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search chats" value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
             </label>
 
-            <div className="min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+            <div className="h-56 min-w-0 max-w-full shrink-0 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -679,7 +679,7 @@ function Sidebar({
             </div>
           </section>
 
-          <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
+          <section className="flex min-w-0 max-w-full flex-col">
             <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400">
               PROJECTS
             </h2>
@@ -699,16 +699,14 @@ function Sidebar({
               <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search projects" value={projectSearch} onChange={(e) => setProjectSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
             </label>
 
-            <div className="min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+            <div className="h-56 min-w-0 max-w-full shrink-0 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
-                const count = (projectChats[project] || []).length;
 
                 return (
                   <div key={project} className="relative">
                     <ProjectCard
                       project={project}
-                      count={count}
                       selectedProject={selectedProject}
                       onOpen={(e) => {
                         e.stopPropagation();

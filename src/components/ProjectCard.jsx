@@ -1,6 +1,5 @@
 function ProjectCard({
   project,
-  count,
   selectedProject,
   onOpen,
   onMenuClick,
@@ -33,8 +32,6 @@ function ProjectCard({
           ⋮
         </button>
       </div>
-
-      <p className="ml-[30px] mt-0.5 truncate text-[11px] text-slate-600">{count} {count === 1 ? "chat" : "chats"}</p>
     </div>
   );
 }
