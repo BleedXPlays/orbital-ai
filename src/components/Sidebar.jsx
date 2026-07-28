@@ -544,7 +544,7 @@ function Sidebar({
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-auto w-[164px] max-w-full object-contain drop-shadow-[0_0_24px_rgba(96,118,255,0.28)] lg:w-[190px]"
+              className="h-auto w-[164px] max-w-full object-contain drop-shadow-[0_0_24px_rgba(96,118,255,0.28)] lg:w-[190px] lg:translate-y-1.5"
             />
           </div>
 
