@@ -9,7 +9,7 @@ function ProjectCard({
   return (
     <div
       onClick={onOpen}
-      className={`relative w-full min-w-0 max-w-full cursor-pointer overflow-hidden rounded-xl border px-3 py-2.5 transition ${
+      className={`relative w-full min-w-0 max-w-full cursor-pointer overflow-hidden rounded-xl border px-3 py-2.5 transition lg:py-1 ${
         isSelected
           ? "border-blue-400/25 bg-gradient-to-r from-blue-500/[0.14] to-violet-500/[0.06] text-white shadow-[inset_3px_0_0_#568cff]"
           : "border-transparent text-slate-300 hover:border-white/[0.06] hover:bg-white/[0.035] hover:text-white"
@@ -27,7 +27,7 @@ function ProjectCard({
           type="button"
           onClick={onMenuClick}
           aria-label={`Open menu for ${project}`}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl leading-none text-slate-600 transition hover:bg-white/[0.06] hover:text-white"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl leading-none text-slate-600 transition hover:bg-white/[0.06] hover:text-white lg:h-7 lg:w-7"
         >
           ⋮
         </button>
