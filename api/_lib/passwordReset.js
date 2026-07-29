@@ -201,6 +201,18 @@ export const sendOtpEmail = async ({ email, otp }) => {
   const from =
     process.env.PASSWORD_RESET_EMAIL_FROM ||
     "OrbitalAI <onboarding@resend.dev>";
+  const otpCells = String(otp)
+    .split("")
+    .map(
+      (digit) => `
+        <td width="16.66%" align="center" style="padding:0 4px">
+          <div style="border:1px solid #5366a6;border-radius:12px;background:#111b3a;padding:14px 0;color:#cfbaff;font-family:'Courier New',monospace;font-size:28px;font-weight:700;line-height:1">
+            ${digit}
+          </div>
+        </td>
+      `
+    )
+    .join("");
 
   if (!apiKey) {
     throw new PasswordResetError(
@@ -222,14 +234,89 @@ export const sendOtpEmail = async ({ email, otp }) => {
       subject: "Your OrbitalAI password reset code",
       text: `Your OrbitalAI password reset code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
       html: `
-        <div style="background:#020714;color:#e8eefc;font-family:Arial,sans-serif;padding:32px">
-          <div style="max-width:520px;margin:auto;border:1px solid #28354f;border-radius:20px;background:#071022;padding:32px">
-            <h1 style="font-size:24px;margin:0 0 12px">Reset your OrbitalAI password</h1>
-            <p style="color:#aab7cf;line-height:1.6">Enter this six-digit code in OrbitalAI. It expires in 10 minutes.</p>
-            <div style="font-size:34px;letter-spacing:10px;font-weight:700;text-align:center;margin:28px 0;padding:18px;border-radius:14px;background:#111a36;color:#bda6ff">${otp}</div>
-            <p style="color:#7f8ba3;font-size:13px;line-height:1.6">If you did not request a password reset, you can safely ignore this email.</p>
-          </div>
-        </div>
+        <!doctype html>
+        <html lang="en">
+          <head>
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <meta name="color-scheme" content="dark" />
+            <meta name="supported-color-schemes" content="dark" />
+            <title>Your OrbitalAI verification code</title>
+          </head>
+          <body style="margin:0;padding:0;background:#020612;color:#eef3ff;font-family:Arial,Helvetica,sans-serif">
+            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">
+              Use ${otp} to securely continue your OrbitalAI password reset. This code expires in 10 minutes.
+            </div>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#020612;background-image:radial-gradient(circle at 18% 0%,#102a58 0,#061127 31%,#020612 68%)">
+              <tr>
+                <td align="center" style="padding:42px 16px 36px">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px">
+                    <tr>
+                      <td align="center" style="padding:0 0 26px">
+                        <img
+                          src="https://orbital-ai-three.vercel.app/orbital-favicon.png"
+                          width="62"
+                          height="62"
+                          alt="OrbitalAI"
+                          style="display:inline-block;border:0;vertical-align:middle"
+                        />
+                        <span style="display:inline-block;margin-left:12px;color:#ffffff;font-size:30px;font-weight:700;letter-spacing:-1.2px;vertical-align:middle">
+                          Orbital<span style="color:#a276ff">AI</span>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="overflow:hidden;border:1px solid #2b3c61;border-radius:26px;background:#071022;box-shadow:0 28px 80px rgba(0,0,0,.45)">
+                        <div style="height:5px;background-color:#5a63ff;background-image:linear-gradient(90deg,#2584ff 0%,#765cff 52%,#b35cff 100%)"></div>
+                        <div style="padding:42px 42px 38px">
+                          <div style="margin-bottom:24px">
+                            <span style="display:inline-block;border:1px solid #405487;border-radius:999px;background:#101a36;padding:8px 13px;color:#c9b5ff;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">
+                              Secure password reset
+                            </span>
+                          </div>
+                          <h1 style="margin:0 0 13px;color:#ffffff;font-size:30px;line-height:1.22;letter-spacing:-.7px">
+                            Verify it’s really you
+                          </h1>
+                          <p style="margin:0;color:#aebbd2;font-size:15px;line-height:1.7">
+                            Use this six-digit verification code in OrbitalAI to continue resetting your password.
+                          </p>
+                          <div style="margin:30px 0 22px;border:1px solid #31446f;border-radius:20px;background:#0b1530;padding:22px 14px 20px;text-align:center">
+                            <div style="margin-bottom:14px;color:#8797b7;font-size:11px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase">
+                              Verification code
+                            </div>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                              <tr>${otpCells}</tr>
+                            </table>
+                          </div>
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td width="42" valign="top" style="border-radius:14px 0 0 14px;background:#0d1930;padding:17px 0 17px 17px;color:#8db7ff;font-size:18px">
+                                &#9201;
+                              </td>
+                              <td style="border-radius:0 14px 14px 0;background:#0d1930;padding:15px 17px 15px 8px;color:#9eacc5;font-size:13px;line-height:1.6">
+                                <strong style="color:#e1e9f8">Expires in 10 minutes</strong><br />
+                                For your security, this code can only be used once.
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="margin:24px 0 0;color:#8390a8;font-size:12px;line-height:1.7">
+                            <strong style="color:#b6c2d7">Keep this code private.</strong>
+                            OrbitalAI will never ask you to share it by email, phone, or chat. If you did not request this reset, you can safely ignore this message.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" style="padding:22px 20px 0;color:#63728e;font-size:11px;line-height:1.7">
+                        Sent securely by OrbitalAI<br />
+                        One workspace. Three intelligences.
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
     }),
   });
