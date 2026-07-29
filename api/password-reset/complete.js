@@ -5,6 +5,10 @@ import {
   updateFirebasePassword,
   verifyResetToken,
 } from "../_lib/passwordReset.js";
+import {
+  getPasswordPolicyError,
+  isPasswordValid,
+} from "../../shared/passwordPolicy.js";
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -13,9 +17,9 @@ export default async function handler(request, response) {
   }
 
   const password = String(request.body?.password || "");
-  if (password.length < 8 || password.length > 128) {
+  if (!isPasswordValid(password)) {
     return response.status(400).json({
-      error: "Your password must contain between 8 and 128 characters.",
+      error: getPasswordPolicyError(password),
     });
   }
 

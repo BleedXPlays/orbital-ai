@@ -5,6 +5,11 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import logo from "../assets/orbital-logo.png";
+import PasswordRequirements from "../components/PasswordRequirements";
+import {
+  getPasswordPolicyError,
+  isPasswordValid,
+} from "../../shared/passwordPolicy";
 
 const getResetErrorMessage = (error) => {
   const messages = {
@@ -14,7 +19,7 @@ const getResetErrorMessage = (error) => {
       "This reset link is invalid or has already been used.",
     "auth/user-disabled": "This account has been disabled.",
     "auth/user-not-found": "The account connected to this link no longer exists.",
-    "auth/weak-password": "Use a stronger password with at least 8 characters.",
+    "auth/weak-password": "Your password does not meet the security requirements.",
   };
 
   return (
@@ -96,8 +101,8 @@ function ResetPassword() {
     event.preventDefault();
     setErrorMessage("");
 
-    if (newPassword.length < 8) {
-      setErrorMessage("Your new password must contain at least 8 characters.");
+    if (!isPasswordValid(newPassword)) {
+      setErrorMessage(getPasswordPolicyError(newPassword));
       return;
     }
 
@@ -248,6 +253,11 @@ function ResetPassword() {
               />
             </label>
 
+            <PasswordRequirements
+              password={newPassword}
+              confirmPassword={confirmPassword}
+            />
+
             <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-300">
               <input
                 type="checkbox"
@@ -260,7 +270,11 @@ function ResetPassword() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting ||
+                !isPasswordValid(newPassword) ||
+                newPassword !== confirmPassword
+              }
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting && (

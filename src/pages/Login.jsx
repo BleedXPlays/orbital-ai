@@ -8,6 +8,11 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
+import PasswordRequirements from "../components/PasswordRequirements";
+import {
+  getPasswordPolicyError,
+  isPasswordValid,
+} from "../../shared/passwordPolicy";
 
 const getFriendlyAuthError = (error) => {
   if (error?.code === "auth/unauthorized-domain") {
@@ -22,7 +27,7 @@ const getFriendlyAuthError = (error) => {
     "auth/invalid-credential": "The email or password you entered is incorrect.",
     "auth/invalid-email": "Enter a valid email address.",
     "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
-    "auth/weak-password": "Use a stronger password with at least 6 characters.",
+    "auth/weak-password": "Your password does not meet the security requirements.",
     "auth/popup-closed-by-user": "Google sign-in was cancelled.",
     "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
     "auth/operation-not-allowed":
@@ -61,6 +66,7 @@ function Login() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -83,6 +89,16 @@ function Login() {
 
     if (!password.trim()) {
       setErrorMessage("Please enter your password.");
+      return;
+    }
+
+    if (isSignup && !isPasswordValid(password)) {
+      setErrorMessage(getPasswordPolicyError(password));
+      return;
+    }
+
+    if (isSignup && password !== confirmPassword) {
+      setErrorMessage("The two passwords do not match.");
       return;
     }
 
@@ -208,6 +224,7 @@ function Login() {
     setFullName("");
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setShowPassword(false);
     setErrorMessage("");
     setSuccessMessage("");
@@ -541,6 +558,31 @@ function Login() {
                         </span>
                       </label>
 
+                      {isSignup && (
+                        <>
+                          <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-slate-100">
+                              Confirm password
+                            </span>
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              autoComplete="new-password"
+                              placeholder="Enter the same password again"
+                              className="auth-input"
+                              value={confirmPassword}
+                              onChange={(event) =>
+                                setConfirmPassword(event.target.value)
+                              }
+                            />
+                          </label>
+
+                          <PasswordRequirements
+                            password={password}
+                            confirmPassword={confirmPassword}
+                          />
+                        </>
+                      )}
+
                       {!isSignup && (
                         <div className="-mt-2 text-right">
                           <button
@@ -555,7 +597,12 @@ function Login() {
 
                       <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={
+                          isSubmitting ||
+                          (isSignup &&
+                            (!isPasswordValid(password) ||
+                              password !== confirmPassword))
+                        }
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isSubmitting && (

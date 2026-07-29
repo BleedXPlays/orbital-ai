@@ -9,7 +9,12 @@ import {
   reauthenticateWithPopup,
 } from "firebase/auth";
 import ConfirmModal from "../components/ConfirmModal";
+import PasswordRequirements from "../components/PasswordRequirements";
 import { deleteWorkspaceData } from "../services/workspaceService";
+import {
+  getPasswordPolicyError,
+  isPasswordValid,
+} from "../../shared/passwordPolicy";
 
 function Settings({
   user,
@@ -186,8 +191,13 @@ function Settings({
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordMessage("New password must be at least 6 characters.");
+    if (!isPasswordValid(newPassword)) {
+      setPasswordMessage(getPasswordPolicyError(newPassword));
+      return;
+    }
+
+    if (newPassword === currentPassword) {
+      setPasswordMessage("Your new password must be different from your current password.");
       return;
     }
 
@@ -356,9 +366,20 @@ function Settings({
                     className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
                   />
 
+                  <PasswordRequirements
+                    password={newPassword}
+                    confirmPassword={confirmNewPassword}
+                  />
+
                   <button
                     onClick={changePassword}
-                    disabled={isChangingPassword}
+                    disabled={
+                      isChangingPassword ||
+                      !currentPassword ||
+                      !isPasswordValid(newPassword) ||
+                      newPassword !== confirmNewPassword ||
+                      newPassword === currentPassword
+                    }
                     className="w-fit px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
                   >
                     {isChangingPassword ? "Changing..." : "Change password"}
