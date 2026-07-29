@@ -246,26 +246,32 @@ export const sendOtpEmail = async ({ email, otp }) => {
             <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">
               Use ${otp} to securely continue your OrbitalAI password reset. This code expires in 10 minutes.
             </div>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#020612;background-image:radial-gradient(circle at 18% 0%,#102a58 0,#061127 31%,#020612 68%)">
+            <table
+              role="presentation"
+              width="100%"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+              background="https://orbital-ai-three.vercel.app/orbital-auth-bg-hd.jpg"
+              style="background-color:#020612;background-image:linear-gradient(rgba(2,6,18,.48),rgba(2,6,18,.78)),url('https://orbital-ai-three.vercel.app/orbital-auth-bg-hd.jpg');background-position:center;background-size:cover"
+            >
               <tr>
-                <td align="center" style="padding:42px 16px 36px">
+                <td align="center" style="padding:40px 16px 42px;background-color:rgba(2,6,18,.34)">
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px">
                     <tr>
-                      <td align="center" style="padding:0 0 26px">
-                        <img
-                          src="https://orbital-ai-three.vercel.app/orbital-favicon.png"
-                          width="62"
-                          height="62"
-                          alt="OrbitalAI"
-                          style="display:inline-block;border:0;vertical-align:middle"
-                        />
-                        <span style="display:inline-block;margin-left:12px;color:#ffffff;font-size:30px;font-weight:700;letter-spacing:-1.2px;vertical-align:middle">
-                          Orbital<span style="color:#a276ff">AI</span>
-                        </span>
+                      <td align="center" style="padding:0 0 24px">
+                        <div style="height:94px;overflow:hidden;text-align:center">
+                          <img
+                            src="https://orbital-ai-three.vercel.app/assets/orbital-logo-DrYt2mDS.png"
+                            width="300"
+                            alt="OrbitalAI"
+                            style="display:inline-block;width:300px;max-width:76%;height:auto;margin-top:-53px;border:0"
+                          />
+                        </div>
                       </td>
                     </tr>
                     <tr>
-                      <td style="overflow:hidden;border:1px solid #2b3c61;border-radius:26px;background:#071022;box-shadow:0 28px 80px rgba(0,0,0,.45)">
+                      <td style="overflow:hidden;border:1px solid #40527c;border-radius:26px;background:#050b1b;box-shadow:0 28px 80px rgba(0,0,0,.52)">
                         <div style="height:5px;background-color:#5a63ff;background-image:linear-gradient(90deg,#2584ff 0%,#765cff 52%,#b35cff 100%)"></div>
                         <div style="padding:42px 42px 38px">
                           <div style="margin-bottom:24px">
@@ -306,7 +312,7 @@ export const sendOtpEmail = async ({ email, otp }) => {
                       </td>
                     </tr>
                     <tr>
-                      <td align="center" style="padding:22px 20px 0;color:#63728e;font-size:11px;line-height:1.7">
+                      <td align="center" style="padding:22px 20px 0;color:#8393b2;font-size:11px;line-height:1.7;text-shadow:0 1px 8px #020612">
                         Sent securely by OrbitalAI<br />
                         One workspace. Three intelligences.
                       </td>
