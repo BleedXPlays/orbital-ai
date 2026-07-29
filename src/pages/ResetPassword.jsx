@@ -24,6 +24,10 @@ const getResetErrorMessage = (error) => {
 };
 
 function ResetPassword() {
+  const isOtpFlow = useMemo(
+    () => new URLSearchParams(window.location.search).get("flow") === "otp",
+    []
+  );
   const resetCode = useMemo(
     () => new URLSearchParams(window.location.search).get("oobCode") || "",
     []
@@ -35,11 +39,34 @@ function ResetPassword() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpResetToken, setOtpResetToken] = useState("");
 
   useEffect(() => {
     let isCurrent = true;
 
     const verifyResetLink = async () => {
+      if (isOtpFlow) {
+        try {
+          const stored = JSON.parse(
+            window.sessionStorage.getItem("orbital-password-reset") || "{}"
+          );
+          if (!stored?.resetToken || !stored?.email) {
+            throw new Error("Missing OTP reset session.");
+          }
+          if (!isCurrent) return;
+          setOtpResetToken(stored.resetToken);
+          setAccountEmail(stored.email);
+          setStatus("ready");
+        } catch {
+          if (!isCurrent) return;
+          setStatus("invalid");
+          setErrorMessage(
+            "Your verification session has expired. Request a new code."
+          );
+        }
+        return;
+      }
+
       if (!resetCode) {
         setStatus("invalid");
         setErrorMessage("This reset link is incomplete. Request a new reset email.");
@@ -63,7 +90,7 @@ function ResetPassword() {
     return () => {
       isCurrent = false;
     };
-  }, [resetCode]);
+  }, [isOtpFlow, resetCode]);
 
   const handleResetPassword = async (event) => {
     event.preventDefault();
@@ -81,12 +108,34 @@ function ResetPassword() {
 
     try {
       setIsSubmitting(true);
-      await confirmPasswordReset(auth, resetCode, newPassword);
+      if (isOtpFlow) {
+        const response = await fetch("/api/password-reset/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resetToken: otpResetToken,
+            password: newPassword,
+          }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            result?.error || "We could not update your password."
+          );
+        }
+        window.sessionStorage.removeItem("orbital-password-reset");
+      } else {
+        await confirmPasswordReset(auth, resetCode, newPassword);
+      }
       setNewPassword("");
       setConfirmPassword("");
       setStatus("success");
     } catch (error) {
-      setErrorMessage(getResetErrorMessage(error));
+      setErrorMessage(
+        isOtpFlow
+          ? error?.message || "We could not update your password."
+          : getResetErrorMessage(error)
+      );
     } finally {
       setIsSubmitting(false);
     }

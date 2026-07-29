@@ -4,7 +4,6 @@ import logo from "../assets/orbital-logo.png";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
@@ -37,10 +36,28 @@ const getFriendlyAuthError = (error) => {
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
+const postPasswordReset = async (path, payload) => {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      result?.error || "We could not complete that request. Please try again."
+    );
+  }
+
+  return result;
+};
+
 function Login() {
   const [isSignup, setIsSignup] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [resetOtp, setResetOtp] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -120,10 +137,46 @@ function Login() {
 
     try {
       setIsSubmitting(true);
-      await sendPasswordResetEmail(auth, email.trim());
+      await postPasswordReset("/api/password-reset/request", {
+        email: email.trim(),
+      });
       setResetEmailSent(true);
     } catch (error) {
-      setErrorMessage(getFriendlyAuthError(error));
+      setErrorMessage(
+        error?.message || "We could not send the verification code."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyResetOtp = async (event) => {
+    event?.preventDefault();
+    setErrorMessage("");
+
+    if (!/^\d{6}$/.test(resetOtp)) {
+      setErrorMessage("Enter the six-digit code from your email.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const result = await postPasswordReset("/api/password-reset/verify", {
+        email: email.trim(),
+        otp: resetOtp,
+      });
+      window.sessionStorage.setItem(
+        "orbital-password-reset",
+        JSON.stringify({
+          resetToken: result.resetToken,
+          email: result.email,
+        })
+      );
+      window.location.assign("/reset-password?flow=otp");
+    } catch (error) {
+      setErrorMessage(
+        error?.message || "We could not verify that code. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -132,6 +185,7 @@ function Login() {
   const openPasswordReset = () => {
     setIsPasswordReset(true);
     setResetEmailSent(false);
+    setResetOtp("");
     setPassword("");
     setShowPassword(false);
     setErrorMessage("");
@@ -141,6 +195,7 @@ function Login() {
   const closePasswordReset = () => {
     setIsPasswordReset(false);
     setResetEmailSent(false);
+    setResetOtp("");
     setErrorMessage("");
     setSuccessMessage("");
   };
@@ -149,6 +204,7 @@ function Login() {
     setIsSignup((current) => !current);
     setIsPasswordReset(false);
     setResetEmailSent(false);
+    setResetOtp("");
     setFullName("");
     setEmail("");
     setPassword("");
@@ -265,7 +321,7 @@ function Login() {
                   <h2 className="text-3xl font-semibold tracking-[-0.035em] text-white">
                     {isPasswordReset
                       ? resetEmailSent
-                        ? "Check your email"
+                        ? "Enter verification code"
                         : "Forgot your password?"
                       : isSignup
                       ? "Create Account"
@@ -274,8 +330,8 @@ function Login() {
                   <p className="mx-auto mt-2 max-w-[360px] text-sm leading-6 text-slate-300/80">
                     {isPasswordReset
                       ? resetEmailSent
-                        ? "Use the secure link in your email to choose a new password."
-                        : "Enter your email and we’ll send you a secure link to choose a new password."
+                        ? "Enter the six-digit code we sent to your email."
+                        : "Enter your email and we’ll send you a secure six-digit verification code."
                       : isSignup
                       ? "Start your journey with OrbitalAI"
                       : "Welcome back to OrbitalAI"}
@@ -296,10 +352,13 @@ function Login() {
 
                 {isPasswordReset ? (
                   resetEmailSent ? (
-                    <div className="text-center">
+                    <form
+                      onSubmit={handleVerifyResetOtp}
+                      className="text-center"
+                    >
                       <div className="rounded-2xl border border-white/10 bg-white/[0.025] px-5 py-4">
                         <p className="text-sm text-slate-400">
-                          Password reset link sent to
+                          Verification code sent to
                         </p>
                         <p className="mt-1 break-all font-medium text-white">
                           {email.trim()}
@@ -307,30 +366,65 @@ function Login() {
                       </div>
 
                       <p className="mx-auto mt-4 max-w-[340px] text-xs leading-5 text-slate-400">
-                        It may take a minute to arrive. Check your spam folder
-                        if you don’t see it.
+                        The code expires in 10 minutes. Check your spam folder
+                        if it does not arrive.
                       </p>
 
-                      <button
-                        type="button"
-                        onClick={closePasswordReset}
-                        className="mt-6 flex w-full items-center justify-center rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110"
-                      >
-                        Back to sign in
-                      </button>
+                      <label className="mt-6 block text-left">
+                        <span className="mb-2 block text-sm font-medium text-slate-100">
+                          Six-digit code
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          autoFocus
+                          placeholder="000000"
+                          className="auth-input text-center text-2xl font-semibold tracking-[0.45em]"
+                          value={resetOtp}
+                          onChange={(event) =>
+                            setResetOtp(
+                              event.target.value.replace(/\D/g, "").slice(0, 6)
+                            )
+                          }
+                        />
+                      </label>
 
                       <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        disabled={isSubmitting}
-                        className="mx-auto mt-3 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-slate-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        type="submit"
+                        disabled={isSubmitting || resetOtp.length !== 6}
+                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300/20 bg-gradient-to-r from-[#1458ed] via-[#4d50f4] to-[#7542ed] px-5 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(55,67,238,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isSubmitting && (
-                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                         )}
-                        {isSubmitting ? "Sending again..." : "Resend email"}
+                        {isSubmitting ? "Verifying code…" : "Verify code"}
                       </button>
-                    </div>
+
+                      <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={isSubmitting}
+                          className="px-2 py-2 font-medium text-blue-300 transition hover:text-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Resend code
+                        </button>
+                        <span className="text-slate-600">•</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetEmailSent(false);
+                            setResetOtp("");
+                            setErrorMessage("");
+                          }}
+                          className="px-2 py-2 font-medium text-slate-300 transition hover:text-white"
+                        >
+                          Change email
+                        </button>
+                      </div>
+                    </form>
                   ) : (
                     <form
                       onSubmit={handleForgotPassword}
@@ -360,8 +454,8 @@ function Login() {
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                         )}
                         {isSubmitting
-                          ? "Sending reset link..."
-                          : "Send reset link"}
+                          ? "Sending code..."
+                          : "Send verification code"}
                       </button>
 
                       <button
