@@ -92,8 +92,18 @@ const supabaseRequest = async (path, options = {}) => {
     );
   }
 
-  if (response.status === 204) return null;
-  return response.json();
+  const responseText = await response.text();
+  if (!responseText) return null;
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    throw new PasswordResetError(
+      "Password reset is temporarily unavailable.",
+      503,
+      "password_reset_storage_failed"
+    );
+  }
 };
 
 export const findFirebaseUserByEmail = async (email) => {
