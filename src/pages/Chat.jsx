@@ -2750,15 +2750,13 @@ function Chat({
                   disabled={
                     isGenerating || isRecording || isTranscribingVoice
                   }
-                  className={`group relative isolate flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cyan-100/30 bg-[#111b3d] text-white shadow-[0_12px_32px_rgba(72,74,255,0.32),0_0_20px_rgba(56,189,248,0.09),inset_0_1px_0_rgba(255,255,255,0.24)] transition-all sm:h-16 sm:w-16 ${
+                  className={`group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-200/20 bg-[linear-gradient(145deg,#3b6ff5,#5a55e7_52%,#7138cf)] text-white shadow-[0_10px_28px_rgba(55,65,190,0.28),inset_0_1px_0_rgba(255,255,255,0.16)] transition-all sm:h-16 sm:w-16 sm:rounded-2xl ${
                     isGenerating || isRecording || isTranscribingVoice
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:scale-[1.055] hover:border-cyan-50/50 hover:shadow-[0_16px_40px_rgba(72,74,255,0.42),0_0_30px_rgba(56,189,248,0.16),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.96]"
+                      : "hover:-translate-y-px hover:border-blue-100/35 hover:brightness-110 hover:shadow-[0_13px_32px_rgba(67,70,205,0.34),inset_0_1px_0_rgba(255,255,255,0.2)] active:translate-y-0 active:scale-[0.97]"
                   }`}
                 >
-                  <span className="absolute inset-[2px] -z-20 rounded-full bg-[conic-gradient(from_215deg,#38bdf8,#5266f5_38%,#9333ea_72%,#38bdf8)] transition-transform duration-500 group-hover:rotate-[18deg]" />
-                  <span className="absolute inset-[5px] -z-10 rounded-full bg-[radial-gradient(circle_at_32%_24%,rgba(255,255,255,0.32),rgba(78,91,235,0.96)_42%,rgba(85,36,180,0.98))]" />
-                  <span className="absolute left-[22%] top-[14%] h-[18%] w-[45%] rotate-[-18deg] rounded-full bg-white/20 blur-[1px]" />
+                  <span className="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
                   {isGenerating ? (
                     <span className="text-2xl leading-none">…</span>
                   ) : (
@@ -2766,10 +2764,10 @@ function Chat({
                       viewBox="0 0 24 24"
                       fill="none"
                       aria-hidden="true"
-                      className="relative h-5 w-5 translate-x-px drop-shadow-[0_2px_5px_rgba(9,18,55,0.45)] transition-transform group-hover:translate-x-1 sm:h-6 sm:w-6"
+                      className="relative h-5 w-5 translate-x-px drop-shadow-[0_2px_4px_rgba(9,18,55,0.3)] transition-transform group-hover:translate-x-0.5 sm:h-6 sm:w-6"
                     >
-                      <path d="m5.25 5.25 13.5 6.75-13.5 6.75 2.45-6.75-2.45-6.75Z" fill="currentColor" />
-                      <path d="M7.8 12h6.4" stroke="#dff7ff" strokeWidth="1.2" strokeLinecap="round" />
+                      <path d="m4.75 5.25 14.5 6.75-14.5 6.75 2.7-6.75-2.7-6.75Z" stroke="currentColor" strokeWidth="1.65" strokeLinejoin="round" />
+                      <path d="M7.6 12h7" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" />
                     </svg>
                   )}
                 </button>
