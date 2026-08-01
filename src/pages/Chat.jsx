@@ -2071,16 +2071,43 @@ function Chat({
               >
                 {message.role === "user" ? (
                   <div
-                    className={`min-w-0 max-w-[94%] rounded-xl border border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 transition-[width,max-width] duration-200 ${
+                    className={`min-w-0 max-w-[94%] overflow-hidden rounded-xl border transition-[width,max-width] duration-200 ${
                       editingRequestId === message.requestId
-                        ? "w-full sm:max-w-[760px] lg:max-w-[820px]"
-                        : "sm:max-w-[560px]"
+                        ? "w-full border-violet-400/30 bg-[radial-gradient(circle_at_top_right,rgba(124,92,255,0.14),transparent_42%),linear-gradient(145deg,rgba(7,16,31,0.97),rgba(3,9,22,0.95))] shadow-[0_22px_70px_rgba(0,0,0,0.38),0_0_35px_rgba(109,79,255,0.08)] backdrop-blur-xl sm:max-w-[760px] lg:max-w-[820px]"
+                        : "border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 sm:max-w-[560px]"
                     }`}
                   >
-                    <div className="p-3.5 sm:p-4">
-                      <p className="mb-1 text-[11px] text-slate-500">You</p>
+                    <div
+                      className={`p-3.5 sm:p-4 ${
+                        editingRequestId === message.requestId
+                          ? "sm:p-5"
+                          : ""
+                      }`}
+                    >
                       {editingRequestId === message.requestId ? (
-                        <div className="mt-2">
+                        <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/[0.07] pb-3">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-400/25 bg-violet-400/10 text-sm text-violet-200">
+                              ✎
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-100">
+                                Editing prompt
+                              </p>
+                              <p className="truncate text-[11px] text-slate-500">
+                                Update your request before regenerating
+                              </p>
+                            </div>
+                          </div>
+                          <span className="rounded-full border border-blue-400/15 bg-blue-400/[0.07] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-200/80">
+                            You
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="mb-1 text-[11px] text-slate-500">You</p>
+                      )}
+                      {editingRequestId === message.requestId ? (
+                        <div>
                           <textarea
                             autoFocus
                             value={editingMessageText}
@@ -2104,15 +2131,19 @@ function Chat({
                                   Math.ceil(editingMessageText.length / 85)
                               )
                             )}
-                            className="max-h-[420px] min-h-48 w-full resize-y rounded-xl border border-violet-400/40 bg-[#07101F] px-4 py-3 text-sm leading-relaxed text-gray-100 outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-500/15 sm:min-h-56 sm:text-base"
+                            className="max-h-[420px] min-h-48 w-full resize-y rounded-xl border border-blue-300/20 bg-[#020817]/75 px-4 py-3 text-sm leading-relaxed text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:bg-[#030b1a]/90 focus:ring-2 focus:ring-violet-500/10 sm:min-h-56 sm:px-5 sm:py-4 sm:text-base"
                             aria-label="Edit prompt"
                           />
-                          <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                          <div className="mt-4 flex flex-col-reverse gap-2 border-t border-white/[0.07] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="hidden text-[11px] text-slate-500 sm:block">
+                              Command/Ctrl + Enter to resend
+                            </p>
+                            <div className="flex flex-col-reverse gap-2 sm:flex-row">
                             <button
                               type="button"
                               onClick={cancelEditingMessage}
                               disabled={isGenerating}
-                              className="rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+                              className="rounded-lg border border-slate-600/35 bg-[#07101F]/70 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-500/60 hover:bg-[#0b1628] disabled:opacity-40"
                             >
                               Cancel
                             </button>
@@ -2122,13 +2153,14 @@ function Chat({
                               disabled={
                                 isGenerating || !editingMessageText.trim()
                               }
-                              className="rounded-lg bg-gradient-to-r from-blue-500 to-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="rounded-lg border border-violet-300/20 bg-gradient-to-r from-blue-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(91,72,255,0.24)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               Done &amp; resend
                             </button>
+                            </div>
                           </div>
-                          <p className="mt-2 text-right text-[11px] text-slate-500">
-                            Press Command/Ctrl + Enter to resend
+                          <p className="mt-2 text-center text-[11px] text-slate-500 sm:hidden">
+                            Command/Ctrl + Enter to resend
                           </p>
                         </div>
                       ) : (
