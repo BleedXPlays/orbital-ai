@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OutputPreviewModal from "../components/OutputPreviewModal";
 import GeneratedImageContent from "../components/GeneratedImageContent";
+import MarkdownContent from "../components/MarkdownContent";
 import {
   getChatAttachmentUrl,
   uploadChatAttachment,
@@ -74,6 +75,13 @@ const slugify = (value) => {
     .replace(/-+/g, "-");
 };
 
+const getChatDraftKey = (userId, chatName) =>
+  userId && chatName
+    ? `orbitalai:draft:${userId}:${encodeURIComponent(chatName)}`
+    : "";
+
+const createClientId = (prefix) => `${prefix}-${crypto.randomUUID()}`;
+
 const base64ToFile = ({ data, mimeType, name }) => {
   const binary = window.atob(data);
   const bytes = new Uint8Array(binary.length);
@@ -131,11 +139,49 @@ function Chat({
   const voiceStartTimeRef = useRef(null);
   const voiceStreamRef = useRef(null);
   const selectedAttachmentFileRef = useRef(null);
+  const activeGenerationRef = useRef(null);
+  const isRestoringDraftRef = useRef(false);
 
   const messages = useMemo(
     () => (selectedChat ? chatMessages[selectedChat] || [] : []),
     [selectedChat, chatMessages]
   );
+
+  const clearDraft = (chatName) => {
+    const key = getChatDraftKey(user?.uid, chatName);
+    if (key) window.localStorage.removeItem(key);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    isRestoringDraftRef.current = true;
+    const key = getChatDraftKey(user?.uid, selectedChat);
+    const savedDraft = key ? window.localStorage.getItem(key) || "" : "";
+
+    queueMicrotask(() => {
+      if (!cancelled) setInput(savedDraft);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedChat, user?.uid]);
+
+  useEffect(() => {
+    if (isRestoringDraftRef.current) {
+      isRestoringDraftRef.current = false;
+      return;
+    }
+
+    const key = getChatDraftKey(user?.uid, selectedChat);
+    if (!key) return;
+
+    if (input) {
+      window.localStorage.setItem(key, input);
+    } else {
+      window.localStorage.removeItem(key);
+    }
+  }, [input, selectedChat, user?.uid]);
 
   useEffect(() => {
     const scrollElement = mainScrollRef.current;
@@ -174,6 +220,8 @@ function Chat({
       if (voiceStreamRef.current) {
         voiceStreamRef.current.getTracks().forEach((track) => track.stop());
       }
+
+      activeGenerationRef.current?.controller.abort();
     };
   }, []);
 
@@ -513,7 +561,11 @@ function Chat({
     }
   };
   
-  const getReadableFileText = async ({ attachment, attachmentFile }) => {
+  const getReadableFileText = async ({
+    attachment,
+    attachmentFile,
+    signal,
+  }) => {
     if (!attachmentFile || attachment?.kind !== "file") {
       return "";
     }
@@ -522,6 +574,7 @@ function Chat({
 
     const fileResponse = await apiFetch("/api/read-file", {
       method: "POST",
+      signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -559,6 +612,7 @@ function Chat({
     previousFileName,
     conversationHistory,
     onStage = () => {},
+    signal,
   }) => {
     let newFileText = "";
     let transcriptText = "";
@@ -570,6 +624,7 @@ function Chat({
 
         const transcriptionResponse = await apiFetch("/api/transcribe", {
           method: "POST",
+          signal,
           headers: {
             "Content-Type": "application/json",
           },
@@ -603,6 +658,7 @@ function Chat({
 
         const response = await apiFetch("/api/chat", {
           method: "POST",
+          signal,
           headers: {
             "Content-Type": "application/json",
           },
@@ -685,6 +741,7 @@ function Chat({
         (await getReadableFileText({
           attachment,
           attachmentFile,
+          signal,
         }));
       const fileText = newFileText || (!attachment ? previousFileText : "");
       const fileName = newFileText
@@ -701,6 +758,7 @@ function Chat({
 
       const response = await apiFetch("/api/chat", {
         method: "POST",
+        signal,
         headers: {
           "Content-Type": "application/json",
         },
@@ -760,6 +818,16 @@ function Chat({
           : [],
       };
     } catch (error) {
+      if (error?.name === "AbortError" || signal?.aborted) {
+        return {
+          reply: "Response generation stopped.",
+          outputs: [],
+          fileText: newFileText,
+          transcriptText,
+          aborted: true,
+        };
+      }
+
       console.error("AI response error:", error);
       const errorMessage =
         String(error?.message || "").trim() ||
@@ -819,12 +887,10 @@ function Chat({
     }
 
     const attachment = {
-      id: `attachment-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 9)}`,
+      id: createClientId("attachment"),
       name:
         file.name ||
-        (isImage ? `pasted-image-${Date.now()}` : `pasted-file-${Date.now()}`),
+        createClientId(isImage ? "pasted-image" : "pasted-file"),
       type: file.type || "Unknown type",
       size: file.size,
       sizeLabel: formatFileSize(file.size),
@@ -1107,6 +1173,47 @@ function Chat({
     showNotice("Input cleared.");
   };
 
+  const finishGeneration = (controller) => {
+    if (activeGenerationRef.current?.controller === controller) {
+      activeGenerationRef.current = null;
+      setIsGenerating(false);
+      setRequestStage("Selecting the best AI");
+    }
+  };
+
+  const stopGeneration = () => {
+    const activeRequest = activeGenerationRef.current;
+    if (!activeRequest) return;
+
+    activeRequest.controller.abort();
+
+    if (activeRequest.chatName) {
+      setChatMessages((current) => ({
+        ...current,
+        [activeRequest.chatName]: (
+          current[activeRequest.chatName] || []
+        ).map((message) =>
+          message.role === "ai" &&
+          message.isLoading &&
+          message.requestId === activeRequest.requestId
+            ? {
+                ...message,
+                text: "Response generation stopped.",
+                isLoading: false,
+                stopped: true,
+                outputs: [],
+              }
+            : message
+        ),
+      }));
+    }
+
+    activeGenerationRef.current = null;
+    setIsGenerating(false);
+    setRequestStage("Selecting the best AI");
+    showNotice("Response generation stopped.");
+  };
+
   const formatChatForExport = (format = "txt") => {
     const title = selectedChat || "Untitled Chat";
     const exportedAt = new Date().toLocaleString();
@@ -1353,9 +1460,13 @@ function Chat({
 
     const tasks = analyzeTask(textForAnalysis);
     const outputs = getOutputs(tasks);
-    const requestId = `${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 9)}`;
+    const requestId = createClientId("request");
+    const requestController = new AbortController();
+    activeGenerationRef.current = {
+      controller: requestController,
+      requestId,
+      chatName: selectedChat || "",
+    };
 
     const userMessage = {
       role: "user",
@@ -1473,6 +1584,7 @@ function Chat({
       }
     };
 
+    clearDraft(selectedChat);
     setInput("");
 
     if (attachmentPreviewUrl) {
@@ -1485,6 +1597,7 @@ function Chat({
 
     if (!selectedChat) {
       const newTitle = generateChatTitle(messageText);
+      activeGenerationRef.current.chatName = newTitle;
 
       setChats([...chats, newTitle]);
 
@@ -1514,10 +1627,13 @@ function Chat({
           previousFileName,
           conversationHistory,
           onStage: setRequestStage,
+          signal: requestController.signal,
         }),
         saveAttachment(newTitle),
       ]);
+      if (requestController.signal.aborted || rawResult.aborted) return;
       const result = await saveGeneratedImages(rawResult, newTitle);
+      if (requestController.signal.aborted) return;
 
       setChatMessages((prev) => ({
         ...prev,
@@ -1527,13 +1643,14 @@ function Chat({
         ],
       }));
 
-      setIsGenerating(false);
-      setRequestStage("Selecting the best AI");
+      finishGeneration(requestController);
       return;
     }
 
     if (selectedChat.startsWith("New Chat") && messages.length === 0) {
       const newTitle = generateChatTitle(messageText);
+      activeGenerationRef.current.chatName = newTitle;
+      clearDraft(selectedChat);
 
       const updatedChats = chats.map((chat) =>
         chat === selectedChat ? newTitle : chat
@@ -1577,10 +1694,13 @@ function Chat({
           previousFileName,
           conversationHistory,
           onStage: setRequestStage,
+          signal: requestController.signal,
         }),
         saveAttachment(newTitle),
       ]);
+      if (requestController.signal.aborted || rawResult.aborted) return;
       const result = await saveGeneratedImages(rawResult, newTitle);
+      if (requestController.signal.aborted) return;
 
       setChatMessages((prev) => ({
         ...prev,
@@ -1590,8 +1710,7 @@ function Chat({
         ],
       }));
 
-      setIsGenerating(false);
-      setRequestStage("Selecting the best AI");
+      finishGeneration(requestController);
       return;
     }
 
@@ -1622,10 +1741,13 @@ function Chat({
         previousFileName,
         conversationHistory,
         onStage: setRequestStage,
+        signal: requestController.signal,
       }),
       saveAttachment(selectedChat),
     ]);
+    if (requestController.signal.aborted || rawResult.aborted) return;
     const result = await saveGeneratedImages(rawResult, selectedChat);
+    if (requestController.signal.aborted) return;
 
     setChatMessages((prev) => {
       const currentMessages = prev[selectedChat] || [];
@@ -1648,8 +1770,7 @@ function Chat({
       };
     });
 
-    setIsGenerating(false);
-    setRequestStage("Selecting the best AI");
+    finishGeneration(requestController);
   };
 
   const retryFailedMessage = async (failedMessage, options = {}) => {
@@ -1708,6 +1829,12 @@ function Chat({
         role: message.role === "ai" ? "assistant" : "user",
         content: String(message.transcriptText || message.text).slice(0, 6000),
       }));
+    const requestController = new AbortController();
+    activeGenerationRef.current = {
+      controller: requestController,
+      requestId: failedMessage.requestId,
+      chatName: selectedChat,
+    };
 
     setIsGenerating(true);
     setRequestStage("Retrying request");
@@ -1756,9 +1883,16 @@ function Chat({
         previousFileName,
         conversationHistory,
         onStage: setRequestStage,
+        signal: requestController.signal,
       });
+      if (requestController.signal.aborted || result.aborted) return;
       result = await saveGeneratedImages(result, selectedChat);
+      if (requestController.signal.aborted) return;
     } catch (error) {
+      if (error?.name === "AbortError" || requestController.signal.aborted) {
+        return;
+      }
+
       const errorMessage =
         String(error?.message || "").trim() ||
         "The retry could not be completed.";
@@ -1846,8 +1980,7 @@ function Chat({
       showNotice("Request completed successfully.");
     }
 
-    setIsGenerating(false);
-    setRequestStage("Selecting the best AI");
+    finishGeneration(requestController);
   };
 
   const finishEditingMessage = async (message) => {
@@ -2290,6 +2423,14 @@ function Chat({
                               <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
                                 <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
                               </div>
+                              <button
+                                type="button"
+                                onClick={stopGeneration}
+                                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-red-300/20 bg-red-400/[0.07] px-3 py-2 text-xs font-semibold text-red-100 transition hover:border-red-300/35 hover:bg-red-400/[0.12]"
+                              >
+                                <span className="h-2.5 w-2.5 rounded-[2px] bg-current" />
+                                Stop generation
+                              </button>
                             </div>
                           ) : message.failed ? (
                             <div className="rounded-xl border border-red-400/20 bg-red-500/[0.07] p-4">
@@ -2310,9 +2451,7 @@ function Chat({
                               </button>
                             </div>
                           ) : (
-                            <p className="break-words whitespace-pre-wrap text-[15px] font-normal leading-7 text-gray-100">
-                              {message.text}
-                            </p>
+                            <MarkdownContent>{message.text}</MarkdownContent>
                           )}
 
                           {message.providerNotice && (

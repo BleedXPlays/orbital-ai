@@ -1,5 +1,6 @@
 import { useState } from "react";
 import GeneratedImageContent from "./GeneratedImageContent";
+import MarkdownContent from "./MarkdownContent";
 
 function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
   const [copyStatus, setCopyStatus] = useState({
@@ -69,9 +70,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
 
     return (
       <div className="rounded-2xl bg-[#050B1A] border border-[#1B2540] p-5">
-        <p className="text-sm text-gray-200 leading-7 whitespace-pre-wrap">
-          {content}
-        </p>
+        <MarkdownContent>{content}</MarkdownContent>
       </div>
     );
   };
