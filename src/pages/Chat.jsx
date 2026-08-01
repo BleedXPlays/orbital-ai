@@ -2070,7 +2070,13 @@ function Chat({
                 }`}
               >
                 {message.role === "user" ? (
-                  <div className="min-w-0 max-w-[94%] rounded-xl border border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 sm:max-w-[560px]">
+                  <div
+                    className={`min-w-0 max-w-[94%] rounded-xl border border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 transition-[width,max-width] duration-200 ${
+                      editingRequestId === message.requestId
+                        ? "w-full sm:max-w-[760px] lg:max-w-[820px]"
+                        : "sm:max-w-[560px]"
+                    }`}
+                  >
                     <div className="p-3.5 sm:p-4">
                       <p className="mb-1 text-[11px] text-slate-500">You</p>
                       {editingRequestId === message.requestId ? (
@@ -2091,13 +2097,14 @@ function Chat({
                               }
                             }}
                             rows={Math.min(
-                              10,
+                              14,
                               Math.max(
-                                3,
-                                String(editingMessageText).split("\n").length
+                                6,
+                                String(editingMessageText).split("\n").length +
+                                  Math.ceil(editingMessageText.length / 85)
                               )
                             )}
-                            className="max-h-64 min-h-28 w-full resize-y rounded-xl border border-violet-400/40 bg-[#07101F] px-3 py-3 text-sm leading-relaxed text-gray-100 outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-500/15 sm:text-base"
+                            className="max-h-[420px] min-h-48 w-full resize-y rounded-xl border border-violet-400/40 bg-[#07101F] px-4 py-3 text-sm leading-relaxed text-gray-100 outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-500/15 sm:min-h-56 sm:text-base"
                             aria-label="Edit prompt"
                           />
                           <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
