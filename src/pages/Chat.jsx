@@ -2143,9 +2143,17 @@ function Chat({
                               type="button"
                               onClick={cancelEditingMessage}
                               disabled={isGenerating}
-                              className="rounded-lg border border-blue-300/25 bg-gradient-to-br from-blue-300/[0.11] to-violet-400/[0.07] px-4 py-2.5 text-sm font-medium text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(18,73,140,0.08)] transition hover:border-blue-200/40 hover:from-blue-300/[0.17] hover:to-violet-400/[0.12] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_10px_28px_rgba(42,102,190,0.13)] disabled:opacity-40"
+                              className="group flex items-center justify-center gap-2 rounded-lg border border-blue-300/35 bg-gradient-to-br from-[#183054]/95 via-[#122441]/95 to-[#1b2048]/95 px-4 py-2.5 text-sm font-semibold text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_9px_26px_rgba(12,45,94,0.2)] transition-all hover:border-blue-200/55 hover:from-[#1d3b68] hover:via-[#172d50] hover:to-[#25265a] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_12px_32px_rgba(38,89,170,0.24)] active:scale-[0.98] disabled:opacity-40"
                             >
-                              Cancel
+                              <svg
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                                className="h-4 w-4 text-blue-200/80 transition group-hover:text-blue-100"
+                              >
+                                <path d="m6 6 8 8m0-8-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                              </svg>
+                              <span>Cancel</span>
                             </button>
                             <button
                               type="button"
@@ -2634,40 +2642,65 @@ function Chat({
                 onDragOver={handleAttachmentDragOver}
                 onDragLeave={handleAttachmentDragLeave}
                 onDrop={handleAttachmentDrop}
-                className={`flex min-w-0 items-center gap-2 rounded-2xl border bg-[#07101F]/95 p-2 shadow-2xl shadow-purple-950/30 backdrop-blur-xl transition sm:gap-3 sm:rounded-3xl sm:p-3 lg:gap-4 lg:p-4 ${
+                className={`flex min-w-0 items-center gap-2 rounded-2xl border bg-[radial-gradient(circle_at_78%_0%,rgba(91,93,255,0.09),transparent_38%),linear-gradient(135deg,rgba(8,19,37,0.9),rgba(3,11,25,0.86))] p-2 shadow-[0_20px_55px_rgba(0,0,0,0.3),0_0_35px_rgba(79,70,229,0.07),inset_0_1px_0_rgba(255,255,255,0.035)] backdrop-blur-xl transition-all focus-within:border-violet-300/30 focus-within:shadow-[0_22px_60px_rgba(0,0,0,0.34),0_0_38px_rgba(99,102,241,0.12),inset_0_1px_0_rgba(255,255,255,0.05)] sm:gap-3 sm:rounded-3xl sm:p-3 lg:gap-4 lg:p-4 ${
                   isDraggingAttachment
                     ? "border-purple-400 bg-purple-500/10"
-                    : "border-[#1B2540]"
+                    : "border-blue-200/15"
                 }`}
               >
                 <button
+                  type="button"
+                  aria-label="Add attachment"
+                  title="Add attachment"
                   onClick={() => setActionMenuOpen(!actionMenuOpen)}
                   disabled={
                     isGenerating || isRecording || isTranscribingVoice
                   }
-                  className={`h-11 w-11 shrink-0 rounded-xl border text-2xl text-white transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-3xl ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-white transition-all sm:h-14 sm:w-14 sm:rounded-2xl ${
                     isGenerating || isRecording || isTranscribingVoice
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
                       : actionMenuOpen
-                      ? "bg-[#16213A] border-purple-500/60 shadow-lg shadow-purple-900/20"
-                      : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
+                      ? "border-violet-300/45 bg-gradient-to-br from-blue-400/20 to-violet-500/20 shadow-[0_8px_24px_rgba(99,102,241,0.18)]"
+                      : "border-blue-200/15 bg-gradient-to-br from-blue-200/[0.08] to-violet-300/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-blue-200/30 hover:from-blue-200/[0.13] hover:to-violet-300/[0.09]"
                   }`}
                 >
-                  +
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                  >
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
                 </button>
 
                 <button
+                  type="button"
+                  aria-label={isRecording ? "Stop recording" : "Record voice note"}
+                  title={isRecording ? "Stop recording" : "Record voice note"}
                   onClick={handleVoiceInput}
                   disabled={isGenerating || isTranscribingVoice}
-                  className={`h-11 w-11 shrink-0 rounded-xl border text-xl transition sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all sm:h-14 sm:w-14 sm:rounded-2xl ${
                     isRecording
                       ? "bg-red-500/10 border-red-500/40 text-red-200 hover:bg-red-500/20"
                       : isGenerating || isTranscribingVoice
                       ? "bg-[#101827] border-[#1B2540] opacity-50 cursor-not-allowed"
-                      : "bg-[#101827] border-[#1B2540] hover:bg-[#141f33]"
+                      : "border-blue-200/15 bg-gradient-to-br from-blue-200/[0.08] to-violet-300/[0.045] text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-violet-200/30 hover:from-blue-200/[0.13] hover:to-violet-300/[0.09]"
                   }`}
                 >
-                  {isRecording ? "■" : "🎤"}
+                  {isRecording ? (
+                    <span className="h-3.5 w-3.5 rounded-[3px] bg-current" />
+                  ) : (
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                      className="h-5 w-5 sm:h-6 sm:w-6"
+                    >
+                      <rect x="9" y="3" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.7" />
+                      <path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4M9 21h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                    </svg>
+                  )}
                 </button>
 
                 <input
@@ -2695,21 +2728,35 @@ function Chat({
                       sendMessage();
                     }
                   }}
-                  className="orbital-chat-input min-w-0 flex-1 bg-transparent text-base text-gray-200 outline-none placeholder:text-gray-500 disabled:opacity-60 sm:text-lg"
+                  className="orbital-chat-input min-w-0 flex-1 bg-transparent px-1 text-base text-slate-100 outline-none placeholder:text-slate-500 transition placeholder:transition-colors focus:placeholder:text-slate-600 disabled:opacity-60 sm:text-lg"
                 />
 
                 <button
+                  type="button"
+                  aria-label="Send message"
+                  title="Send message"
                   onClick={sendMessage}
                   disabled={
                     isGenerating || isRecording || isTranscribingVoice
                   }
-                  className={`h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-2xl shadow-lg shadow-purple-700/30 transition sm:h-16 sm:w-16 sm:rounded-2xl sm:text-3xl ${
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-600 text-white shadow-[0_12px_30px_rgba(91,72,255,0.34),inset_0_1px_0_rgba(255,255,255,0.22)] transition-all sm:h-16 sm:w-16 sm:rounded-2xl ${
                     isGenerating || isRecording || isTranscribingVoice
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:scale-[1.03]"
+                      : "hover:scale-[1.035] hover:brightness-110 hover:shadow-[0_14px_38px_rgba(111,76,255,0.44),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.98]"
                   }`}
                 >
-                  {isGenerating ? "…" : "➤"}
+                  {isGenerating ? (
+                    <span className="text-2xl leading-none">…</span>
+                  ) : (
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                      className="h-5 w-5 sm:h-6 sm:w-6"
+                    >
+                      <path d="m5 5 14 7-14 7 2.6-7L5 5Z" fill="currentColor" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
