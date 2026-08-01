@@ -23,6 +23,47 @@ export const apiFetch = async (url, options = {}) => {
     response = await sendAuthenticatedRequest(url, options, true);
   }
 
+  const route = String(url).includes("/api/read-file")
+    ? "read-file"
+    : String(url).includes("/api/chat")
+    ? "chat"
+    : "";
+
+  if (route && typeof window !== "undefined") {
+    const limit = Number(response.headers.get("X-OrbitalAI-Limit"));
+    const remaining = Number(response.headers.get("X-OrbitalAI-Remaining"));
+    const resetAt = response.headers.get("X-OrbitalAI-Reset") || "";
+
+    if (Number.isFinite(limit) && Number.isFinite(remaining)) {
+      window.dispatchEvent(
+        new CustomEvent("orbitalai:usage", {
+          detail: { route, limit, remaining, resetAt },
+        })
+      );
+    } else if (!response.ok) {
+      try {
+        const errorData = await response.clone().json();
+        if (
+          errorData?.errorCode === "account_usage_limit" &&
+          Number.isFinite(Number(errorData.limit))
+        ) {
+          window.dispatchEvent(
+            new CustomEvent("orbitalai:usage", {
+              detail: {
+                route,
+                limit: Number(errorData.limit),
+                remaining: 0,
+                resetAt: String(errorData.resetAt || ""),
+              },
+            })
+          );
+        }
+      } catch {
+        // The caller still owns the original response body.
+      }
+    }
+  }
+
   return response;
 };
 

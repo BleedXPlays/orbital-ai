@@ -72,7 +72,11 @@ const buildPromptData = ({
   const fileTextBlock = fileText
     ? `\n\nThe content below is from the active/latest document${
         fileName ? ` named "${fileName}"` : ""
-      }. For document-specific questions, use only this content unless the user explicitly asks to compare documents.\n\nReadable file content:\n${String(
+      }. For document-specific questions, use only this content unless the user explicitly asks to compare documents. Cite claims taken from it using [Source: ${
+        fileName || "uploaded document"
+      }, page N] when [Page N] markers are present. If there are no page markers, use [Source: ${
+        fileName || "uploaded document"
+      }]. Never invent a page number.\n\nReadable file content:\n${String(
         fileText
       ).slice(0, 45000)}`
     : "";

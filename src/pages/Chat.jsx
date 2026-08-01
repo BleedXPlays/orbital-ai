@@ -129,6 +129,7 @@ function Chat({
   const voiceStartTimeRef = useRef(null);
   const voiceStreamRef = useRef(null);
   const selectedAttachmentFileRef = useRef(null);
+  const composerInputRef = useRef(null);
 
   const messages = useMemo(
     () => (selectedChat ? chatMessages[selectedChat] || [] : []),
@@ -207,7 +208,7 @@ function Chat({
     return "📎";
   };
 
-  const openStoredAttachment = async (attachment) => {
+  const openStoredAttachment = async (attachment, pageNumber = null) => {
     if (attachment?.storageStatus === "saving") {
       showNotice(
         "This attachment is still being saved. Open it after the AI response finishes."
@@ -232,7 +233,7 @@ function Chat({
         ? await getChatAttachmentUrl(attachment.path)
         : attachment.url;
       const link = document.createElement("a");
-      link.href = url;
+      link.href = pageNumber ? `${url}#page=${pageNumber}` : url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       document.body.appendChild(link);
@@ -242,6 +243,58 @@ function Chat({
       console.error("Attachment open error:", error);
       showNotice("Could not open this attachment.");
     }
+  };
+
+  const copyMessageText = async (text) => {
+    try {
+      await navigator.clipboard.writeText(String(text || ""));
+      showNotice("Response copied.");
+    } catch {
+      showNotice("Could not copy this response.");
+    }
+  };
+
+  const editAndResend = (message) => {
+    setInput(String(message?.text || ""));
+    requestAnimationFrame(() => composerInputRef.current?.focus());
+    showNotice("Edit the prompt below, then press Enter to resend it.");
+  };
+
+  const setMessageFeedback = (requestId, feedback) => {
+    setChatMessages((current) => ({
+      ...current,
+      [selectedChat]: (current[selectedChat] || []).map((message) =>
+        message.role === "ai" && message.requestId === requestId
+          ? {
+              ...message,
+              feedback: message.feedback === feedback ? "" : feedback,
+            }
+          : message
+      ),
+    }));
+  };
+
+  const getMessageCitations = (message) => {
+    const citations = [];
+    const pattern = /\[Source:\s*([^\]]+?)\]/gi;
+    const text = String(message?.text || "");
+    let match;
+
+    while ((match = pattern.exec(text))) {
+      const rawLabel = match[1].trim();
+      const pageMatch = rawLabel.match(/,\s*page\s+(\d+)\s*$/i);
+      const pageNumber = pageMatch ? Number(pageMatch[1]) : null;
+      const filename = pageMatch
+        ? rawLabel.slice(0, pageMatch.index).trim()
+        : rawLabel;
+      const key = `${filename}:${pageNumber || "file"}`;
+
+      if (!citations.some((citation) => citation.key === key)) {
+        citations.push({ key, filename, pageNumber });
+      }
+    }
+
+    return citations;
   };
 
   const loadStoredAttachmentFile = async (attachment) => {
@@ -1348,7 +1401,13 @@ function Chat({
       };
     };
 
-    const createFinalAiMessage = (result) => {
+    const createFinalAiMessage = (result, savedAttachment = null) => {
+      const sourceAttachment =
+        savedAttachment?.kind === "file"
+          ? savedAttachment
+          : !attachmentToSend && latestDocumentMessage?.attachment?.kind === "file"
+          ? latestDocumentMessage.attachment
+          : null;
       const finalMessage = {
         role: "ai",
         text: result.reply,
@@ -1360,6 +1419,7 @@ function Chat({
         providerNotice: result.providerNotice || "",
         failed: Boolean(result.failed),
         errorMessage: result.errorMessage || "",
+        ...(sourceAttachment ? { sourceAttachment } : {}),
       };
 
       if (result.failed) {
@@ -1453,7 +1513,7 @@ function Chat({
         ...prev,
         [newTitle]: [
           createFinalUserMessage(result, savedAttachment),
-          createFinalAiMessage(result),
+          createFinalAiMessage(result, savedAttachment),
         ],
       }));
 
@@ -1516,7 +1576,7 @@ function Chat({
         ...prev,
         [newTitle]: [
           createFinalUserMessage(result, savedAttachment),
-          createFinalAiMessage(result),
+          createFinalAiMessage(result, savedAttachment),
         ],
       }));
 
@@ -1570,7 +1630,7 @@ function Chat({
           }
 
           if (message.isLoading) {
-            return createFinalAiMessage(result);
+            return createFinalAiMessage(result, savedAttachment);
           }
 
           return message;
@@ -1720,6 +1780,12 @@ function Chat({
         }
 
         if (message.role === "ai") {
+          const sourceAttachment =
+            attachment?.kind === "file"
+              ? attachment
+              : failedMessage.sourceAttachment ||
+                previousDocumentMessage?.attachment ||
+                null;
           return {
             role: "ai",
             text: result.reply,
@@ -1731,6 +1797,8 @@ function Chat({
             providerNotice: result.providerNotice || "",
             failed: Boolean(result.failed),
             errorMessage: result.errorMessage || "",
+            feedback: "",
+            ...(sourceAttachment ? { sourceAttachment } : {}),
             ...(result.failed
               ? {
                   retryTasks,
@@ -1989,6 +2057,17 @@ function Chat({
                           )}
                         </button>
                       )}
+
+                      {!message.isLoading && (
+                        <button
+                          type="button"
+                          onClick={() => editAndResend(message)}
+                          disabled={isGenerating}
+                          className="mt-3 rounded-lg px-2 py-1 text-xs font-medium text-slate-400 transition hover:bg-white/[0.05] hover:text-violet-200 disabled:opacity-40"
+                        >
+                          ✎ Edit and resend
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -2152,6 +2231,89 @@ function Chat({
                           </button>
                         </>
                       )}
+
+                    {!message.isLoading && !message.failed && (
+                      <>
+                        {getMessageCitations(message).length > 0 && (
+                          <div className="mt-6 border-t border-white/[0.06] pt-4">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                              Sources
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {getMessageCitations(message).map((citation) => (
+                                <button
+                                  key={citation.key}
+                                  type="button"
+                                  onClick={() =>
+                                    openStoredAttachment(
+                                      message.sourceAttachment,
+                                      citation.pageNumber
+                                    )
+                                  }
+                                  className="rounded-full border border-violet-400/20 bg-violet-400/[0.07] px-3 py-1.5 text-left text-xs text-violet-200 transition hover:border-violet-300/40 hover:bg-violet-400/[0.12]"
+                                >
+                                  {citation.filename}
+                                  {citation.pageNumber
+                                    ? ` · page ${citation.pageNumber}`
+                                    : ""}
+                                  {message.sourceAttachment?.path ||
+                                  message.sourceAttachment?.url
+                                    ? " ↗"
+                                    : ""}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-5 flex flex-wrap items-center gap-1 border-t border-white/[0.06] pt-3">
+                          <button
+                            type="button"
+                            onClick={() => copyMessageText(message.text)}
+                            className="rounded-lg px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+                            aria-label="Copy response"
+                          >
+                            ⧉ Copy
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => retryFailedMessage(message)}
+                            disabled={isGenerating}
+                            className="rounded-lg px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:opacity-40"
+                          >
+                            ↻ Regenerate
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMessageFeedback(message.requestId, "up")
+                            }
+                            className={`rounded-lg px-2.5 py-1.5 text-xs transition ${
+                              message.feedback === "up"
+                                ? "bg-emerald-400/10 text-emerald-300"
+                                : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                            }`}
+                            aria-label="Helpful response"
+                          >
+                            ♡ Helpful
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMessageFeedback(message.requestId, "down")
+                            }
+                            className={`rounded-lg px-2.5 py-1.5 text-xs transition ${
+                              message.feedback === "down"
+                                ? "bg-amber-400/10 text-amber-200"
+                                : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                            }`}
+                            aria-label="Not helpful response"
+                          >
+                            ◇ Not helpful
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -2359,6 +2521,7 @@ function Chat({
                 </button>
 
                 <input
+                  ref={composerInputRef}
                   type="text"
                   value={input}
                   placeholder={

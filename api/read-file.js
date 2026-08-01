@@ -305,7 +305,7 @@ const extractPdfText = async (fileBuffer) => {
         lastY = currentY;
       });
 
-      pages.push(pageText);
+      pages.push(`[Page ${pageNumber}]\n${pageText}`);
       extractedCharacters += pageText.length;
 
       if (extractedCharacters > MAX_EXTRACTED_TEXT_LENGTH) {

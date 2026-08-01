@@ -32,6 +32,7 @@ function Settings({
   archivedChats,
   archivedProjects,
   handleLogout,
+  usageSummary,
 }) {
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [isSavingName, setIsSavingName] = useState(false);
@@ -57,6 +58,20 @@ function Settings({
   const totalProjectChats = Object.values(projectChats || {}).flat().length;
   const totalNotes = Object.values(projectNotes || {}).flat().length;
   const archivedTotal = archivedChats.length + archivedProjects.length;
+  const formatUsageReset = (resetAt) => {
+    if (!resetAt) return "The reset timer starts after your first use.";
+    const resetDate = new Date(resetAt);
+    if (Number.isNaN(resetDate.getTime())) return "Reset time unavailable";
+
+    return `Resets ${new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(resetDate)}`;
+  };
 
   const exportWorkspace = () => {
     const workspaceExport = {
@@ -276,6 +291,64 @@ function Settings({
           <div className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-5">
             <p className="text-gray-400 text-sm">Notes</p>
             <h2 className="text-3xl font-bold mt-2">{totalNotes}</h2>
+          </div>
+        </section>
+
+        <section className="mb-6 overflow-hidden rounded-3xl border border-blue-300/[0.12] bg-[#07101F]/90 shadow-2xl shadow-blue-950/20 sm:mb-8">
+          <div className="border-b border-[#1B2540] bg-[#020817]/50 p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300/70">
+              Usage dashboard
+            </p>
+            <h2 className="mt-2 text-xl font-bold sm:text-2xl">
+              Your current 8-hour allowance
+            </h2>
+            <p className="mt-1 text-sm text-gray-400">
+              These counters come directly from OrbitalAI’s server limits.
+            </p>
+          </div>
+
+          <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
+            {[
+              ["AI messages", usageSummary?.chat],
+              ["Document reads", usageSummary?.documents],
+            ].map(([label, usage]) => {
+              const limit = Number(usage?.limit || 0);
+              const remaining = Number(usage?.remaining || 0);
+              const usedPercent = limit
+                ? Math.min(100, Math.max(0, ((limit - remaining) / limit) * 100))
+                : 0;
+
+              return (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-[#1B2540] bg-[#101827]/90 p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-slate-400">{label}</p>
+                      <p className="mt-2 text-3xl font-bold text-white">
+                        {remaining}
+                        <span className="ml-1 text-base font-medium text-slate-500">
+                          / {limit}
+                        </span>
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
+                      remaining
+                    </span>
+                  </div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all"
+                      style={{ width: `${usedPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-slate-500">
+                    {formatUsageReset(usage?.resetAt)}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </section>
 

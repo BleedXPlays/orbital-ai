@@ -73,6 +73,11 @@ const getPathFromWorkspaceState = ({
   return "/";
 };
 
+const createDefaultUsageSummary = () => ({
+  chat: { limit: 24, remaining: 24, resetAt: "" },
+  documents: { limit: 30, remaining: 30, resetAt: "" },
+});
+
 function App() {
   const saveTimer = useRef(null);
   const saveQueue = useRef(Promise.resolve());
@@ -109,6 +114,34 @@ function App() {
   const [pinnedChats, setPinnedChats] = useState([]);
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
+  const [usageSummary, setUsageSummary] = useState(createDefaultUsageSummary);
+
+  useEffect(() => {
+    const handleUsageUpdate = (event) => {
+      const detail = event?.detail || {};
+      const key = detail.route === "read-file" ? "documents" : "chat";
+
+      setUsageSummary((current) => ({
+        ...current,
+        [key]: {
+          limit: Number(detail.limit || current[key].limit),
+          remaining: Math.max(0, Number(detail.remaining ?? current[key].remaining)),
+          resetAt: String(detail.resetAt || ""),
+        },
+      }));
+    };
+
+    window.addEventListener("orbitalai:usage", handleUsageUpdate);
+    return () => window.removeEventListener("orbitalai:usage", handleUsageUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    window.localStorage.setItem(
+      `orbitalai-usage-${user.uid}`,
+      JSON.stringify(usageSummary)
+    );
+  }, [user?.uid, usageSummary]);
 
   const enqueueWorkspaceSave = useCallback(({ force = false } = {}) => {
     if (saveTimer.current) {
@@ -250,6 +283,20 @@ function App() {
 
       resetWorkspace();
       setUser(currentUser);
+
+      if (currentUser?.uid) {
+        try {
+          const savedUsage = JSON.parse(
+            window.localStorage.getItem(`orbitalai-usage-${currentUser.uid}`) ||
+              "null"
+          );
+          setUsageSummary(savedUsage || createDefaultUsageSummary());
+        } catch {
+          setUsageSummary(createDefaultUsageSummary());
+        }
+      } else {
+        setUsageSummary(createDefaultUsageSummary());
+      }
 
       if (!currentUser) {
         setDataLoading(false);
@@ -667,6 +714,7 @@ function App() {
             archivedChats={archivedChats}
             archivedProjects={archivedProjects}
             handleLogout={handleLogout}
+            usageSummary={usageSummary}
           />
         );
 
@@ -676,6 +724,7 @@ function App() {
       default:
         return (
           <Home
+            user={user}
             chats={chats}
             setChats={setChats}
             projects={projects}

@@ -2,8 +2,10 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 import { apiFetch, getApiErrorMessage } from "../services/apiClient";
+import { uploadChatAttachment } from "../services/attachmentService";
 
 function Home({
+  user,
   chats,
   setChats,
   projects,
@@ -224,6 +226,32 @@ function Home({
     const submittedFile = pendingFile;
     setPendingFile(null);
 
+    const attachmentUploadPromise = submittedFile
+      ? user?.uid
+        ? uploadChatAttachment({
+            userId: user.uid,
+            chatName: chatTitle,
+            file: submittedFile,
+            filename: submittedFile.name,
+          })
+            .then((uploadedAttachment) => ({
+              ...userMessage.attachment,
+              ...uploadedAttachment,
+              storageStatus: "saved",
+            }))
+            .catch((error) => {
+              console.warn("Home attachment storage failed:", error);
+              return {
+                ...userMessage.attachment,
+                storageStatus: "failed",
+              };
+            })
+        : Promise.resolve({
+            ...userMessage.attachment,
+            storageStatus: "failed",
+          })
+      : Promise.resolve(null);
+
     try {
       const response = await apiFetch("/api/chat", {
         method: "POST",
@@ -251,6 +279,10 @@ function Home({
       const generatedOutputs = Array.isArray(data.generatedOutputs)
         ? data.generatedOutputs
         : [];
+      const savedAttachment = await attachmentUploadPromise;
+      const finalUserMessage = savedAttachment
+        ? { ...userMessage, attachment: savedAttachment }
+        : userMessage;
 
       const outputsWithContent = outputs.map((output) => {
         const matchingOutput = generatedOutputs.find((item) =>
@@ -278,19 +310,25 @@ function Home({
         fallbackFrom: data.fallbackFrom || "",
         providerNotice: data.providerNotice || "",
         requestId,
+        ...(savedAttachment ? { sourceAttachment: savedAttachment } : {}),
       };
 
       setChatMessages((prev) => ({
         ...prev,
-        [chatTitle]: [userMessage, aiMessage],
+        [chatTitle]: [finalUserMessage, aiMessage],
       }));
     } catch (error) {
       console.error("Home AI response error:", error);
 
+      const savedAttachment = await attachmentUploadPromise;
+      const finalUserMessage = savedAttachment
+        ? { ...userMessage, attachment: savedAttachment }
+        : userMessage;
+
       setChatMessages((prev) => ({
         ...prev,
         [chatTitle]: [
-          userMessage,
+          finalUserMessage,
           {
             role: "ai",
             text: `OrbitalAI could not complete this request: ${
