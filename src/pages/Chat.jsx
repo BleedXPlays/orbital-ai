@@ -2161,9 +2161,20 @@ function Chat({
                               disabled={
                                 isGenerating || !editingMessageText.trim()
                               }
-                              className="rounded-lg border border-violet-300/20 bg-gradient-to-r from-blue-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(91,72,255,0.24)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="group relative isolate flex items-center justify-center gap-2 overflow-hidden rounded-lg border border-cyan-200/25 bg-[#0b1730] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.2),inset_0_1px_0_rgba(255,255,255,0.13)] transition-all hover:-translate-y-px hover:border-cyan-100/40 hover:shadow-[0_14px_34px_rgba(37,99,235,0.3),0_0_22px_rgba(99,102,241,0.13),inset_0_1px_0_rgba(255,255,255,0.17)] active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              Done &amp; resend
+                              <span className="absolute inset-0 -z-10 bg-[linear-gradient(110deg,rgba(34,211,238,0.2),rgba(59,130,246,0.78)_48%,rgba(99,102,241,0.85))] transition-transform duration-300 group-hover:scale-105" />
+                              <span className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-cyan-100/75 to-transparent" />
+                              <svg
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                                className="h-4 w-4 text-cyan-50"
+                              >
+                                <path d="M15.5 7.5A6 6 0 1 0 16 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                                <path d="M12.5 4.5h3.5V8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span>Done &amp; resend</span>
                             </button>
                             </div>
                           </div>
@@ -2739,12 +2750,15 @@ function Chat({
                   disabled={
                     isGenerating || isRecording || isTranscribingVoice
                   }
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-600 text-white shadow-[0_12px_30px_rgba(91,72,255,0.34),inset_0_1px_0_rgba(255,255,255,0.22)] transition-all sm:h-16 sm:w-16 sm:rounded-2xl ${
+                  className={`group relative isolate flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cyan-100/30 bg-[#111b3d] text-white shadow-[0_12px_32px_rgba(72,74,255,0.32),0_0_20px_rgba(56,189,248,0.09),inset_0_1px_0_rgba(255,255,255,0.24)] transition-all sm:h-16 sm:w-16 ${
                     isGenerating || isRecording || isTranscribingVoice
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:scale-[1.035] hover:brightness-110 hover:shadow-[0_14px_38px_rgba(111,76,255,0.44),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.98]"
+                      : "hover:scale-[1.055] hover:border-cyan-50/50 hover:shadow-[0_16px_40px_rgba(72,74,255,0.42),0_0_30px_rgba(56,189,248,0.16),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.96]"
                   }`}
                 >
+                  <span className="absolute inset-[2px] -z-20 rounded-full bg-[conic-gradient(from_215deg,#38bdf8,#5266f5_38%,#9333ea_72%,#38bdf8)] transition-transform duration-500 group-hover:rotate-[18deg]" />
+                  <span className="absolute inset-[5px] -z-10 rounded-full bg-[radial-gradient(circle_at_32%_24%,rgba(255,255,255,0.32),rgba(78,91,235,0.96)_42%,rgba(85,36,180,0.98))]" />
+                  <span className="absolute left-[22%] top-[14%] h-[18%] w-[45%] rotate-[-18deg] rounded-full bg-white/20 blur-[1px]" />
                   {isGenerating ? (
                     <span className="text-2xl leading-none">…</span>
                   ) : (
@@ -2752,9 +2766,10 @@ function Chat({
                       viewBox="0 0 24 24"
                       fill="none"
                       aria-hidden="true"
-                      className="h-5 w-5 sm:h-6 sm:w-6"
+                      className="relative h-5 w-5 translate-x-px drop-shadow-[0_2px_5px_rgba(9,18,55,0.45)] transition-transform group-hover:translate-x-1 sm:h-6 sm:w-6"
                     >
-                      <path d="m5 5 14 7-14 7 2.6-7L5 5Z" fill="currentColor" />
+                      <path d="m5.25 5.25 13.5 6.75-13.5 6.75 2.45-6.75-2.45-6.75Z" fill="currentColor" />
+                      <path d="M7.8 12h6.4" stroke="#dff7ff" strokeWidth="1.2" strokeLinecap="round" />
                     </svg>
                   )}
                 </button>
