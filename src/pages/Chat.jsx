@@ -115,6 +115,8 @@ function Chat({
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribingVoice, setIsTranscribingVoice] = useState(false);
   const [voiceDuration, setVoiceDuration] = useState(0);
+  const [editingRequestId, setEditingRequestId] = useState("");
+  const [editingMessageText, setEditingMessageText] = useState("");
 
   const [outputModal, setOutputModal] = useState({
     isOpen: false,
@@ -129,7 +131,6 @@ function Chat({
   const voiceStartTimeRef = useRef(null);
   const voiceStreamRef = useRef(null);
   const selectedAttachmentFileRef = useRef(null);
-  const composerInputRef = useRef(null);
 
   const messages = useMemo(
     () => (selectedChat ? chatMessages[selectedChat] || [] : []),
@@ -254,10 +255,19 @@ function Chat({
     }
   };
 
-  const editAndResend = (message) => {
-    setInput(String(message?.text || ""));
-    requestAnimationFrame(() => composerInputRef.current?.focus());
-    showNotice("Edit the prompt below, then press Enter to resend it.");
+  const beginEditingMessage = (message) => {
+    if (!message?.requestId) {
+      showNotice("This older prompt cannot be edited.");
+      return;
+    }
+
+    setEditingRequestId(message.requestId);
+    setEditingMessageText(String(message.text || ""));
+  };
+
+  const cancelEditingMessage = () => {
+    setEditingRequestId("");
+    setEditingMessageText("");
   };
 
   const setMessageFeedback = (requestId, feedback) => {
@@ -1642,7 +1652,7 @@ function Chat({
     setRequestStage("Selecting the best AI");
   };
 
-  const retryFailedMessage = async (failedMessage) => {
+  const retryFailedMessage = async (failedMessage, options = {}) => {
     if (isGenerating || !selectedChat || !failedMessage?.requestId) return;
 
     const originalUserMessage = messages.find(
@@ -1656,15 +1666,21 @@ function Chat({
       return;
     }
 
-    const retryTasks =
-      failedMessage.retryTasks ||
-      analyzeTask(
-        `${originalUserMessage.text || ""} ${
-          originalUserMessage.attachment?.name || ""
-        }`
-      );
-    const retryOutputs =
-      failedMessage.retryOutputs || getOutputs(retryTasks);
+    const hasEditedText = typeof options.overrideText === "string";
+    const requestText = hasEditedText
+      ? options.overrideText.trim()
+      : String(originalUserMessage.text || "").trim();
+    const retryTasks = hasEditedText
+      ? analyzeTask(
+          `${requestText} ${originalUserMessage.attachment?.name || ""}`
+        )
+      : failedMessage.retryTasks ||
+        analyzeTask(
+          `${requestText} ${originalUserMessage.attachment?.name || ""}`
+        );
+    const retryOutputs = hasEditedText
+      ? getOutputs(retryTasks)
+      : failedMessage.retryOutputs || getOutputs(retryTasks);
     const attachment = originalUserMessage.attachment || null;
     const earlierMessages = messages.filter(
       (message) => message.requestId !== failedMessage.requestId
@@ -1729,7 +1745,7 @@ function Chat({
       }
 
       result = await getRealAiReply({
-        message: originalUserMessage.text,
+        message: requestText,
         tasks: retryTasks,
         outputs: retryOutputs,
         attachment,
@@ -1764,6 +1780,10 @@ function Chat({
         if (message.role === "user") {
           return {
             ...message,
+            text: requestText,
+            ...(message.transcriptText
+              ? { transcriptText: requestText }
+              : {}),
             ...(result.fileText && message.attachment
               ? {
                   attachment: {
@@ -1828,6 +1848,43 @@ function Chat({
 
     setIsGenerating(false);
     setRequestStage("Selecting the best AI");
+  };
+
+  const finishEditingMessage = async (message) => {
+    const editedText = editingMessageText.trim();
+    if (!editedText) {
+      showNotice("The prompt cannot be empty.");
+      return;
+    }
+
+    const matchingResponse = messages.find(
+      (candidate) =>
+        candidate.role === "ai" &&
+        candidate.requestId === message.requestId
+    );
+
+    if (!matchingResponse) {
+      showNotice("The matching AI response could not be found.");
+      return;
+    }
+
+    setChatMessages((current) => ({
+      ...current,
+      [selectedChat]: (current[selectedChat] || []).map((candidate) =>
+        candidate.role === "user" &&
+        candidate.requestId === message.requestId
+          ? {
+              ...candidate,
+              text: editedText,
+              ...(candidate.transcriptText
+                ? { transcriptText: editedText }
+                : {}),
+            }
+          : candidate
+      ),
+    }));
+    cancelEditingMessage();
+    await retryFailedMessage(matchingResponse, { overrideText: editedText });
   };
 
   const activeProvider =
@@ -2016,9 +2073,62 @@ function Chat({
                   <div className="min-w-0 max-w-[94%] rounded-xl border border-slate-400/25 bg-[#111a2a]/88 shadow-xl shadow-black/20 sm:max-w-[560px]">
                     <div className="p-3.5 sm:p-4">
                       <p className="mb-1 text-[11px] text-slate-500">You</p>
-                      <p className="break-words text-gray-100 leading-relaxed">
-                        {message.text}
-                      </p>
+                      {editingRequestId === message.requestId ? (
+                        <div className="mt-2">
+                          <textarea
+                            autoFocus
+                            value={editingMessageText}
+                            onChange={(event) =>
+                              setEditingMessageText(event.target.value)
+                            }
+                            onKeyDown={(event) => {
+                              if (
+                                event.key === "Enter" &&
+                                (event.metaKey || event.ctrlKey)
+                              ) {
+                                event.preventDefault();
+                                finishEditingMessage(message);
+                              }
+                            }}
+                            rows={Math.min(
+                              10,
+                              Math.max(
+                                3,
+                                String(editingMessageText).split("\n").length
+                              )
+                            )}
+                            className="max-h-64 min-h-28 w-full resize-y rounded-xl border border-violet-400/40 bg-[#07101F] px-3 py-3 text-sm leading-relaxed text-gray-100 outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-500/15 sm:text-base"
+                            aria-label="Edit prompt"
+                          />
+                          <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={cancelEditingMessage}
+                              disabled={isGenerating}
+                              className="rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => finishEditingMessage(message)}
+                              disabled={
+                                isGenerating || !editingMessageText.trim()
+                              }
+                              className="rounded-lg bg-gradient-to-r from-blue-500 to-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              Done &amp; resend
+                            </button>
+                          </div>
+                          <p className="mt-2 text-right text-[11px] text-slate-500">
+                            Press Command/Ctrl + Enter to resend
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="break-words text-gray-100 leading-relaxed">
+                          {message.text}
+                        </p>
+                      )}
 
                       {message.attachment && (
                         <button
@@ -2058,16 +2168,17 @@ function Chat({
                         </button>
                       )}
 
-                      {!message.isLoading && (
+                      {!message.isLoading &&
+                        editingRequestId !== message.requestId && (
                         <button
                           type="button"
-                          onClick={() => editAndResend(message)}
+                          onClick={() => beginEditingMessage(message)}
                           disabled={isGenerating}
                           className="mt-3 rounded-lg px-2 py-1 text-xs font-medium text-slate-400 transition hover:bg-white/[0.05] hover:text-violet-200 disabled:opacity-40"
                         >
                           ✎ Edit and resend
                         </button>
-                      )}
+                        )}
                     </div>
                   </div>
                 ) : (
@@ -2521,7 +2632,6 @@ function Chat({
                 </button>
 
                 <input
-                  ref={composerInputRef}
                   type="text"
                   value={input}
                   placeholder={
