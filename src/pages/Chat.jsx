@@ -2402,35 +2402,40 @@ function Chat({
                           </div>
 
                           {message.isLoading ? (
-                            <div className="mt-1 min-w-[240px] max-w-md rounded-xl border border-blue-300/[0.12] bg-blue-400/[0.045] p-4">
-                              <div className="flex items-center gap-3">
-                                <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-400/20 bg-violet-500/10">
-                                  <span className="absolute h-3 w-3 animate-ping rounded-full bg-violet-400/30" />
-                                  <span className="relative h-2 w-2 rounded-full bg-violet-300" />
+                            <div className="relative mt-1 min-w-0 max-w-lg overflow-hidden rounded-2xl border border-blue-300/[0.14] bg-[#071426]/80 shadow-[0_18px_45px_rgba(2,8,23,0.22)] backdrop-blur-xl">
+                              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/70 to-transparent" />
+
+                              <div className="flex items-center gap-3 p-3.5 sm:gap-4 sm:p-4">
+                                <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-300/20 bg-gradient-to-br from-blue-500/15 to-violet-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-violet-200/20 border-t-violet-200" />
                                 </span>
-                                <div className="min-w-0">
-                                  <p className="truncate text-sm font-medium text-slate-200">
+
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-semibold tracking-[-0.01em] text-slate-100">
                                     {isGenerating
                                       ? requestStage
                                       : message.loadingStage ||
                                         "Selecting the best AI"}
                                   </p>
-                                  <p className="mt-1 text-xs text-slate-500">
-                                    Please keep this chat open.
+                                  <p className="mt-0.5 text-xs text-slate-400">
+                                    OrbitalAI is preparing your response
                                   </p>
                                 </div>
+
+                                <button
+                                  type="button"
+                                  onClick={stopGeneration}
+                                  aria-label="Stop generating response"
+                                  className="group inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-white/[0.09] bg-white/[0.045] px-3 text-xs font-semibold text-slate-300 transition duration-200 hover:border-rose-300/25 hover:bg-rose-400/[0.08] hover:text-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 sm:px-3.5"
+                                >
+                                  <span className="h-2.5 w-2.5 rounded-[3px] border border-current bg-current/80 transition group-hover:scale-90" />
+                                  <span>Stop</span>
+                                </button>
                               </div>
-                              <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
+
+                              <div className="h-0.5 overflow-hidden bg-white/[0.045]">
+                                <div className="h-full w-2/3 animate-pulse bg-gradient-to-r from-blue-500 via-violet-400 to-fuchsia-500 shadow-[0_0_12px_rgba(139,92,246,0.65)]" />
                               </div>
-                              <button
-                                type="button"
-                                onClick={stopGeneration}
-                                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-red-300/20 bg-red-400/[0.07] px-3 py-2 text-xs font-semibold text-red-100 transition hover:border-red-300/35 hover:bg-red-400/[0.12]"
-                              >
-                                <span className="h-2.5 w-2.5 rounded-[2px] bg-current" />
-                                Stop generation
-                              </button>
                             </div>
                           ) : message.failed ? (
                             <div className="rounded-xl border border-red-400/20 bg-red-500/[0.07] p-4">
