@@ -294,9 +294,93 @@ function Chat({
     }
   };
 
+  const formatMarkdownForMessaging = (value) => {
+    const lines = String(value || "").replace(/\r\n/g, "\n").split("\n");
+    const formattedLines = [];
+    let inCodeBlock = false;
+
+    const parseTableRow = (line) =>
+      line
+        .trim()
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((cell) => cell.trim());
+
+    const isTableDivider = (line) => {
+      const cells = parseTableRow(line);
+      return (
+        cells.length > 0 &&
+        cells.every((cell) => /^:?-{3,}:?$/.test(cell.replace(/\s/g, "")))
+      );
+    };
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const originalLine = lines[index];
+      const trimmedLine = originalLine.trim();
+
+      if (trimmedLine.startsWith("```")) {
+        inCodeBlock = !inCodeBlock;
+        formattedLines.push("```");
+        continue;
+      }
+
+      if (inCodeBlock) {
+        formattedLines.push(originalLine);
+        continue;
+      }
+
+      const nextLine = lines[index + 1] || "";
+      const isTableStart =
+        trimmedLine.includes("|") && isTableDivider(nextLine);
+
+      if (isTableStart) {
+        const headers = parseTableRow(originalLine);
+        index += 2;
+
+        while (index < lines.length && lines[index].trim().includes("|")) {
+          const cells = parseTableRow(lines[index]);
+          const rowTitle = cells[0] || `Item ${index}`;
+
+          formattedLines.push(`*${rowTitle}*`);
+          headers.slice(1).forEach((header, headerIndex) => {
+            const cellValue = cells[headerIndex + 1];
+            if (header && cellValue) {
+              formattedLines.push(`• *${header}:* ${cellValue}`);
+            }
+          });
+          formattedLines.push("");
+          index += 1;
+        }
+
+        index -= 1;
+        continue;
+      }
+
+      let formattedLine = originalLine
+        .replace(/^\s{0,3}#{1,6}\s+(.+)$/, "*$1*")
+        .replace(/^\s*[-+*·]\s+/, "• ")
+        .replace(/^\s*>\s?/, "› ")
+        .replace(/\*\*(.+?)\*\*/g, "*$1*")
+        .replace(/__(.+?)__/g, "*$1*")
+        .replace(/\[([^\]]+)]\((https?:\/\/[^)]+)\)/g, "$1 ($2)");
+
+      if (/^\s*([-*_])\1{2,}\s*$/.test(formattedLine)) {
+        formattedLine = "────────────";
+      }
+
+      formattedLines.push(formattedLine.replace(/\s+$/, ""));
+    }
+
+    return formattedLines
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  };
+
   const formatResponseForClipboard = (message) => {
     const sections = [];
-    const reply = String(message?.text || "").trim();
+    const reply = formatMarkdownForMessaging(message?.text);
 
     if (reply) sections.push(reply);
 
@@ -316,7 +400,7 @@ function Chat({
       let content = "";
 
       if (typeof rawContent === "string") {
-        content = rawContent.trim();
+        content = formatMarkdownForMessaging(rawContent);
       } else if (rawContent?.kind === "generated-image") {
         content = String(
           rawContent.revisedPrompt ||
@@ -327,8 +411,8 @@ function Chat({
       }
 
       const outputParts = [];
-      if (title) outputParts.push(title);
-      if (description) outputParts.push(description);
+      if (title) outputParts.push(`*${title}*`);
+      if (description) outputParts.push(`_${description}_`);
       if (content && content !== reply) outputParts.push(content);
 
       if (outputParts.length > 0) {
@@ -336,7 +420,7 @@ function Chat({
       }
     });
 
-    return sections.join("\n\n---\n\n");
+    return sections.join("\n\n────────────\n\n");
   };
 
   const copyMessageResponse = async (message) => {
