@@ -294,10 +294,56 @@ function Chat({
     }
   };
 
-  const copyMessageText = async (text) => {
+  const formatResponseForClipboard = (message) => {
+    const sections = [];
+    const reply = String(message?.text || "").trim();
+
+    if (reply) sections.push(reply);
+
+    const generatedOutputs = Array.isArray(message?.outputs)
+      ? message.outputs
+      : [];
+
+    generatedOutputs.forEach((output) => {
+      if (!Array.isArray(output)) return;
+
+      const title = [output[0], output[1]]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+        .join(" ");
+      const description = String(output[2] || "").trim();
+      const rawContent = output[3];
+      let content = "";
+
+      if (typeof rawContent === "string") {
+        content = rawContent.trim();
+      } else if (rawContent?.kind === "generated-image") {
+        content = String(
+          rawContent.revisedPrompt ||
+            rawContent.prompt ||
+            rawContent.alt ||
+            "Generated image"
+        ).trim();
+      }
+
+      const outputParts = [];
+      if (title) outputParts.push(title);
+      if (description) outputParts.push(description);
+      if (content && content !== reply) outputParts.push(content);
+
+      if (outputParts.length > 0) {
+        sections.push(outputParts.join("\n\n"));
+      }
+    });
+
+    return sections.join("\n\n---\n\n");
+  };
+
+  const copyMessageResponse = async (message) => {
     try {
-      await navigator.clipboard.writeText(String(text || ""));
-      showNotice("Response copied.");
+      const responseText = formatResponseForClipboard(message);
+      await navigator.clipboard.writeText(responseText);
+      showNotice("Complete response copied.");
     } catch {
       showNotice("Could not copy this response.");
     }
@@ -2582,7 +2628,7 @@ function Chat({
                         <div className="mt-5 flex flex-wrap items-center gap-1 border-t border-white/[0.06] pt-3">
                           <button
                             type="button"
-                            onClick={() => copyMessageText(message.text)}
+                            onClick={() => copyMessageResponse(message)}
                             className="rounded-lg px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
                             aria-label="Copy response"
                           >
