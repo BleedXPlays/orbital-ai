@@ -26,6 +26,6 @@ export default async function handler(request, response) {
     const resetToken = await verifyOtpChallenge({ challenge, otp });
     return response.status(200).json({ ok: true, resetToken, email });
   } catch (error) {
-    return sendApiError(response, error);
+    return await sendApiError(response, error);
   }
 }

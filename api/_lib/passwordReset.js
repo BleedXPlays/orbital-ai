@@ -1,5 +1,7 @@
 /* global Buffer, process */
 
+import { captureServerError } from "./errorMonitoring.js";
+
 import {
   createHmac,
   randomInt,
@@ -517,8 +519,15 @@ export const updateFirebasePassword = async ({ email, password }) => {
   await getFirebaseAdminAuth().updateUser(user.uid, { password });
 };
 
-export const sendApiError = (response, error) => {
+export const sendApiError = async (response, error) => {
   const status = Number(error?.status || 500);
+  if (status >= 500) {
+    await captureServerError(error, {
+      route: "password-reset",
+      operation: "password_reset",
+      status,
+    });
+  }
   response.status(status).json({
     error:
       error?.message ||

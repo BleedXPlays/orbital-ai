@@ -1,6 +1,7 @@
 /* global Buffer, process */
 
 import { createPublicKey, verify } from "node:crypto";
+import { captureServerError } from "./errorMonitoring.js";
 
 const FIREBASE_CERTIFICATES_URL =
   "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
@@ -359,6 +360,13 @@ export const protectApiRoute = async (
     return { ...user, usage };
   } catch (error) {
     const status = Number(error?.status || 500);
+    if (status >= 500) {
+      await captureServerError(error, {
+        route,
+        operation: "api_security",
+        status,
+      });
+    }
     response.status(status).json({
       error:
         error?.message ||

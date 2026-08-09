@@ -4,6 +4,7 @@ import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
 import mammoth from "mammoth";
 import { protectApiRoute } from "./_lib/apiSecurity.js";
+import { captureServerError } from "./_lib/errorMonitoring.js";
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_EXTRACTED_TEXT_LENGTH = 45000;
@@ -533,6 +534,12 @@ export default async function handler(request, response) {
         errorCode: "invalid_document",
       });
     }
+
+    await captureServerError(error, {
+      route: "read-file",
+      operation: "extract_document",
+      status: 500,
+    });
 
     return response.status(500).json({
       error:

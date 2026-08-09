@@ -1,4 +1,11 @@
 import { auth } from "../firebase";
+import { captureFrontendError } from "./errorMonitoring";
+
+const getRouteName = (url) => {
+  const value = String(url || "");
+  const match = value.match(/\/api\/([^/?#]+)/);
+  return match?.[1] || "api";
+};
 
 const sendAuthenticatedRequest = async (url, options, forceRefresh) => {
   const user = auth.currentUser;
@@ -10,10 +17,17 @@ const sendAuthenticatedRequest = async (url, options, forceRefresh) => {
   const headers = new Headers(options?.headers || {});
   headers.set("Authorization", `Bearer ${token}`);
 
-  return fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    return await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    captureFrontendError(error, {
+      tags: { area: "api", route: getRouteName(url), failure: "network" },
+    });
+    throw error;
+  }
 };
 
 export const apiFetch = async (url, options = {}) => {
@@ -21,6 +35,19 @@ export const apiFetch = async (url, options = {}) => {
 
   if (response.status === 401 && auth.currentUser) {
     response = await sendAuthenticatedRequest(url, options, true);
+  }
+
+  if (response.status >= 500) {
+    captureFrontendError(
+      new Error(`OrbitalAI API request failed with status ${response.status}`),
+      {
+        tags: {
+          area: "api",
+          route: getRouteName(url),
+          status: response.status,
+        },
+      }
+    );
   }
 
   const route = String(url).includes("/api/read-file")

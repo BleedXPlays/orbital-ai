@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 import { toFile } from "openai/uploads";
 import { protectApiRoute } from "./_lib/apiSecurity.js";
+import { captureServerError } from "./_lib/errorMonitoring.js";
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 
@@ -88,6 +89,15 @@ export default async function handler(request, response) {
   } catch (error) {
     console.error("Transcription API error:", error);
     const status = Number(error?.status || 0);
+
+    if (![413, 429].includes(status)) {
+      await captureServerError(error, {
+        route: "transcribe",
+        operation: "voice_to_text",
+        status: status === 401 || status === 403 ? 503 : 500,
+        provider: "openai",
+      });
+    }
 
     if (status === 401 || status === 403) {
       return response.status(503).json({

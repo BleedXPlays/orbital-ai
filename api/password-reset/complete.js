@@ -39,6 +39,6 @@ export default async function handler(request, response) {
     if (challengeClaimed && reset?.id) {
       await releaseConsumedChallenge(reset.id).catch(() => undefined);
     }
-    return sendApiError(response, error);
+    return await sendApiError(response, error);
   }
 }

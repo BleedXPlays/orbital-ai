@@ -48,6 +48,6 @@ export default async function handler(request, response) {
       expiresInSeconds: OTP_EXPIRES_IN_SECONDS,
     });
   } catch (error) {
-    return sendApiError(response, error);
+    return await sendApiError(response, error);
   }
 }

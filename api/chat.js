@@ -5,6 +5,7 @@ import {
   getProviderErrorResponse,
 } from "./providers/providerRouter.js";
 import { protectApiRoute } from "./_lib/apiSecurity.js";
+import { captureServerError } from "./_lib/errorMonitoring.js";
 
 const MAX_MESSAGE_LENGTH = 20000;
 const MAX_REQUEST_BYTES = 6 * 1024 * 1024;
@@ -313,6 +314,15 @@ export default async function handler(request, response) {
       provider: String(error?.provider || "").slice(0, 40),
     });
     const providerError = getProviderErrorResponse(error);
+
+    if (providerError.status >= 500) {
+      await captureServerError(error, {
+        route: "chat",
+        operation: "generate_response",
+        status: providerError.status,
+        provider: error?.provider,
+      });
+    }
 
     return response.status(providerError.status).json({
       error: providerError.error,
