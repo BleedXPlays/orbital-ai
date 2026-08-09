@@ -31,6 +31,15 @@ function Home({
   const audioChunksRef = useRef([]);
   const voiceStreamRef = useRef(null);
   const navigate = useNavigate();
+  const accountName = user?.displayName?.trim() || user?.email?.split("@")[0] || "there";
+  const firstName = accountName.split(/\s+/)[0];
+  const currentHour = new Date().getHours();
+  const greeting =
+    currentHour < 12
+      ? "Good morning"
+      : currentHour < 17
+        ? "Good afternoon"
+        : "Good evening";
 
   const slugify = (value) => {
     return String(value || "")
@@ -387,7 +396,9 @@ function Home({
 
       <div className="relative h-full min-h-0 overflow-y-auto px-4 pb-8 pt-24 sm:px-8 sm:pt-20 lg:px-12 lg:py-14">
         <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col justify-center py-6 lg:py-0">
-          <p className="text-center text-base font-medium text-slate-400 sm:text-lg">Good evening, Ashwin</p>
+          <p className="text-center text-base font-medium text-slate-400 sm:text-lg">
+            {greeting}, {firstName}
+          </p>
 
           <div className="orbital-home-composer mx-auto mt-6 w-full max-w-[650px] rounded-2xl border border-slate-400/40 bg-[#0a1220]/78 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-5">
             <textarea
