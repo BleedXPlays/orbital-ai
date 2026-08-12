@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   deleteUser,
   updateProfile,
@@ -54,6 +55,13 @@ function Settings({
   const supportsGoogleSignIn = Boolean(
     user?.providerData?.some((provider) => provider.providerId === "google.com")
   );
+  const accountInitial =
+    (displayName || user?.email || "O").trim().charAt(0).toUpperCase() || "O";
+  const signInMethod = supportsGoogleSignIn
+    ? "Google"
+    : supportsPasswordChange
+      ? "Email and password"
+      : "Secure sign-in";
 
   const totalProjectChats = Object.values(projectChats || {}).flat().length;
   const totalNotes = Object.values(projectNotes || {}).flat().length;
@@ -352,118 +360,120 @@ function Settings({
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
           <main className="space-y-6">
-            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-                <h2 className="text-2xl font-bold">Profile</h2>
-                <p className="text-gray-400 text-sm mt-1">
-                  Your signed-in Firebase account details.
-                </p>
+            <section className="overflow-hidden rounded-[28px] border border-blue-300/[0.13] bg-[linear-gradient(145deg,rgba(7,16,31,0.96),rgba(8,16,35,0.90))] shadow-[0_24px_80px_rgba(2,6,23,0.32)]">
+              <div className="border-b border-white/[0.07] bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.16),transparent_42%)] p-5 sm:p-7">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-violet-300/25 bg-[linear-gradient(145deg,rgba(37,99,235,0.28),rgba(124,58,237,0.42))] text-xl font-bold text-white shadow-[0_14px_35px_rgba(76,29,149,0.3)]">
+                      {accountInitial}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">Profile</p>
+                      <h2 className="mt-1 truncate text-xl font-semibold text-white sm:text-2xl">
+                        {displayName || "OrbitalAI member"}
+                      </h2>
+                      <p className="mt-1 truncate text-sm text-slate-400">{user?.email || "Email unavailable"}</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-400/[0.07] px-3 py-1.5 text-xs font-medium text-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+                    Active account
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6">
-                <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
-                  <p className="text-gray-400 text-sm mb-2">Full name</p>
-
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full bg-[#07101F] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
-                  />
-
-                  <button
-                    onClick={saveDisplayName}
-                    disabled={isSavingName}
-                    className="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {isSavingName ? "Saving..." : "Save name"}
-                  </button>
-
-                  {nameMessage && (
-                    <p className="text-sm text-gray-400 mt-3">{nameMessage}</p>
-                  )}
+              <div className="space-y-6 p-5 sm:p-7">
+                <div>
+                  <label htmlFor="settings-display-name" className="text-sm font-medium text-slate-300">Full name</label>
+                  <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                    <input
+                      id="settings-display-name"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="min-w-0 flex-1 rounded-2xl border border-blue-200/[0.14] bg-[#050d1d]/80 px-4 py-3.5 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10"
+                    />
+                    <button
+                      onClick={saveDisplayName}
+                      disabled={isSavingName}
+                      className="rounded-2xl border border-blue-300/20 bg-[linear-gradient(135deg,#2563eb_0%,#6d4aff_58%,#7c3aed_100%)] px-6 py-3.5 font-semibold text-white shadow-[0_12px_30px_rgba(79,70,229,0.25)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isSavingName ? "Saving..." : "Save changes"}
+                    </button>
+                  </div>
+                  {nameMessage && <p className="mt-3 text-sm text-slate-400">{nameMessage}</p>}
                 </div>
 
-                <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5">
-                  <p className="text-gray-400 text-sm mb-2">Email</p>
-                  <p className="text-lg font-semibold break-words">
-                    {user?.email || "Not available"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 sm:col-span-2">
-                  <p className="text-gray-400 text-sm mb-2">User ID</p>
-                  <p className="text-sm break-all text-gray-300">
-                    {user?.uid || "Not available"}
-                  </p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Email address</p>
+                    <p className="mt-2 break-words text-sm font-medium text-slate-200">{user?.email || "Not available"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Sign-in method</p>
+                    <p className="mt-2 text-sm font-medium text-slate-200">{signInMethod}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 md:col-span-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">User ID</p>
+                    <p className="mt-2 break-all font-mono text-xs leading-5 text-slate-400">{user?.uid || "Not available"}</p>
+                  </div>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-                <h2 className="text-2xl font-bold">Change password</h2>
-                <p className="text-gray-400 text-sm mt-1">
+            <section className="overflow-hidden rounded-[28px] border border-blue-300/[0.13] bg-[linear-gradient(145deg,rgba(7,16,31,0.96),rgba(8,16,35,0.90))] shadow-[0_24px_80px_rgba(2,6,23,0.3)]">
+              <div className="border-b border-white/[0.07] p-5 sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">Security</p>
+                <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">Change password</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                   {supportsPasswordChange
-                    ? "Enter your current password first, then set a new password."
+                    ? "Confirm your current password, then create a secure replacement."
                     : "This account signs in through Google, so its password is managed by Google."}
                 </p>
               </div>
 
               {supportsPasswordChange ? (
-                <div className="p-6 grid grid-cols-1 gap-4 max-w-2xl">
+                <div className="grid gap-4 p-5 sm:p-7 md:grid-cols-2">
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Current password"
-                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                    className="w-full rounded-2xl border border-blue-200/[0.14] bg-[#050d1d]/80 px-4 py-3.5 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10 md:col-span-2"
                   />
-
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New password"
-                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                    className="w-full rounded-2xl border border-blue-200/[0.14] bg-[#050d1d]/80 px-4 py-3.5 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10"
                   />
-
                   <input
                     type="password"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="w-full bg-[#101827] border border-[#1B2540] rounded-xl px-4 py-3 outline-none text-white placeholder:text-gray-500 focus:border-blue-300/40"
+                    className="w-full rounded-2xl border border-blue-200/[0.14] bg-[#050d1d]/80 px-4 py-3.5 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10"
                   />
-
-                  <PasswordRequirements
-                    password={newPassword}
-                    confirmPassword={confirmNewPassword}
-                  />
-
-                  <button
-                    onClick={changePassword}
-                    disabled={
-                      isChangingPassword ||
-                      !currentPassword ||
-                      !isPasswordValid(newPassword) ||
-                      newPassword !== confirmNewPassword ||
-                      newPassword === currentPassword
-                    }
-                    className="w-fit px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {isChangingPassword ? "Changing..." : "Change password"}
-                  </button>
-
-                  {passwordMessage && (
-                    <p className="text-sm text-gray-400">{passwordMessage}</p>
-                  )}
+                  <div className="md:col-span-2">
+                    <PasswordRequirements password={newPassword} confirmPassword={confirmNewPassword} />
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center md:col-span-2">
+                    <button
+                      onClick={changePassword}
+                      disabled={isChangingPassword || !currentPassword || !isPasswordValid(newPassword) || newPassword !== confirmNewPassword || newPassword === currentPassword}
+                      className="rounded-2xl border border-violet-300/20 bg-[linear-gradient(135deg,#2563eb,#7048e8)] px-6 py-3 font-semibold text-white shadow-[0_12px_30px_rgba(79,70,229,0.22)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {isChangingPassword ? "Changing..." : "Update password"}
+                    </button>
+                    {passwordMessage && <p className="text-sm text-slate-400">{passwordMessage}</p>}
+                  </div>
                 </div>
               ) : (
-                <div className="p-6">
+                <div className="p-5 sm:p-7">
                   <p className="max-w-2xl rounded-2xl border border-blue-300/15 bg-blue-400/[0.06] p-4 text-sm leading-6 text-slate-300">
                     To change your password, open your Google Account security settings. OrbitalAI never receives or stores your Google password.
                   </p>
@@ -471,86 +481,54 @@ function Settings({
               )}
             </section>
 
-            <section className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] shadow-2xl shadow-purple-950/10 overflow-hidden">
-              <div className="p-6 border-b border-[#1B2540] bg-[#020817]/50">
-                <h2 className="text-2xl font-bold">Workspace statistics</h2>
-                <p className="text-gray-400 text-sm mt-1">
-                  Current saved structure inside your OrbitalAI workspace.
-                </p>
+            <section className="overflow-hidden rounded-[28px] border border-blue-300/[0.13] bg-[linear-gradient(145deg,rgba(7,16,31,0.96),rgba(8,16,35,0.90))] shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
+              <div className="border-b border-white/[0.07] p-5 sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">Workspace</p>
+                <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">Saved activity</h2>
+                <p className="mt-2 text-sm text-slate-400">A quick view of the content stored in your workspace.</p>
               </div>
-
-              <div className="p-6 space-y-4">
-                {[
-                  ["Total global chats", chats.length],
-                  ["Total project chats", totalProjectChats],
-                  ["Projects", projects.length],
-                  ["Notes", totalNotes],
-                  ["Pinned chats", pinnedChats.length],
-                  ["Archived items", archivedTotal],
-                ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex justify-between items-center rounded-2xl bg-[#101827] border border-[#1B2540] p-4"
-                  >
-                    <span className="text-gray-300">{label}</span>
-                    <span className="font-semibold">{value}</span>
+              <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 sm:p-7">
+                {[["Global chats", chats.length], ["Project chats", totalProjectChats], ["Projects", projects.length], ["Notes", totalNotes], ["Pinned", pinnedChats.length], ["Archived", archivedTotal]].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                    <p className="text-2xl font-semibold text-white">{value}</p>
+                    <p className="mt-1 text-xs text-slate-500 sm:text-sm">{label}</p>
                   </div>
                 ))}
               </div>
             </section>
           </main>
 
-          <aside className="rounded-3xl bg-[#07101F]/90 border border-[#1B2540] p-6 h-fit shadow-2xl shadow-purple-950/10">
-            <h2 className="text-xl font-bold mb-5">Account actions</h2>
-
-            <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 mb-5">
-              <p className="font-semibold mb-2">Export workspace</p>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Download a JSON backup of your chats, projects, notes, and saved workspace details.
-              </p>
-              <button
-                type="button"
-                onClick={exportWorkspace}
-                className="mt-4 w-full rounded-xl border border-blue-300/20 bg-blue-400/[0.07] px-4 py-2.5 text-sm font-semibold text-blue-100 transition hover:bg-blue-400/[0.12]"
-              >
-                Download backup
+          <aside className="space-y-5 xl:sticky xl:top-6">
+            <section className="rounded-[28px] border border-blue-300/[0.13] bg-[linear-gradient(145deg,rgba(7,16,31,0.97),rgba(8,16,35,0.92))] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.28)] sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">Workspace tools</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">Your data</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Keep a portable copy of your workspace or review how your information is handled.</p>
+              <button type="button" onClick={exportWorkspace} className="mt-5 w-full rounded-2xl border border-blue-300/20 bg-blue-400/[0.08] px-4 py-3 text-sm font-semibold text-blue-100 transition hover:border-blue-300/35 hover:bg-blue-400/[0.13]">
+                Download workspace backup
               </button>
-            </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Link to="/privacy" className="rounded-2xl border border-white/[0.09] bg-white/[0.035] px-3 py-3 text-center text-sm font-medium text-slate-300 transition hover:bg-white/[0.07]">Privacy</Link>
+                <Link to="/terms" className="rounded-2xl border border-white/[0.09] bg-white/[0.035] px-3 py-3 text-center text-sm font-medium text-slate-300 transition hover:bg-white/[0.07]">Terms</Link>
+              </div>
+            </section>
 
-            <div className="rounded-2xl bg-[#101827] border border-[#1B2540] p-5 mb-5">
-              <p className="font-semibold mb-2">Logout</p>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Sign out from this device. Your workspace data remains saved.
-              </p>
-            </div>
+            <section className="rounded-[28px] border border-blue-300/[0.13] bg-[linear-gradient(145deg,rgba(7,16,31,0.97),rgba(8,16,35,0.92))] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.28)] sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Session</p>
+              <h2 className="mt-2 text-lg font-semibold text-white">Sign out safely</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Your saved workspace remains available the next time you sign in.</p>
+              <button onClick={() => setLogoutConfirmOpen(true)} className="mt-5 w-full rounded-2xl border border-slate-500/30 bg-slate-400/[0.06] px-5 py-3 font-semibold text-slate-200 transition hover:border-slate-400/45 hover:bg-slate-400/[0.11]">
+                Log out
+              </button>
+            </section>
 
-            <button
-              onClick={() => setLogoutConfirmOpen(true)}
-              className="w-full px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20"
-            >
-              Logout
-            </button>
-
-            <div className="mt-6 border-t border-white/10 pt-6">
-              <p className="font-semibold text-red-200">Delete account</p>
-              <p className="mt-2 text-sm leading-6 text-gray-400">
-                Permanently remove your workspace, stored files, and Firebase account. Download a backup first if needed.
-              </p>
+            <section className="rounded-[28px] border border-red-400/20 bg-[linear-gradient(145deg,rgba(35,10,22,0.75),rgba(16,10,27,0.92))] p-5 shadow-[0_24px_70px_rgba(69,10,10,0.16)] sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-300">Danger zone</p>
+              <h2 className="mt-2 text-lg font-semibold text-white">Delete account</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Permanently removes your workspace, stored files, and Firebase account. Download a backup first if needed.</p>
               {supportsPasswordChange && (
-                <input
-                  type="password"
-                  value={deletePassword}
-                  onChange={(event) => setDeletePassword(event.target.value)}
-                  placeholder="Current password"
-                  autoComplete="current-password"
-                  className="mt-4 w-full rounded-xl border border-red-400/20 bg-[#101827] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-red-300/40"
-                />
+                <input type="password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} placeholder="Current password" autoComplete="current-password" className="mt-5 w-full rounded-2xl border border-red-400/20 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-red-300/45 focus:ring-4 focus:ring-red-500/10" />
               )}
-              {deleteMessage && (
-                <p className="mt-3 text-sm leading-5 text-red-300" role="alert">
-                  {deleteMessage}
-                </p>
-              )}
+              {deleteMessage && <p className="mt-3 text-sm leading-5 text-red-300" role="alert">{deleteMessage}</p>}
               <button
                 type="button"
                 disabled={isDeletingAccount}
@@ -562,11 +540,11 @@ function Settings({
                   }
                   setDeleteConfirmOpen(true);
                 }}
-                className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+                className="mt-5 w-full rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 transition hover:border-red-400/45 hover:bg-red-500/17 disabled:opacity-50"
               >
                 {isDeletingAccount ? "Deleting account…" : "Delete account"}
               </button>
-            </div>
+            </section>
           </aside>
         </div>
       </div>
