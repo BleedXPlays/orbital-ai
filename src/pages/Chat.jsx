@@ -548,7 +548,7 @@ function Chat({
         generatedImages.map(async (image, index) => {
           const mimeType = image.mimeType || "image/png";
           const extension = mimeType === "image/jpeg" ? "jpg" : "png";
-          const filename = `orbitalai-gemini-${Date.now()}-${
+        const filename = `orbitalai-openai-${Date.now()}-${
             index + 1
           }.${extension}`;
           const file = base64ToFile({
@@ -589,9 +589,9 @@ function Chat({
         outputs: [],
         failed: true,
         errorMessage:
-          "Gemini created the image, but OrbitalAI could not save it. Please try again.",
+          "OpenAI created the image, but OrbitalAI could not save it. Please try again.",
         reply:
-          "Gemini created the image, but OrbitalAI could not save it. Please try again.",
+          "OpenAI created the image, but OrbitalAI could not save it. Please try again.",
       };
     }
   };
@@ -2914,7 +2914,7 @@ function Chat({
 
                     <button
                       onClick={removeAttachment}
-                      className="h-9 w-9 shrink-0 rounded-xl bg-[#101827] border border-[#1B2540] text-gray-300 hover:text-white hover:bg-[#141f33] sm:h-10 sm:w-10"
+                      className="h-9 w-9 shrink-0 rounded-xl bg-[#11827] border border-[#1B2540] text-gray-300 hover:text-white hover:bg-[#141f33] sm:h-10 sm:w-10"
                     >
                       ×
                     </button>

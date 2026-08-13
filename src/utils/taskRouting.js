@@ -51,7 +51,7 @@ export const analyzeTask = (text = "") => {
   }
 
   if (imageGenerationRequest) {
-    detectedTasks.push({ task: "Image Generation", ai: "Gemini" });
+    detectedTasks.push({ task: "Image Generation", ai: "OpenAI" });
   } else if (
     /\b(image|images|poster|posters|diagram|diagrams|chart|charts|graph|graphs|logo|logos|visual|visuals|photo|photos|photograph|photographs|picture|pictures)\b/.test(
       lowerText
@@ -112,7 +112,7 @@ export const getOutputs = (tasks = []) => {
     }
 
     if (item.task === "Image Generation") {
-      outputs.push(["🎨", "Generated Image", "Gemini-created visual"]);
+      outputs.push(["🎨", "Generated Image", "OpenAI-generated visual"]);
     }
 
     if (item.task === "Coding") {

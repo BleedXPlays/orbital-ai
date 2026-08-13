@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const helpItems = [
   {
@@ -32,9 +33,9 @@ const helpItems = [
     title: "AI providers",
     description: "Understand when OpenAI, Claude, or Gemini is selected.",
     steps: [
-      "OpenAI handles general conversation, follow-up questions, and voice transcription.",
+            "OpenAI handles general conversation, follow-up questions, voice transcription, and image generation.",
       "Claude handles detailed writing, longer documents, decision support, and coding.",
-      "Gemini handles image generation, image understanding, visual data, and multimodal research.",
+            "Gemini handles uploaded-image understanding, visual data, and multimodal research.",
     ],
   },
   {
@@ -145,6 +146,14 @@ function Help() {
         <section className="mt-10 border-t border-white/10 pt-7 text-sm leading-6 text-slate-500">
           <p><span className="font-medium text-slate-300">Privacy summary:</span> Workspace data is private to the signed-in account. Attached content may be sent to the AI provider selected for the request.</p>
           <p className="mt-2"><span className="font-medium text-slate-300">Responsible use:</span> Always verify important medical, legal, financial, academic, and safety-related answers with a qualified source.</p>
+          <div className="mt-4 flex flex-wrap gap-4">
+            <Link to="/privacy" className="text-blue-300 transition hover:text-blue-200">
+              Privacy policy
+            </Link>
+            <Link to="/terms" className="text-blue-300 transition hover:text-blue-200">
+              Terms of use
+            </Link>
+          </div>
         </section>
       </div>
     </div>

@@ -20,10 +20,13 @@ export const getProviderForRequest = ({
     ? tasks.map((item) => item?.task).filter(Boolean)
     : [];
 
+  if (taskNames.includes("Image Generation")) {
+    return "openai";
+  }
+
   if (
     attachment?.kind === "image" ||
-    taskNames.includes("Visual Analysis") ||
-    taskNames.includes("Image Generation")
+    taskNames.includes("Visual Analysis")
   ) {
     return "gemini";
   }

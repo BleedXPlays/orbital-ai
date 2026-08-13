@@ -5,7 +5,7 @@ const providers = [
     status: "Active",
     role: "General intelligence",
     description:
-      "General chat, clarifying questions, conversation memory, and voice transcription.",
+      "General chat, clarifying questions, conversation memory, voice transcription, and image generation.",
     color: "from-emerald-400/25 to-cyan-400/10 text-emerald-200 border-emerald-300/25",
   },
   {
@@ -23,7 +23,7 @@ const providers = [
     status: "Active",
     role: "Multimodal",
     description:
-      "Image generation, visual-data analysis, and multimodal research.",
+      "Uploaded-image understanding, visual-data analysis, and multimodal research.",
     color: "from-blue-400/25 to-indigo-400/10 text-blue-200 border-blue-300/25",
   },
 ];

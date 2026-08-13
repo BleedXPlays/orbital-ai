@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { auth } from "../firebase";
 import logo from "../assets/orbital-logo.png";
 import {
@@ -258,9 +259,9 @@ function Login() {
 
               <div className="mt-10 max-w-[540px] divide-y divide-white/10">
                 {[
-                  ["◎", "OpenAI", "General chat, reasoning and voice transcription.", "text-emerald-300"],
+              ["◎", "OpenAI", "General chat, reasoning, voice transcription and image generation.", "text-emerald-300"],
                   ["AI", "Claude", "Detailed writing, documents and coding.", "text-orange-300"],
-                  ["✦", "Gemini", "Image generation, understanding and multimodal research.", "text-blue-300"],
+              ["✦", "Gemini", "Uploaded-image understanding and multimodal research.", "text-blue-300"],
                 ].map(([icon, name, description, color]) => (
                   <div key={name} className="flex items-center gap-4 py-4 first:pt-0">
                     <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-[#050b1b]/65 text-lg font-semibold ${color}`}>
@@ -655,6 +656,14 @@ function Login() {
               <p className="auth-privacy-note mx-auto mt-4 max-w-sm text-center text-xs leading-5 text-slate-400/65">
                 Your workspace is private. Provider keys remain securely on the server.
               </p>
+              <div className="mt-3 flex items-center justify-center gap-4 text-xs text-slate-400/70">
+                <Link to="/privacy" className="transition hover:text-blue-200">
+                  Privacy
+                </Link>
+                <Link to="/terms" className="transition hover:text-blue-200">
+                  Terms
+                </Link>
+              </div>
             </div>
           </section>
         </div>
