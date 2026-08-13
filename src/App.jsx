@@ -26,6 +26,8 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
 const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 const PageLoadingFallback = () => (
   <div className="flex h-full min-h-full items-center justify-center bg-[#030712] text-white">
@@ -436,6 +438,9 @@ function App() {
 
   useEffect(() => {
     if (!user || dataLoading || !hasLoadedUserData || !routeReady) return;
+    if (location.pathname === "/privacy" || location.pathname === "/terms") {
+      return;
+    }
 
     const nextPath = getPathFromWorkspaceState({
       page,
@@ -749,6 +754,22 @@ function App() {
         );
     }
   };
+
+  if (location.pathname === "/privacy") {
+    return (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <Privacy />
+      </Suspense>
+    );
+  }
+
+  if (location.pathname === "/terms") {
+    return (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <Terms />
+      </Suspense>
+    );
+  }
 
   if (authLoading) {
     return <PageLoadingFallback />;
