@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import OutputPreviewModal from "../components/OutputPreviewModal";
 import GeneratedImageContent from "../components/GeneratedImageContent";
 import MarkdownContent from "../components/MarkdownContent";
+import orbitalLogo from "../assets/orbital-logo.png";
 import {
   getChatAttachmentUrl,
   uploadChatAttachment,
@@ -81,6 +82,58 @@ const getChatDraftKey = (userId, chatName) =>
     : "";
 
 const createClientId = (prefix) => `${prefix}-${crypto.randomUUID()}`;
+
+const OpenAIIcon = ({ className = "h-3.5 w-3.5" }) => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+    <path
+      d="M12 3.25a4.15 4.15 0 0 1 3.9 2.72 4.15 4.15 0 0 1 4.48 5.72 4.15 4.15 0 0 1-2.06 6.96A4.15 4.15 0 0 1 12 22.28a4.15 4.15 0 0 1-6.32-3.63 4.15 4.15 0 0 1-2.06-6.96A4.15 4.15 0 0 1 8.1 5.97 4.15 4.15 0 0 1 12 3.25Z"
+      stroke="currentColor"
+      strokeWidth="1.55"
+      strokeLinejoin="round"
+    />
+    <path
+      d="m8.2 6.05 7.55 4.35v7.2M15.8 6.05 8.25 10.4v7.2M4.45 11.7 12 16.05l7.55-4.35M8.25 17.6 12 19.75l3.75-2.15M12 3.25v4.4"
+      stroke="currentColor"
+      strokeWidth="1.55"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
+  if (!provider) return null;
+
+  const providerKey = String(provider).toLowerCase();
+  const isOpenAI = providerKey.includes("openai");
+  const isClaude = providerKey.includes("claude");
+  const isGemini = providerKey.includes("gemini");
+  const colorClasses = isOpenAI
+    ? "border-emerald-300/30 bg-emerald-400/[0.1] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+    : isClaude
+      ? "border-orange-300/30 bg-orange-400/[0.1] text-orange-200"
+      : isGemini
+        ? "border-blue-300/30 bg-blue-400/[0.1] text-blue-200"
+        : "border-violet-300/30 bg-violet-400/[0.1] text-violet-200";
+
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${colorClasses}`}
+    >
+      {isOpenAI ? (
+        <OpenAIIcon />
+      ) : isGemini ? (
+        <span className="text-[11px] leading-none">✦</span>
+      ) : isClaude ? (
+        <span className="text-[11px] leading-none">✺</span>
+      ) : null}
+      <span className="leading-none">
+        {provider}
+        {fallbackFrom ? " fallback" : ""}
+      </span>
+    </span>
+  );
+};
 
 const base64ToFile = ({ data, mimeType, name }) => {
   const binary = window.atob(data);
@@ -2196,12 +2249,30 @@ function Chat({
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
         <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/78 px-4 pb-3 pt-[4.6rem] backdrop-blur-xl sm:px-6 sm:py-4 lg:px-7">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <span className="text-lg text-slate-500">←</span>
-              <h1 className="truncate text-base font-medium tracking-[-0.02em] text-slate-200 sm:text-lg">
-                {selectedChat || "Untitled Chat"}
-              </h1>
-              <span className="shrink-0 rounded-md border border-violet-400/25 bg-violet-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-300">{activeProvider}</span>
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-200/[0.1] bg-white/[0.025] text-slate-400"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                  <path
+                    d="m14 7-5 5 5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:block">
+                  Conversation
+                </span>
+                <h1 className="truncate bg-gradient-to-r from-white via-slate-100 to-blue-200 bg-clip-text text-base font-semibold tracking-[-0.025em] text-transparent sm:text-lg">
+                  {selectedChat || "Untitled Chat"}
+                </h1>
+              </div>
+              <ProviderBadge provider={activeProvider} />
             </div>
 
             <div className="flex shrink-0 gap-2">
@@ -2510,25 +2581,19 @@ function Chat({
                         : "border-violet-400/25"
                     }`}
                   >
-                    <div className="mb-5 flex items-start gap-3 sm:mb-6 sm:gap-4">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-600/20 sm:h-11 sm:w-11 sm:rounded-2xl">
-                        ✦
-                      </div>
-
+                    <div className="mb-5 flex flex-col sm:mb-6">
                       <div className="min-w-0">
                         <div>
-                          <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
-                            <p className="text-sm font-semibold text-purple-300">
-                              OrbitalAI
-                            </p>
-
-                            {message.provider && (
-                              <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-purple-200">
-                                {message.provider}
-                                {message.fallbackFrom ? " fallback" : ""}
-                              </span>
-                            )}
-
+                          <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
+                            <img
+                              src={orbitalLogo}
+                              alt="OrbitalAI"
+                              className="h-7 w-auto max-w-[118px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.18)] sm:h-8 sm:max-w-[138px]"
+                            />
+                            <ProviderBadge
+                              provider={message.provider}
+                              fallbackFrom={message.fallbackFrom}
+                            />
                           </div>
 
                           {message.isLoading ? (
