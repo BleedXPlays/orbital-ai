@@ -101,13 +101,40 @@ const OpenAIIcon = ({ className = "h-3.5 w-3.5" }) => (
   </svg>
 );
 
+const ClaudeIcon = ({ className = "h-3.5 w-3.5" }) => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+    <path
+      d="M12 2.75v18.5M4 7.38l16 9.24M4 16.62l16-9.24M6.35 3.95l11.3 16.1M17.65 3.95 6.35 20.05"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const GeminiIcon = ({ className = "h-3.5 w-3.5" }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+    <path
+      d="M12 2.5c.7 5.65 3.85 8.8 9.5 9.5-5.65.7-8.8 3.85-9.5 9.5-.7-5.65-3.85-8.8-9.5-9.5 5.65-.7 8.8-3.85 9.5-9.5Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
   if (!provider) return null;
 
   const providerKey = String(provider).toLowerCase();
-  const isOpenAI = providerKey.includes("openai");
-  const isClaude = providerKey.includes("claude");
-  const isGemini = providerKey.includes("gemini");
+  const isOpenAI = providerKey.includes("openai") || providerKey.includes("gpt");
+  const isClaude = providerKey.includes("claude") || providerKey.includes("anthropic");
+  const isGemini = providerKey.includes("gemini") || providerKey.includes("google");
+  const providerLabel = isOpenAI
+    ? "OpenAI"
+    : isClaude
+      ? "Claude"
+      : isGemini
+        ? "Gemini"
+        : provider;
   const colorClasses = isOpenAI
     ? "border-emerald-300/30 bg-emerald-400/[0.1] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
     : isClaude
@@ -118,17 +145,17 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${colorClasses}`}
+      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px] ${colorClasses}`}
     >
       {isOpenAI ? (
-        <OpenAIIcon />
+        <OpenAIIcon className="h-4 w-4" />
       ) : isGemini ? (
-        <span className="text-[11px] leading-none">✦</span>
+        <GeminiIcon className="h-4 w-4" />
       ) : isClaude ? (
-        <span className="text-[11px] leading-none">✺</span>
+        <ClaudeIcon className="h-4 w-4" />
       ) : null}
       <span className="leading-none">
-        {provider}
+        {providerLabel}
         {fallbackFrom ? " fallback" : ""}
       </span>
     </span>
@@ -2249,31 +2276,6 @@ function Chat({
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
         <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/78 px-4 pb-3 pt-[4.6rem] backdrop-blur-xl sm:px-6 sm:py-4 lg:px-7">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-              <span
-                aria-hidden="true"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-200/[0.1] bg-white/[0.025] text-slate-400"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-                  <path
-                    d="m14 7-5 5 5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <div className="min-w-0 flex-1">
-                <span className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:block">
-                  Conversation
-                </span>
-                <h1 className="truncate bg-gradient-to-r from-white via-slate-100 to-blue-200 bg-clip-text text-base font-semibold tracking-[-0.025em] text-transparent sm:text-lg">
-                  {selectedChat || "Untitled Chat"}
-                </h1>
-              </div>
-              <ProviderBadge provider={activeProvider} />
-            </div>
 
             <div className="flex shrink-0 gap-2">
               <button
@@ -2587,7 +2589,8 @@ function Chat({
                           <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
                             <img
                               src={orbitalLogo}
-                              alt="OrbitalAI"
+                  alt="OrbitalAI"
+                  style={{ width: "clamp(110px, 10vw, 148px)", height: "auto" }}
                               className="h-7 w-auto max-w-[118px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.18)] sm:h-8 sm:max-w-[138px]"
                             />
                             <ProviderBadge
