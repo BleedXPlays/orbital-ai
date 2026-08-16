@@ -539,12 +539,12 @@ function Sidebar({
               e.stopPropagation();
               setPage("home");
             }}
-            className="mb-4 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:mb-2 lg:h-[58px] lg:pr-0"
+            className="mb-4 flex h-16 cursor-pointer items-center overflow-visible pr-12 lg:mb-2 lg:h-[60px] lg:pr-0"
           >
             <img
               src={logo}
               alt="OrbitalAI"
-              className="h-auto w-[164px] max-w-full object-contain drop-shadow-[0_0_24px_rgba(96,118,255,0.28)] lg:w-[190px] lg:translate-y-4"
+              className="h-auto w-[168px] max-w-full translate-y-1 object-contain drop-shadow-[0_0_24px_rgba(96,118,255,0.28)] lg:w-[196px] lg:translate-y-3"
             />
           </div>
 

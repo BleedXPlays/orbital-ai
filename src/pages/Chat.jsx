@@ -2230,10 +2230,6 @@ function Chat({
     await retryFailedMessage(matchingResponse, { overrideText: editedText });
   };
 
-  const activeProvider =
-    [...messages].reverse().find((message) => message.provider)?.provider ||
-    "Auto";
-
   return (
     <div
       onClick={() => {
@@ -2276,6 +2272,30 @@ function Chat({
       <div className="relative h-full min-h-0 flex flex-col overflow-hidden">
         <header className="shrink-0 border-b border-blue-200/[0.1] bg-[#030b18]/78 px-4 pb-3 pt-[4.6rem] backdrop-blur-xl sm:px-6 sm:py-4 lg:px-7">
           <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-blue-200/[0.1] bg-white/[0.025] text-slate-400"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                  <path
+                    d="m14 7-5 5 5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:block">
+                  Conversation
+                </span>
+                <h1 className="truncate bg-gradient-to-r from-white via-slate-100 to-blue-200 bg-clip-text text-base font-semibold tracking-[-0.025em] text-transparent sm:text-lg">
+                  {selectedChat || "Untitled Chat"}
+                </h1>
+              </div>
+            </div>
 
             <div className="flex shrink-0 gap-2">
               <button
@@ -2577,10 +2597,10 @@ function Chat({
                   </div>
                 ) : (
                   <div
-                    className={`w-full min-w-0 max-w-[820px] border-l-2 bg-[#06101e]/55 p-4 shadow-none sm:p-5 ${
+                    className={`w-full min-w-0 max-w-[760px] border-l bg-[#06101e]/28 p-3.5 shadow-none backdrop-blur-[1px] sm:p-4 ${
                       message.failed
-                        ? "border-red-500/50"
-                        : "border-violet-400/25"
+                        ? "border-red-500/35"
+                        : "border-violet-400/15"
                     }`}
                   >
                     <div className="mb-5 flex flex-col sm:mb-6">
@@ -2589,9 +2609,8 @@ function Chat({
                           <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
                             <img
                               src={orbitalLogo}
-                  alt="OrbitalAI"
-                  style={{ width: "clamp(110px, 10vw, 148px)", height: "auto" }}
-                              className="h-7 w-auto max-w-[118px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.18)] sm:h-8 sm:max-w-[138px]"
+                              alt="OrbitalAI"
+                              className="h-auto w-[132px] object-contain drop-shadow-[0_0_14px_rgba(139,92,246,0.22)] sm:w-[150px]"
                             />
                             <ProviderBadge
                               provider={message.provider}
