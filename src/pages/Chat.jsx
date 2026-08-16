@@ -145,14 +145,14 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px] ${colorClasses}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
     >
       {isOpenAI ? (
-        <OpenAIIcon className="h-4 w-4" />
+        <OpenAIIcon className="h-3.5 w-3.5" />
       ) : isGemini ? (
-        <GeminiIcon className="h-4 w-4" />
+        <GeminiIcon className="h-3.5 w-3.5" />
       ) : isClaude ? (
-        <ClaudeIcon className="h-4 w-4" />
+        <ClaudeIcon className="h-3.5 w-3.5" />
       ) : null}
       <span className="leading-none">
         {providerLabel}
@@ -2610,7 +2610,7 @@ function Chat({
                             <img
                               src={orbitalLogo}
                               alt="OrbitalAI"
-                              className="h-auto w-[132px] object-contain drop-shadow-[0_0_14px_rgba(139,92,246,0.22)] sm:w-[150px]"
+                              className="h-auto w-[112px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.2)] sm:w-[124px]"
                             />
                             <ProviderBadge
                               provider={message.provider}
