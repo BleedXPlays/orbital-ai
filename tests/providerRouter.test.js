@@ -70,13 +70,13 @@ test("keeps image understanding on Gemini", () => {
   );
 });
 
-test("routes native image generation to Gemini", () => {
+test("routes image generation to OpenAI", () => {
   assert.equal(
     getProviderForRequest({
       message: "Generate a futuristic illustration",
       tasks: [{ task: "Image Generation" }],
     }),
-    "gemini"
+    "openai"
   );
 });
 

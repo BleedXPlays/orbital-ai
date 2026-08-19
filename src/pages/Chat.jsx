@@ -150,7 +150,7 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
 
   return (
     <span
-      className={`inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
     >
       {isOrbitalImage ? (
         <span aria-hidden="true" className="text-[12px] leading-none">✦</span>
@@ -2613,14 +2613,12 @@ function Chat({
                     <div className="mb-5 flex flex-col sm:mb-6">
                       <div className="min-w-0">
                         <div>
-                          <div className="mb-4 flex min-h-7 flex-wrap items-center gap-2.5 border-b border-white/[0.06] pb-4">
-                            <span className="flex h-7 shrink-0 items-center">
-                              <img
-                                src={orbitalLogo}
-                                alt="OrbitalAI"
-                                className="block h-auto w-[100px] translate-y-4 object-contain drop-shadow-[0_0_10px_rgba(139,92,246,0.18)] sm:w-[110px]"
-                              />
-                            </span>
+                          <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
+                            <img
+                              src={orbitalLogo}
+                              alt="OrbitalAI"
+                              className="h-auto w-[112px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.2)] sm:w-[124px]"
+                            />
                             <ProviderBadge
                               provider={
                                 message.outputs?.some(
@@ -2878,74 +2876,47 @@ function Chat({
               {actionMenuOpen && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(155deg, rgba(7, 19, 44, 0.78), rgba(2, 9, 25, 0.94)), url("/orbital-sidebar-glass.png")',
-                    backgroundPosition: "center",
-                    backgroundSize: "cover",
-                  }}
-                  className="absolute bottom-[72px] left-0 z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-blue-200/[0.2] p-2.5 shadow-[0_24px_70px_rgba(0,0,0,0.5),0_0_34px_rgba(76,100,220,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:bottom-[92px] sm:rounded-3xl sm:p-3"
+                  className="absolute bottom-[72px] left-0 z-[9999] w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#1B2540] bg-[#08111F]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl sm:bottom-[92px] sm:rounded-3xl"
                 >
-                  <div className="flex items-center gap-3 border-b border-white/[0.07] px-2.5 pb-3 pt-1.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/20 bg-violet-400/[0.09] text-lg text-violet-200">
-                      +
-                    </span>
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-200/85">
-                        Quick actions
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-slate-500">
-                        Add context to your message
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-purple-300/80 px-3 pt-1 pb-3">
+                    Quick Actions
+                  </p>
 
-                  <div className="mt-2 space-y-1">
+                  <div className="space-y-1">
                     <label
                       htmlFor="chat-file-input"
-                      onClick={() => setActionMenuOpen(false)}
-                      className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent px-2.5 py-2.5 text-left text-slate-100 transition hover:border-blue-200/[0.1] hover:bg-white/[0.055]"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-left text-gray-100 transition hover:bg-[#101827]"
                     >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-200/[0.12] bg-blue-300/[0.055] text-blue-100 transition group-hover:border-blue-200/[0.2] group-hover:bg-blue-300/[0.09]">
-                        <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m20.5 11.5-8.3 8.3a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8l8.3-8.3" /></svg>
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">Attach file</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                      <span className="text-xl">📎</span>
+                      <div>
+                        <p className="text-sm font-medium">Attach File</p>
+                        <p className="text-xs text-gray-400">
                           Add a document or file
                         </p>
                       </div>
-                      <span className="text-sm text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-slate-400">›</span>
                     </label>
 
                     <label
                       htmlFor="chat-image-input"
-                      onClick={() => setActionMenuOpen(false)}
-                      className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent px-2.5 py-2.5 text-left text-slate-100 transition hover:border-violet-200/[0.1] hover:bg-white/[0.055]"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-left text-gray-100 transition hover:bg-[#101827]"
                     >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-200/[0.12] bg-violet-300/[0.055] text-violet-100 transition group-hover:border-violet-200/[0.2] group-hover:bg-violet-300/[0.09]">
-                        <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9" r="1.5" /><path d="m4 17 4.5-4.5 3.2 3.2 2.3-2.3 6 5.6" /></svg>
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">Upload image</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                      <span className="text-xl">🖼️</span>
+                      <div>
+                        <p className="text-sm font-medium">Upload Image</p>
+                        <p className="text-xs text-gray-400">
                           Add an image to your chat
                         </p>
                       </div>
-                      <span className="text-sm text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-slate-400">›</span>
                     </label>
 
                     <button
                       onClick={handleClearInput}
-                      disabled={!input.trim()}
-                      className="group flex w-full items-center gap-3 rounded-2xl border border-transparent px-2.5 py-2.5 text-left text-slate-100 transition hover:border-rose-200/[0.08] hover:bg-rose-300/[0.045] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-gray-100 hover:bg-[#101827] transition"
                     >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/[0.1] bg-white/[0.035] text-slate-300 transition group-hover:border-rose-200/[0.14] group-hover:text-rose-200">
-                        <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m4 15 8.5-8.5 5 5L9 20H4v-5Z" /><path d="m10 9 5 5M3 20h18" /></svg>
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">Clear input</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                      <span className="text-xl">🧹</span>
+                      <div>
+                        <p className="text-sm font-medium">Clear Input</p>
+                        <p className="text-xs text-gray-400">
                           Remove current typed text
                         </p>
                       </div>
