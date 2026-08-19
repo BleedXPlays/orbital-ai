@@ -76,6 +76,12 @@ function Sidebar({
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [failedProfilePhoto, setFailedProfilePhoto] = useState("");
+
+  const googleProfilePhoto = user?.providerData?.find(
+    (provider) => provider?.providerId === "google.com"
+  )?.photoURL;
+  const accountPhotoURL = user?.photoURL || googleProfilePhoto || "";
 
   const [chatMenuPosition, setChatMenuPosition] = useState({ top: 0, left: 0 });
   const [projectMenuPosition, setProjectMenuPosition] = useState({
@@ -780,7 +786,13 @@ function Sidebar({
           {accountMenuOpen && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="absolute bottom-[calc(100%+0.55rem)] left-0 right-0 z-[5000] rounded-2xl border border-blue-200/[0.16] bg-[#071224]/95 p-1.5 shadow-[0_22px_55px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+              style={{
+                backgroundImage:
+                  'linear-gradient(155deg, rgba(6, 18, 43, 0.72), rgba(2, 8, 24, 0.9)), url("/orbital-sidebar-glass.png")',
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+              }}
+              className="absolute bottom-[calc(100%+0.55rem)] left-0 right-0 z-[5000] rounded-2xl border border-blue-200/[0.24] p-2 shadow-[0_24px_65px_rgba(0,0,0,0.5),0_0_28px_rgba(68,125,230,0.13)] backdrop-blur-3xl"
             >
               {[
                 ["profile", "Profile", "settings"],
@@ -807,7 +819,7 @@ function Sidebar({
                   setAccountMenuOpen(false);
                   await handleLogout?.();
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-red-200 transition hover:bg-red-400/[0.08]"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-400 transition hover:bg-red-400/[0.1] hover:text-red-300"
               >
                 <FooterIcon type="logout" /> Log out
               </button>
@@ -823,8 +835,14 @@ function Sidebar({
             aria-expanded={accountMenuOpen}
             className="flex w-full items-center gap-3 rounded-2xl border border-blue-200/[0.13] bg-black/15 p-2.5 text-left transition hover:border-blue-200/[0.22] hover:bg-white/[0.045]"
           >
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-white/15" />
+            {accountPhotoURL && accountPhotoURL !== failedProfilePhoto ? (
+              <img
+                src={accountPhotoURL}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={() => setFailedProfilePhoto(accountPhotoURL)}
+                className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-white/20"
+              />
             ) : (
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white ring-1 ring-white/15">
                 {(user?.displayName || user?.email || "O").trim().charAt(0).toUpperCase()}
