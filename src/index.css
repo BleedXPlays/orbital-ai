@@ -73,13 +73,16 @@ body {
   position: relative;
   isolation: isolate;
   background:
-    linear-gradient(180deg, rgba(3, 10, 24, 0.66), rgba(2, 7, 19, 0.74)),
-    radial-gradient(circle at 70% 10%, rgba(35, 81, 154, 0.1), transparent 34%);
+    radial-gradient(circle at 50% 5%, rgba(55, 112, 205, 0.16), transparent 30%),
+    radial-gradient(circle at 15% 62%, rgba(69, 83, 180, 0.1), transparent 38%),
+    linear-gradient(180deg, rgba(5, 15, 34, 0.56), rgba(2, 8, 21, 0.68));
   box-shadow:
-    inset -1px 0 0 rgba(111, 155, 225, 0.08),
-    16px 0 54px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(22px) saturate(0.82);
-  -webkit-backdrop-filter: blur(22px) saturate(0.82);
+    inset -1px 0 0 rgba(137, 181, 255, 0.2),
+    inset 0 1px 0 rgba(177, 207, 255, 0.1),
+    18px 0 58px rgba(0, 0, 0, 0.22),
+    1px 0 22px rgba(67, 132, 234, 0.08);
+  backdrop-filter: blur(34px) saturate(1.08);
+  -webkit-backdrop-filter: blur(34px) saturate(1.08);
 }
 
 .orbital-sidebar::before,
@@ -92,7 +95,7 @@ body {
 
 .orbital-sidebar::before {
   inset: 0;
-  opacity: 0.38;
+  opacity: 0.28;
   background-image:
     radial-gradient(circle at 18% 14%, rgba(143, 190, 255, 0.75) 0 1px, transparent 1.5px),
     radial-gradient(circle at 78% 34%, rgba(122, 171, 255, 0.55) 0 1px, transparent 1.5px),
@@ -102,7 +105,10 @@ body {
 }
 
 .orbital-sidebar::after {
-  display: none;
+  inset: 0;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.025), transparent 38%),
+    radial-gradient(circle at 85% 18%, rgba(101, 159, 255, 0.1), transparent 24%);
 }
 
 .orbital-app-shell .orbital-earth-horizon {

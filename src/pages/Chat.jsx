@@ -150,7 +150,7 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
+      className={`inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
     >
       {isOrbitalImage ? (
         <span aria-hidden="true" className="text-[12px] leading-none">✦</span>
@@ -2613,12 +2613,14 @@ function Chat({
                     <div className="mb-5 flex flex-col sm:mb-6">
                       <div className="min-w-0">
                         <div>
-                          <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
-                            <img
-                              src={orbitalLogo}
-                              alt="OrbitalAI"
-                              className="h-auto w-[112px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.2)] sm:w-[124px]"
-                            />
+                          <div className="mb-4 flex min-h-7 flex-wrap items-center gap-2.5 border-b border-white/[0.06] pb-4">
+                            <span className="flex h-7 shrink-0 items-center">
+                              <img
+                                src={orbitalLogo}
+                                alt="OrbitalAI"
+                                className="block h-auto w-[100px] translate-y-px object-contain drop-shadow-[0_0_10px_rgba(139,92,246,0.18)] sm:w-[110px]"
+                              />
+                            </span>
                             <ProviderBadge
                               provider={
                                 message.outputs?.some(
