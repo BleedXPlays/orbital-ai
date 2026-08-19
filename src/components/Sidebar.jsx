@@ -23,6 +23,9 @@ function FooterIcon({ type }) {
     edit: <><path d="m4 16-.7 4 4-.7L18.6 8 15 4.4 4 16Z" /><path d="m13.8 5.6 3.6 3.6M3 21h18" /></>,
     archive: <><path d="M4 8h16v11H4z" /><path d="M3 4h18v4H3zM9 12h6" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.38.24.72.58.6 1v4c.12.42-.22.76-.6 1Z" /></>,
+    profile: <><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></>,
+    help: <><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.5 2.5 0 1 1 3.2 2.4c-.9.35-1.4.9-1.4 1.8v.3M11.5 17h.01" /></>,
+    logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" /></>,
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
@@ -39,6 +42,8 @@ const slugify = (value) => {
 
 function Sidebar({
   setPage,
+  user,
+  handleLogout,
   chats,
   setChats,
   projects,
@@ -70,6 +75,7 @@ function Sidebar({
   const [projectSearch, setProjectSearch] = useState("");
   const [openChatMenu, setOpenChatMenu] = useState(null);
   const [openProjectMenu, setOpenProjectMenu] = useState(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const [chatMenuPosition, setChatMenuPosition] = useState({ top: 0, left: 0 });
   const [projectMenuPosition, setProjectMenuPosition] = useState({
@@ -524,8 +530,9 @@ function Sidebar({
         onClick={() => {
           setOpenChatMenu(null);
           setOpenProjectMenu(null);
+          setAccountMenuOpen(false);
         }}
-        className="orbital-sidebar flex h-dvh min-h-0 w-[min(92vw,21rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-blue-300/[0.14] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:m-3 lg:h-[calc(100%-1.5rem)] lg:w-[270px] lg:rounded-[22px] lg:border lg:px-5 lg:py-3"
+        className="orbital-sidebar flex h-dvh min-h-0 w-[min(92vw,21rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-blue-300/[0.14] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:m-3 lg:h-[calc(100%-1.5rem)] lg:w-[288px] lg:rounded-[22px] lg:border lg:px-5 lg:py-3"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -759,7 +766,7 @@ function Sidebar({
           </section>
         </div>
 
-        <div className="mt-3 shrink-0 space-y-1 border-t border-blue-200/[0.14] pt-3 lg:mt-2 lg:pt-2">
+        <div className="relative mt-3 shrink-0 space-y-1 border-t border-blue-200/[0.14] pt-3 lg:mt-2 lg:pt-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -770,24 +777,68 @@ function Sidebar({
             <FooterIcon type="edit" /> Edit Items
           </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage("archived");
-            }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/[0.045] hover:text-white lg:py-1.5"
-          >
-            <FooterIcon type="archive" /> Archived Items
-          </button>
+          {accountMenuOpen && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-[calc(100%+0.55rem)] left-0 right-0 z-[5000] rounded-2xl border border-blue-200/[0.16] bg-[#071224]/95 p-1.5 shadow-[0_22px_55px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+            >
+              {[
+                ["profile", "Profile", "settings"],
+                ["settings", "Settings", "settings"],
+                ["help", "Help", "help"],
+                ["archive", "Archived items", "archived"],
+              ].map(([icon, label, pageName]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    setPage(pageName);
+                    setAccountMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+                >
+                  <FooterIcon type={icon} /> {label}
+                </button>
+              ))}
+              <div className="my-1 border-t border-white/[0.08]" />
+              <button
+                type="button"
+                onClick={async () => {
+                  setAccountMenuOpen(false);
+                  await handleLogout?.();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-red-200 transition hover:bg-red-400/[0.08]"
+              >
+                <FooterIcon type="logout" /> Log out
+              </button>
+            </div>
+          )}
 
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setPage("settings");
+              setAccountMenuOpen((open) => !open);
             }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/[0.045] hover:text-white lg:py-1.5"
+            aria-expanded={accountMenuOpen}
+            className="flex w-full items-center gap-3 rounded-2xl border border-blue-200/[0.13] bg-black/15 p-2.5 text-left transition hover:border-blue-200/[0.22] hover:bg-white/[0.045]"
           >
-            <FooterIcon type="settings" /> Settings
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-white/15" />
+            ) : (
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white ring-1 ring-white/15">
+                {(user?.displayName || user?.email || "O").trim().charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-slate-100">
+                {user?.displayName || user?.email?.split("@")[0] || "OrbitalAI account"}
+              </span>
+              <span className="block truncate text-[11px] text-slate-500">
+                {user?.email || "Account"}
+              </span>
+            </span>
+            <span className={`text-xs text-slate-500 transition ${accountMenuOpen ? "rotate-180" : ""}`}>⌃</span>
           </button>
         </div>
       </aside>

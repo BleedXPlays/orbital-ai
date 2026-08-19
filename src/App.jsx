@@ -883,6 +883,8 @@ function App() {
 
         <Sidebar
           setPage={setPage}
+          user={user}
+          handleLogout={handleLogout}
           chats={chats}
           setChats={setChats}
           projects={projects}
