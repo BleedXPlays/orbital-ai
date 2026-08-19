@@ -2618,7 +2618,7 @@ function Chat({
                               <img
                                 src={orbitalLogo}
                                 alt="OrbitalAI"
-                                className="block h-auto w-[100px] translate-y-px object-contain drop-shadow-[0_0_10px_rgba(139,92,246,0.18)] sm:w-[110px]"
+                                className="block h-auto w-[100px] translate-y-4 object-contain drop-shadow-[0_0_10px_rgba(139,92,246,0.18)] sm:w-[110px]"
                               />
                             </span>
                             <ProviderBadge

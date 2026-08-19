@@ -83,6 +83,23 @@ function Sidebar({
   )?.photoURL;
   const accountPhotoURL = user?.photoURL || googleProfilePhoto || "";
 
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+
+    const closeAccountMenu = () => setAccountMenuOpen(false);
+    const handleEscape = (event) => {
+      if (event.key === "Escape") closeAccountMenu();
+    };
+
+    document.addEventListener("click", closeAccountMenu);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("click", closeAccountMenu);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [accountMenuOpen]);
+
   const [chatMenuPosition, setChatMenuPosition] = useState({ top: 0, left: 0 });
   const [projectMenuPosition, setProjectMenuPosition] = useState({
     top: 0,
