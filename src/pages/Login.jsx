@@ -10,6 +10,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import PasswordRequirements from "../components/PasswordRequirements";
+import SpaceTraffic from "../components/SpaceTraffic";
 import {
   getPasswordPolicyError,
   isPasswordValid,
@@ -239,8 +240,9 @@ function Login() {
       />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(1,5,15,0.28),rgba(1,5,15,0.06)_45%,rgba(1,5,15,0.38))]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_25%,rgba(1,4,13,0.5)_100%)]" />
+      <SpaceTraffic variant="login" />
 
-      <div className="relative mx-auto h-full min-h-0 w-full max-w-[1600px] p-0 sm:p-5 lg:p-8">
+      <div className="relative z-10 mx-auto h-full min-h-0 w-full max-w-[1600px] p-0 sm:p-5 lg:p-8">
         <div className="grid h-full min-h-0 overflow-hidden border-white/15 bg-[#030817]/30 shadow-[0_40px_120px_rgba(0,0,0,0.5)] sm:rounded-[30px] sm:border lg:grid-cols-[1.08fr_0.92fr]">
           <section className="relative hidden min-h-0 px-14 py-12 lg:flex lg:flex-col xl:px-20 xl:py-16">
             <div className="h-[104px] overflow-hidden">

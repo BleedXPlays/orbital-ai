@@ -146,6 +146,11 @@ body {
   );
 }
 
+.orbital-space-traffic-login {
+  inset: 0;
+  opacity: 0.62;
+}
+
 .orbital-flight {
   position: absolute;
   left: 0;
@@ -171,7 +176,7 @@ body {
 .orbital-flight-satellite-one {
   top: 10%;
   opacity: 0;
-  animation: orbital-satellite-east 56s linear infinite;
+  animation: orbital-satellite-east 40s linear infinite;
 }
 
 .orbital-flight-satellite-two {
@@ -179,7 +184,7 @@ body {
   right: 0;
   left: auto;
   opacity: 0;
-  animation: orbital-satellite-west 56s linear infinite;
+  animation: orbital-satellite-west 40s linear infinite;
 }
 
 .orbital-flight-satellite-two svg {
@@ -195,12 +200,12 @@ body {
 .orbital-flight-spacecraft {
   top: 13%;
   opacity: 0;
-  animation: orbital-spacecraft-pass 56s linear infinite;
+  animation: orbital-spacecraft-pass 40s linear infinite;
 }
 
 .orbital-realistic-spacecraft {
   position: relative;
-  width: clamp(18rem, 22vw, 28rem);
+  width: clamp(12rem, 15vw, 18.5rem);
   filter: drop-shadow(0 0 16px rgba(114, 172, 255, 0.2));
 }
 
@@ -306,7 +311,7 @@ body {
   right: 0;
   left: auto;
   opacity: 0;
-  animation: orbital-asteroid-pass 56s linear infinite;
+  animation: orbital-asteroid-pass 40s linear infinite;
 }
 
 .orbital-realistic-asteroid {
@@ -377,16 +382,22 @@ body {
   27% {
     opacity: 0.86;
   }
-  34% {
-    transform: translate3d(27vw, 4vh, 0) rotate(-3deg) scale(0.88);
+  29% {
+    transform: translate3d(14vw, 3vh, 0) rotate(-10deg) scale(0.82);
   }
-  41% {
+  34% {
+    transform: translate3d(37vw, 18vh, 0) rotate(8deg) scale(0.87);
+  }
+  39% {
     opacity: 0.9;
-    transform: translate3d(66vw, 15vh, 0) rotate(4deg) scale(0.98);
+    transform: translate3d(61vw, -1vh, 0) rotate(-9deg) scale(0.92);
+  }
+  44% {
+    transform: translate3d(82vw, 16vh, 0) rotate(7deg) scale(0.97);
   }
   48% {
     opacity: 0;
-    transform: translate3d(calc(100vw + 28rem), -1vh, 0) rotate(-5deg) scale(1.06);
+    transform: translate3d(calc(100vw + 20rem), 5vh, 0) rotate(-4deg) scale(1.02);
   }
   48.01%,
   100% {

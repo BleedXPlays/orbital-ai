@@ -27,9 +27,12 @@ const Spacecraft = () => (
   </div>
 );
 
-function SpaceTraffic() {
+function SpaceTraffic({ variant = "app" }) {
   return (
-    <div className="orbital-space-traffic" aria-hidden="true">
+    <div
+      className={`orbital-space-traffic ${variant === "login" ? "orbital-space-traffic-login" : ""}`}
+      aria-hidden="true"
+    >
       <div className="orbital-flight orbital-flight-satellite-one">
         <Satellite className="orbital-realistic-satellite orbital-realistic-satellite-near" />
       </div>
