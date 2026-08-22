@@ -12,6 +12,7 @@ import { auth } from "./firebase";
 import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService";
 
 import Sidebar from "./components/Sidebar";
+import SpaceTraffic from "./components/SpaceTraffic";
 import CommandPalette from "./components/CommandPalette";
 import logo from "./assets/orbital-logo.png";
 
@@ -915,10 +916,11 @@ function App() {
 
       <main
         ref={mainContentRef}
-        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent"
+        className="relative h-full min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent"
       >
+        <SpaceTraffic />
         <Suspense fallback={<PageLoadingFallback />}>
-          <div className="h-full min-h-0 w-full">{renderPage()}</div>
+          <div className="relative z-10 h-full min-h-0 w-full">{renderPage()}</div>
         </Suspense>
       </main>
 

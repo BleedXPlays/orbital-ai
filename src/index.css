@@ -122,6 +122,135 @@ body {
   display: none;
 }
 
+.orbital-space-traffic {
+  position: fixed;
+  inset: 0 0 0 18rem;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+  opacity: 0.72;
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.72) 28%,
+    rgba(0, 0, 0, 0.18) 72%,
+    transparent 94%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.72) 28%,
+    rgba(0, 0, 0, 0.18) 72%,
+    transparent 94%
+  );
+}
+
+.orbital-flight {
+  position: absolute;
+  left: 0;
+  width: max-content;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 12px rgba(79, 142, 255, 0.26));
+}
+
+.orbital-flight-satellite-one {
+  top: 12%;
+  opacity: 0;
+  animation: orbital-satellite-east 58s linear 3s infinite;
+}
+
+.orbital-flight-satellite-two {
+  top: 31%;
+  right: 0;
+  left: auto;
+  opacity: 0;
+  animation: orbital-satellite-west 72s linear 20s infinite;
+}
+
+.orbital-flight-satellite-two svg {
+  opacity: 0.58;
+  transform: rotate(8deg);
+}
+
+.orbital-flight-spacecraft {
+  top: 21%;
+  opacity: 0;
+  animation: orbital-spacecraft-pass 42s ease-in-out 12s infinite;
+}
+
+@keyframes orbital-satellite-east {
+  0% {
+    opacity: 0;
+    transform: translate3d(-9rem, 0, 0) rotate(-7deg) scale(0.72);
+  }
+  5%,
+  88% {
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(100vw + 10rem), 11vh, 0) rotate(7deg) scale(0.9);
+  }
+}
+
+@keyframes orbital-satellite-west {
+  0% {
+    opacity: 0;
+    transform: translate3d(8rem, 0, 0) rotate(5deg) scale(0.62);
+  }
+  7%,
+  90% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-100vw - 9rem), -8vh, 0) rotate(-8deg) scale(0.76);
+  }
+}
+
+@keyframes orbital-spacecraft-pass {
+  0%,
+  56% {
+    opacity: 0;
+    transform: translate3d(-11rem, 7vh, 0) rotate(-5deg) scale(0.7);
+  }
+  60% {
+    opacity: 0.52;
+  }
+  94% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(100vw + 12rem), -5vh, 0) rotate(-9deg) scale(0.88);
+  }
+}
+
+@media (max-width: 1023px) {
+  .orbital-space-traffic {
+    left: 0;
+    opacity: 0.48;
+  }
+
+  .orbital-flight-satellite-two,
+  .orbital-flight-spacecraft {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .orbital-space-traffic {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbital-space-traffic {
+    display: none;
+  }
+}
+
 .orbital-nav-field {
   border: 1px solid rgba(126, 154, 202, 0.23);
   background: rgba(7, 17, 34, 0.72);
