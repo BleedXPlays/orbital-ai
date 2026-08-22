@@ -15,7 +15,7 @@ const Spacecraft = () => (
       <span className="orbital-flame orbital-flame-core" />
     </div>
     <div className="orbital-sparks">
-      {Array.from({ length: 10 }, (_, index) => (
+      {Array.from({ length: 18 }, (_, index) => (
         <span key={index} style={{ "--spark-index": index }} />
       ))}
     </div>
@@ -38,6 +38,14 @@ function SpaceTraffic() {
       </div>
       <div className="orbital-flight orbital-flight-spacecraft">
         <Spacecraft />
+      </div>
+      <div className="orbital-flight orbital-flight-asteroid">
+        <img
+          src="/orbital-asteroid-realistic.png"
+          alt=""
+          draggable="false"
+          className="orbital-realistic-asteroid"
+        />
       </div>
     </div>
   );

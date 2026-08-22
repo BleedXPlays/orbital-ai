@@ -129,20 +129,20 @@ body {
   overflow: hidden;
   pointer-events: none;
   contain: layout paint;
-  opacity: 0.72;
+  opacity: 1;
   mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.95) 0%,
-    rgba(0, 0, 0, 0.72) 28%,
-    rgba(0, 0, 0, 0.18) 72%,
-    transparent 94%
+    rgba(0, 0, 0, 0.92) 28%,
+    rgba(0, 0, 0, 0.68) 76%,
+    rgba(0, 0, 0, 0.3) 98%
   );
   -webkit-mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.95) 0%,
-    rgba(0, 0, 0, 0.72) 28%,
-    rgba(0, 0, 0, 0.18) 72%,
-    transparent 94%
+    rgba(0, 0, 0, 0.92) 28%,
+    rgba(0, 0, 0, 0.68) 76%,
+    rgba(0, 0, 0, 0.3) 98%
   );
 }
 
@@ -169,17 +169,17 @@ body {
 }
 
 .orbital-flight-satellite-one {
-  top: 12%;
+  top: 10%;
   opacity: 0;
-  animation: orbital-satellite-east 38s linear 2s infinite;
+  animation: orbital-satellite-east 56s linear infinite;
 }
 
 .orbital-flight-satellite-two {
-  top: 31%;
+  top: 20%;
   right: 0;
   left: auto;
   opacity: 0;
-  animation: orbital-satellite-west 49s linear 14s infinite;
+  animation: orbital-satellite-west 56s linear infinite;
 }
 
 .orbital-flight-satellite-two svg {
@@ -188,19 +188,19 @@ body {
 }
 
 .orbital-flight-satellite-two img {
-  opacity: 0.62;
+  opacity: 0.82;
   transform: rotate(8deg);
 }
 
 .orbital-flight-spacecraft {
-  top: 21%;
+  top: 13%;
   opacity: 0;
-  animation: orbital-spacecraft-pass 31s ease-in-out 8s infinite;
+  animation: orbital-spacecraft-pass 56s linear infinite;
 }
 
 .orbital-realistic-spacecraft {
   position: relative;
-  width: clamp(16rem, 20vw, 25rem);
+  width: clamp(18rem, 22vw, 28rem);
   filter: drop-shadow(0 0 16px rgba(114, 172, 255, 0.2));
 }
 
@@ -224,8 +224,8 @@ body {
   background: #fff8d0;
   box-shadow:
     0 0 10px 4px rgba(255, 244, 170, 0.95),
-    -12px 0 28px 8px rgba(255, 127, 31, 0.82),
-    -30px 0 46px 10px rgba(69, 155, 255, 0.45);
+    -12px 0 28px 8px rgba(255, 92, 20, 0.92),
+    -30px 0 46px 10px rgba(255, 45, 12, 0.5);
   transform: translate(-42%, -50%);
   animation: orbital-engine-pulse 110ms ease-in-out infinite alternate;
 }
@@ -238,7 +238,7 @@ body {
   width: 10rem;
   height: 4.5rem;
   transform: translateY(-50%);
-  filter: blur(0.3px) drop-shadow(0 0 12px rgba(76, 160, 255, 0.72));
+  filter: blur(0.3px) drop-shadow(0 0 14px rgba(255, 83, 20, 0.78));
 }
 
 .orbital-flame {
@@ -253,7 +253,7 @@ body {
 .orbital-flame-outer {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(65, 143, 255, 0.26) 22%, rgba(79, 190, 255, 0.72) 62%, rgba(255, 126, 38, 0.9) 86%, #fff1a2 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(180, 20, 8, 0.18) 12%, rgba(255, 45, 12, 0.68) 48%, rgba(255, 132, 28, 0.96) 78%, #fff0a0 100%);
   transform: translateY(-50%);
   animation: orbital-flame-flicker 90ms ease-in-out infinite alternate;
 }
@@ -261,7 +261,7 @@ body {
 .orbital-flame-core {
   width: 66%;
   height: 38%;
-  background: linear-gradient(90deg, rgba(63, 149, 255, 0.08), #6ed9ff 44%, #fff9d2 100%);
+  background: linear-gradient(90deg, rgba(255, 35, 8, 0.08), #ff7a1a 44%, #fffbd2 100%);
   transform: translateY(-50%);
   animation: orbital-flame-flicker 70ms ease-in-out 30ms infinite alternate-reverse;
 }
@@ -281,61 +281,142 @@ body {
   position: absolute;
   top: 50%;
   right: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff9bd 0 18%, #ff9b20 42%, #f13a0b 72%, transparent 76%);
+  box-shadow: 0 0 8px 2px rgba(255, 73, 20, 0.9);
+  opacity: 0;
+  animation: orbital-spark-flight 820ms ease-out infinite;
+  animation-delay: calc(var(--spark-index) * -47ms);
+}
+
+.orbital-sparks span:nth-child(3n) {
+  width: 6px;
+  height: 6px;
+}
+
+.orbital-sparks span:nth-child(3n + 1) {
   width: 3px;
   height: 3px;
-  border-radius: 999px;
-  background: #fff1a0;
-  box-shadow: 0 0 6px 2px rgba(255, 145, 42, 0.8);
+}
+
+.orbital-flight-asteroid {
+  top: -15%;
+  right: 0;
+  left: auto;
   opacity: 0;
-  animation: orbital-spark-flight 720ms linear infinite;
-  animation-delay: calc(var(--spark-index) * -73ms);
+  animation: orbital-asteroid-pass 56s linear infinite;
+}
+
+.orbital-realistic-asteroid {
+  display: block;
+  width: clamp(8rem, 10vw, 13rem);
+  height: auto;
+  user-select: none;
+  filter: drop-shadow(0 0 18px rgba(255, 145, 71, 0.2));
 }
 
 @keyframes orbital-satellite-east {
   0% {
     opacity: 0;
-    transform: translate3d(-9rem, 0, 0) rotate(-7deg) scale(0.72);
+    transform: translate3d(-20rem, 6vh, 0) rotate(-9deg) scale(0.82);
   }
-  5%,
-  88% {
-    opacity: 0.38;
+  2% {
+    opacity: 0.78;
   }
+  8% {
+    transform: translate3d(22vw, 13vh, 0) rotate(-2deg) scale(0.9);
+  }
+  15% {
+    opacity: 0.82;
+    transform: translate3d(64vw, 3vh, 0) rotate(5deg) scale(0.98);
+  }
+  22% {
+    opacity: 0;
+    transform: translate3d(calc(100vw + 20rem), 11vh, 0) rotate(10deg) scale(1.04);
+  }
+  22.01%,
   100% {
     opacity: 0;
-    transform: translate3d(calc(100vw + 10rem), 11vh, 0) rotate(7deg) scale(0.9);
   }
 }
 
 @keyframes orbital-satellite-west {
-  0% {
+  0%,
+  50% {
     opacity: 0;
-    transform: translate3d(8rem, 0, 0) rotate(5deg) scale(0.62);
+    transform: translate3d(16rem, -4vh, 0) rotate(10deg) scale(0.72);
   }
-  7%,
-  90% {
-    opacity: 0.28;
+  52% {
+    opacity: 0.68;
   }
+  59% {
+    transform: translate3d(-30vw, 10vh, 0) rotate(1deg) scale(0.82);
+  }
+  67% {
+    opacity: 0.72;
+    transform: translate3d(-70vw, -3vh, 0) rotate(-8deg) scale(0.92);
+  }
+  74% {
+    opacity: 0;
+    transform: translate3d(calc(-100vw - 18rem), 9vh, 0) rotate(-14deg) scale(1);
+  }
+  74.01%,
   100% {
     opacity: 0;
-    transform: translate3d(calc(-100vw - 9rem), -8vh, 0) rotate(-8deg) scale(0.76);
   }
 }
 
 @keyframes orbital-spacecraft-pass {
   0%,
-  56% {
+  25% {
     opacity: 0;
-    transform: translate3d(-11rem, 7vh, 0) rotate(-5deg) scale(0.7);
+    transform: translate3d(-30rem, 17vh, 0) rotate(-8deg) scale(0.78);
   }
-  60% {
-    opacity: 0.52;
+  27% {
+    opacity: 0.86;
   }
-  94% {
-    opacity: 0.45;
+  34% {
+    transform: translate3d(27vw, 4vh, 0) rotate(-3deg) scale(0.88);
   }
+  41% {
+    opacity: 0.9;
+    transform: translate3d(66vw, 15vh, 0) rotate(4deg) scale(0.98);
+  }
+  48% {
+    opacity: 0;
+    transform: translate3d(calc(100vw + 28rem), -1vh, 0) rotate(-5deg) scale(1.06);
+  }
+  48.01%,
   100% {
     opacity: 0;
-    transform: translate3d(calc(100vw + 12rem), -5vh, 0) rotate(-9deg) scale(0.88);
+  }
+}
+
+@keyframes orbital-asteroid-pass {
+  0%,
+  77% {
+    opacity: 0;
+    transform: translate3d(14rem, -9vh, 0) rotate(0deg) scale(0.68);
+  }
+  79% {
+    opacity: 0.8;
+  }
+  86% {
+    transform: translate3d(-28vw, 28vh, 0) rotate(-110deg) scale(0.82);
+  }
+  93% {
+    opacity: 0.84;
+    transform: translate3d(-68vw, 48vh, 0) rotate(-235deg) scale(0.95);
+  }
+  99% {
+    opacity: 0;
+    transform: translate3d(calc(-100vw - 16rem), 72vh, 0) rotate(-360deg) scale(1.08);
+  }
+  99.01%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -371,7 +452,7 @@ body {
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(-7rem - var(--spark-index) * 0.3rem), calc(var(--spark-y) * 2.3), 0) scale(0.15);
+    transform: translate3d(calc(-8rem - var(--spark-index) * 0.35rem), calc(var(--spark-y) * 2.8), 0) scale(0.1);
   }
 }
 
@@ -382,7 +463,8 @@ body {
   }
 
   .orbital-flight-satellite-two,
-  .orbital-flight-spacecraft {
+  .orbital-flight-spacecraft,
+  .orbital-flight-asteroid {
     display: none;
   }
 }
