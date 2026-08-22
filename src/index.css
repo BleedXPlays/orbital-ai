@@ -151,13 +151,27 @@ body {
   left: 0;
   width: max-content;
   will-change: transform, opacity;
-  filter: drop-shadow(0 0 12px rgba(79, 142, 255, 0.26));
+  filter: drop-shadow(0 0 18px rgba(79, 142, 255, 0.22));
+}
+
+.orbital-realistic-satellite {
+  display: block;
+  height: auto;
+  user-select: none;
+}
+
+.orbital-realistic-satellite-near {
+  width: clamp(12rem, 15vw, 19rem);
+}
+
+.orbital-realistic-satellite-far {
+  width: clamp(9rem, 11vw, 14rem);
 }
 
 .orbital-flight-satellite-one {
   top: 12%;
   opacity: 0;
-  animation: orbital-satellite-east 58s linear 3s infinite;
+  animation: orbital-satellite-east 38s linear 2s infinite;
 }
 
 .orbital-flight-satellite-two {
@@ -165,7 +179,7 @@ body {
   right: 0;
   left: auto;
   opacity: 0;
-  animation: orbital-satellite-west 72s linear 20s infinite;
+  animation: orbital-satellite-west 49s linear 14s infinite;
 }
 
 .orbital-flight-satellite-two svg {
@@ -173,10 +187,108 @@ body {
   transform: rotate(8deg);
 }
 
+.orbital-flight-satellite-two img {
+  opacity: 0.62;
+  transform: rotate(8deg);
+}
+
 .orbital-flight-spacecraft {
   top: 21%;
   opacity: 0;
-  animation: orbital-spacecraft-pass 42s ease-in-out 12s infinite;
+  animation: orbital-spacecraft-pass 31s ease-in-out 8s infinite;
+}
+
+.orbital-realistic-spacecraft {
+  position: relative;
+  width: clamp(16rem, 20vw, 25rem);
+  filter: drop-shadow(0 0 16px rgba(114, 172, 255, 0.2));
+}
+
+.orbital-realistic-spacecraft img {
+  position: relative;
+  z-index: 4;
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.orbital-engine-glow {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 3.5%;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #fff8d0;
+  box-shadow:
+    0 0 10px 4px rgba(255, 244, 170, 0.95),
+    -12px 0 28px 8px rgba(255, 127, 31, 0.82),
+    -30px 0 46px 10px rgba(69, 155, 255, 0.45);
+  transform: translate(-42%, -50%);
+  animation: orbital-engine-pulse 110ms ease-in-out infinite alternate;
+}
+
+.orbital-exhaust-plume {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 96%;
+  width: 10rem;
+  height: 4.5rem;
+  transform: translateY(-50%);
+  filter: blur(0.3px) drop-shadow(0 0 12px rgba(76, 160, 255, 0.72));
+}
+
+.orbital-flame {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  border-radius: 100% 12% 12% 100%;
+  clip-path: polygon(0 50%, 100% 0, 84% 50%, 100% 100%);
+  transform-origin: right center;
+}
+
+.orbital-flame-outer {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(65, 143, 255, 0.26) 22%, rgba(79, 190, 255, 0.72) 62%, rgba(255, 126, 38, 0.9) 86%, #fff1a2 100%);
+  transform: translateY(-50%);
+  animation: orbital-flame-flicker 90ms ease-in-out infinite alternate;
+}
+
+.orbital-flame-core {
+  width: 66%;
+  height: 38%;
+  background: linear-gradient(90deg, rgba(63, 149, 255, 0.08), #6ed9ff 44%, #fff9d2 100%);
+  transform: translateY(-50%);
+  animation: orbital-flame-flicker 70ms ease-in-out 30ms infinite alternate-reverse;
+}
+
+.orbital-sparks {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: 97%;
+  width: 11rem;
+  height: 5rem;
+  transform: translateY(-50%);
+}
+
+.orbital-sparks span {
+  --spark-y: calc((var(--spark-index) - 4.5) * 0.42rem);
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: #fff1a0;
+  box-shadow: 0 0 6px 2px rgba(255, 145, 42, 0.8);
+  opacity: 0;
+  animation: orbital-spark-flight 720ms linear infinite;
+  animation-delay: calc(var(--spark-index) * -73ms);
 }
 
 @keyframes orbital-satellite-east {
@@ -224,6 +336,42 @@ body {
   100% {
     opacity: 0;
     transform: translate3d(calc(100vw + 12rem), -5vh, 0) rotate(-9deg) scale(0.88);
+  }
+}
+
+@keyframes orbital-engine-pulse {
+  from {
+    opacity: 0.82;
+    transform: translate(-42%, -50%) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-42%, -50%) scale(1.12);
+  }
+}
+
+@keyframes orbital-flame-flicker {
+  from {
+    opacity: 0.76;
+    transform: translateY(-50%) scaleX(0.86) scaleY(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1.08) scaleY(1.08);
+  }
+}
+
+@keyframes orbital-spark-flight {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, var(--spark-y), 0) scale(1);
+  }
+  16% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-7rem - var(--spark-index) * 0.3rem), calc(var(--spark-y) * 2.3), 0) scale(0.15);
   }
 }
 
