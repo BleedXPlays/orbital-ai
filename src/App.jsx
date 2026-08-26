@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import { getOrCreateWorkspace, saveWorkspace } from "./services/workspaceService";
+import { apiFetch } from "./services/apiClient";
 
 import Sidebar from "./components/Sidebar";
 import SpaceTraffic from "./components/SpaceTraffic";
@@ -25,6 +26,8 @@ const AIWorkflow = lazy(() => import("./pages/AIWorkflow"));
 const Archived = lazy(() => import("./pages/Archived"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
+const Reports = lazy(() => import("./pages/Reports"));
+const AdminReports = lazy(() => import("./pages/AdminReports"));
 const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -72,6 +75,8 @@ const getPathFromWorkspaceState = ({
   if (page === "archived") return "/archived";
   if (page === "settings") return "/settings";
   if (page === "help") return "/help";
+  if (page === "reports") return "/reports";
+  if (page === "adminReports") return "/admin/reports";
 
   return "/";
 };
@@ -102,6 +107,8 @@ function App() {
   const [saveStatus, setSaveStatus] = useState("saved");
   const [saveError, setSaveError] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [adminUid, setAdminUid] = useState("");
+  const isAdmin = Boolean(user?.uid && adminUid === user.uid);
 
   const [page, setPage] = useState("home");
   const [chats, setChats] = useState([]);
@@ -118,6 +125,24 @@ function App() {
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
   const [usageSummary, setUsageSummary] = useState(createDefaultUsageSummary);
+
+  useEffect(() => {
+    if (!user) return undefined;
+
+    let active = true;
+    apiFetch("/api/reports?view=access")
+      .then(async (response) => {
+        const data = await response.json();
+        if (active) setAdminUid(response.ok && data.isAdmin ? user.uid : "");
+      })
+      .catch(() => {
+        if (active) setAdminUid("");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     const handleUsageUpdate = (event) => {
@@ -426,6 +451,18 @@ function App() {
         return;
       }
 
+      if (firstPart === "reports") {
+        setPage("reports");
+        setRouteReady(true);
+        return;
+      }
+
+      if (firstPart === "admin" && secondPart === "reports") {
+        setPage("adminReports");
+        setRouteReady(true);
+        return;
+      }
+
       setPage("home");
       setRouteReady(true);
     });
@@ -727,6 +764,12 @@ function App() {
       case "help":
         return <Help />;
 
+      case "reports":
+        return <Reports user={user} />;
+
+      case "adminReports":
+        return <AdminReports />;
+
       default:
         return (
           <Home
@@ -886,6 +929,7 @@ function App() {
           setPage={setPage}
           user={user}
           handleLogout={handleLogout}
+          isAdmin={isAdmin}
           chats={chats}
           setChats={setChats}
           projects={projects}

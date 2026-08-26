@@ -39,6 +39,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/reports",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/reports",
+      "destination": "/index.html"
+    },
+    {
       "source": "/reset-password",
       "destination": "/index.html"
     }

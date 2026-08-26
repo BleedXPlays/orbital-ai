@@ -29,6 +29,8 @@ function FooterIcon({ type }) {
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.38.24.72.58.6 1v4c.12.42-.22.76-.6 1Z" /></>,
     profile: <><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></>,
     help: <><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.5 2.5 0 1 1 3.2 2.4c-.9.35-1.4.9-1.4 1.8v.3M11.5 17h.01" /></>,
+    report: <><path d="M5 4h14v13H9l-4 3V4Z" /><path d="M9 8h6M9 12h4" /></>,
+    admin: <><path d="M12 3 4.5 6v5.2c0 4.8 3.2 8.2 7.5 9.8 4.3-1.6 7.5-5 7.5-9.8V6L12 3Z" /><path d="M9.5 12.2 11.2 14l3.6-4" /></>,
     logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" /></>,
   };
 
@@ -48,6 +50,7 @@ function Sidebar({
   setPage,
   user,
   handleLogout,
+  isAdmin = false,
   chats,
   setChats,
   projects,
@@ -819,6 +822,8 @@ function Sidebar({
             >
               {[
                 ["profile", "Profile", "settings"],
+                ["report", "Report a problem", "reports"],
+                ...(isAdmin ? [["admin", "Admin reports", "adminReports"]] : []),
                 ["settings", "Settings", "settings"],
                 ["help", "Help", "help"],
                 ["archive", "Archived items", "archived"],
