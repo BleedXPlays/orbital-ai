@@ -400,6 +400,401 @@ body {
   opacity: 0.55;
 }
 
+.orbital-key-event {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orbital-key-object {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: clamp(8rem, 11vw, 13rem);
+  height: auto;
+  opacity: 0;
+  scale: var(--manual-object-size, 1);
+  filter: drop-shadow(0 0 16px rgba(101, 159, 255, 0.25));
+}
+
+.orbital-key-object-asteroid {
+  width: clamp(6rem, 8vw, 10rem);
+  filter: drop-shadow(0 0 14px rgba(255, 145, 71, 0.2));
+}
+
+.orbital-key-event-right .orbital-key-object {
+  animation: orbital-key-object-right 4.2s ease-in-out both;
+}
+
+.orbital-key-event-left .orbital-key-object {
+  animation: orbital-key-object-left 4.2s ease-in-out both;
+}
+
+.orbital-key-event-up .orbital-key-object {
+  animation: orbital-key-object-up 4.2s ease-in-out both;
+}
+
+.orbital-key-event-down .orbital-key-object {
+  animation: orbital-key-object-down 4.2s ease-in-out both;
+}
+
+.orbital-key-explosion {
+  position: absolute;
+  z-index: 3;
+  width: 20px;
+  height: 20px;
+}
+
+.orbital-key-event-right .orbital-key-explosion {
+  top: 28%;
+  right: 8%;
+}
+
+.orbital-key-event-left .orbital-key-explosion {
+  top: 42%;
+  left: 8%;
+}
+
+.orbital-key-event-up .orbital-key-explosion {
+  top: 8%;
+  left: 62%;
+}
+
+.orbital-key-event-down .orbital-key-explosion {
+  right: 30%;
+  bottom: 12%;
+}
+
+.orbital-key-explosion span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 999px;
+  opacity: 0;
+}
+
+.orbital-key-explosion-core {
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #fff 0 12%, #fff29b 27%, #ff8c1a 54%, #e73508 76%, transparent 78%);
+  box-shadow: 0 0 9px 3px rgba(255, 104, 24, 0.75);
+  animation: orbital-key-blast-core 4.2s linear both;
+}
+
+.orbital-key-explosion-halo {
+  width: 13px;
+  height: 13px;
+  border: 1px solid rgba(255, 185, 82, 0.85);
+  animation: orbital-key-blast-halo 4.2s linear both;
+}
+
+.orbital-key-explosion-dust {
+  width: 12px;
+  height: 12px;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(190, 166, 134, 0.72) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 80% 18%, rgba(151, 135, 116, 0.66) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 72% 78%, rgba(185, 160, 126, 0.58) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 22% 72%, rgba(131, 120, 109, 0.62) 0 1px, transparent 1.5px);
+  filter: blur(0.2px);
+  animation: orbital-key-blast-dust 4.2s ease-out both;
+}
+
+@keyframes orbital-key-object-right {
+  0% { left: -16rem; top: 48%; opacity: 0; transform: rotate(-7deg); }
+  8% { opacity: 0.78; }
+  38% { left: 30%; top: 34%; transform: rotate(-2deg); }
+  72% { left: 77%; top: 26%; opacity: 0.82; transform: rotate(4deg); }
+  78%, 100% { left: 88%; top: 28%; opacity: 0; transform: rotate(8deg); }
+}
+
+@keyframes orbital-key-object-left {
+  0% { right: -16rem; top: 20%; opacity: 0; transform: rotate(7deg); }
+  8% { opacity: 0.78; }
+  38% { right: 31%; top: 29%; transform: rotate(1deg); }
+  72% { right: 78%; top: 41%; opacity: 0.82; transform: rotate(-6deg); }
+  78%, 100% { right: 88%; top: 42%; opacity: 0; transform: rotate(-9deg); }
+}
+
+@keyframes orbital-key-object-up {
+  0% { left: 22%; bottom: -13rem; opacity: 0; transform: rotate(-34deg); }
+  8% { opacity: 0.78; }
+  38% { left: 39%; bottom: 34%; transform: rotate(-27deg); }
+  72% { left: 60%; bottom: 77%; opacity: 0.82; transform: rotate(-20deg); }
+  78%, 100% { left: 62%; bottom: 87%; opacity: 0; transform: rotate(-16deg); }
+}
+
+@keyframes orbital-key-object-down {
+  0% { right: 15%; top: -13rem; opacity: 0; transform: rotate(34deg); }
+  8% { opacity: 0.78; }
+  38% { right: 22%; top: 34%; transform: rotate(27deg); }
+  72% { right: 29%; top: 76%; opacity: 0.82; transform: rotate(20deg); }
+  78%, 100% { right: 30%; top: 88%; opacity: 0; transform: rotate(16deg); }
+}
+
+@keyframes orbital-key-blast-core {
+  0%, 72% { opacity: 0; transform: translate(-50%, -50%) scale(0.1); }
+  75% { opacity: 1; transform: translate(-50%, -50%) scale(1.8); }
+  84% { opacity: 0.9; transform: translate(-50%, -50%) scale(2.4); }
+  94%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+}
+
+@keyframes orbital-key-blast-halo {
+  0%, 74% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  77% { opacity: 0.85; }
+  96%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+}
+
+@keyframes orbital-key-blast-dust {
+  0%, 78% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(0); }
+  83% { opacity: 0.62; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(4.8) rotate(70deg); }
+}
+
+.orbital-explosion-image {
+  display: block;
+  max-width: none;
+  user-select: none;
+}
+
+.orbital-distant-explosion-image {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 58px;
+  opacity: 0;
+  animation: orbital-distant-real-explosion 90s linear infinite;
+}
+
+.orbital-key-event-right {
+  --impact-x: 88%;
+  --impact-y: 28%;
+}
+
+.orbital-key-event-left {
+  --impact-x: 8%;
+  --impact-y: 42%;
+}
+
+.orbital-key-event-up {
+  --impact-x: 62%;
+  --impact-y: 8%;
+}
+
+.orbital-key-event-down {
+  --impact-x: 70%;
+  --impact-y: 88%;
+}
+
+.orbital-key-event-right .orbital-key-object-a {
+  --collision-start-x: -16rem;
+  --collision-start-y: 48%;
+  --collision-start-rotation: -8deg;
+}
+
+.orbital-key-event-right .orbital-key-object-b {
+  --collision-start-x: 105%;
+  --collision-start-y: 8%;
+  --collision-start-rotation: 168deg;
+}
+
+.orbital-key-event-left .orbital-key-object-a {
+  --collision-start-x: 105%;
+  --collision-start-y: 20%;
+  --collision-start-rotation: 172deg;
+}
+
+.orbital-key-event-left .orbital-key-object-b {
+  --collision-start-x: -16rem;
+  --collision-start-y: 72%;
+  --collision-start-rotation: -18deg;
+}
+
+.orbital-key-event-up .orbital-key-object-a {
+  --collision-start-x: 22%;
+  --collision-start-y: 105%;
+  --collision-start-rotation: -38deg;
+}
+
+.orbital-key-event-up .orbital-key-object-b {
+  --collision-start-x: 88%;
+  --collision-start-y: -16rem;
+  --collision-start-rotation: 142deg;
+}
+
+.orbital-key-event-down .orbital-key-object-a {
+  --collision-start-x: 15%;
+  --collision-start-y: -16rem;
+  --collision-start-rotation: 38deg;
+}
+
+.orbital-key-event-down .orbital-key-object-b {
+  --collision-start-x: 90%;
+  --collision-start-y: 105%;
+  --collision-start-rotation: -142deg;
+}
+
+.orbital-key-event .orbital-key-object {
+  left: var(--collision-start-x);
+  top: var(--collision-start-y);
+  right: auto;
+  bottom: auto;
+  animation: orbital-real-collision-approach 8s ease-in-out both;
+}
+
+.orbital-key-event .orbital-key-object-b {
+  width: clamp(7rem, 9vw, 11rem);
+  scale: var(--manual-object-size, 1);
+  filter: brightness(0.78) drop-shadow(0 0 12px rgba(101, 159, 255, 0.18));
+}
+
+.orbital-key-event .orbital-key-explosion {
+  top: var(--impact-y);
+  left: var(--impact-x);
+  right: auto;
+  bottom: auto;
+  width: 1px;
+  height: 1px;
+}
+
+.orbital-key-explosion-image {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: clamp(10rem, 15vw, 18rem);
+  opacity: 0;
+  animation: orbital-real-collision-blast 8s ease-out both;
+}
+
+.orbital-collision-debris,
+.orbital-collision-debris span {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.orbital-collision-debris {
+  z-index: 3;
+  width: 1px;
+  height: 1px;
+}
+
+.orbital-collision-debris span {
+  width: 7px;
+  height: 3px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #aeb8c6, #394454);
+  box-shadow: 0 0 4px rgba(255, 130, 40, 0.45);
+  opacity: 0;
+  animation: orbital-collision-debris-fall 8s ease-out var(--debris-delay) both;
+}
+
+.orbital-collision-debris span:nth-child(3n) {
+  width: 9px;
+  height: 5px;
+  background: linear-gradient(135deg, #284d8e, #0c1f45 60%, #a6c7ff);
+}
+
+.orbital-collision-debris span:nth-child(4n) {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ff8b27;
+}
+
+@keyframes orbital-real-collision-approach {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--collision-start-rotation)) scale(0.72);
+  }
+  5% {
+    opacity: 0.82;
+  }
+  28% {
+    left: var(--impact-x);
+    top: var(--impact-y);
+    opacity: 0.92;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.92);
+  }
+  33%,
+  100% {
+    left: var(--impact-x);
+    top: var(--impact-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(8deg) scale(0.3);
+  }
+}
+
+@keyframes orbital-real-collision-blast {
+  0%,
+  28% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.12) rotate(-7deg);
+  }
+  34% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.68) rotate(0deg);
+  }
+  46% {
+    opacity: 0.92;
+    transform: translate(-50%, -50%) scale(1) rotate(3deg);
+  }
+  61% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.18) rotate(7deg);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes orbital-collision-debris-fall {
+  0%,
+  30% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.3);
+  }
+  36% {
+    opacity: 0.95;
+    transform: translate(var(--debris-x), var(--debris-lift)) rotate(var(--debris-rotation)) scale(1);
+  }
+  55% {
+    opacity: 0.82;
+    transform: translate(var(--debris-mid-x), 12vh) rotate(calc(var(--debris-rotation) + 120deg)) scale(0.86);
+  }
+  82% {
+    opacity: 0.56;
+    transform: translate(var(--debris-settle-x), 48vh) rotate(calc(var(--debris-rotation) + 280deg)) scale(0.68);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--debris-settle-x), 76vh) rotate(calc(var(--debris-rotation) + 430deg)) scale(0.35);
+  }
+}
+
+@keyframes orbital-distant-real-explosion {
+  0%,
+  82.12% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.08);
+  }
+  82.35% {
+    opacity: 0.86;
+    transform: translate(-50%, -50%) scale(0.38);
+  }
+  83.2% {
+    opacity: 0.68;
+    transform: translate(-50%, -50%) scale(0.62);
+  }
+  84.6%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+}
+
 @keyframes orbital-satellite-east {
   0% {
     opacity: 0;
