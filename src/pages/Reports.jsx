@@ -69,7 +69,11 @@ function Reports({ user }) {
       const response = await apiFetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, userName: user?.displayName || "" }),
+        body: JSON.stringify({
+          ...form,
+          userName: user?.displayName || "",
+          userPhotoUrl: user?.photoURL || user?.providerData?.find((provider) => provider.providerId === "google.com")?.photoURL || "",
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not submit the report.");

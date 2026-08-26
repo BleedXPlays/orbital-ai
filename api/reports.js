@@ -97,6 +97,8 @@ export default async function handler(request, response) {
       const subject = cleanText(request.body?.subject, 120);
       const description = cleanText(request.body?.description, 5000);
       const userName = cleanText(request.body?.userName, 120);
+      const suppliedPhotoUrl = cleanText(request.body?.userPhotoUrl, 2048);
+      const userPhotoUrl = /^https:\/\/[^\s]+$/i.test(suppliedPhotoUrl) ? suppliedPhotoUrl : "";
 
       if (!CATEGORIES.has(category) || subject.length < 3 || description.length < 10) {
         return reject(response, 400, "Complete the category, subject, and description.", "invalid_report");
@@ -109,6 +111,7 @@ export default async function handler(request, response) {
           firebase_uid: user.uid,
           user_name: userName,
           user_email: user.email || "",
+          user_photo_url: userPhotoUrl,
           category,
           subject,
           description,
