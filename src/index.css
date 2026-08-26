@@ -713,12 +713,19 @@ body {
 
 .orbital-collision-shockwave {
   z-index: 5;
-  width: 24px;
-  height: 24px;
-  margin: -12px;
-  border: 2px solid rgba(255, 214, 135, 0.8);
+  width: 52px;
+  height: 52px;
+  margin: -26px;
+  border: 0;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(255, 126, 37, 0.45);
+  background: radial-gradient(
+    circle,
+    rgba(255, 229, 174, 0.3) 0%,
+    rgba(255, 133, 49, 0.14) 34%,
+    rgba(255, 76, 22, 0.05) 58%,
+    transparent 76%
+  );
+  filter: blur(5px);
   animation: orbital-collision-shockwave 13s ease-out both;
 }
 
@@ -859,9 +866,9 @@ body {
 
 @keyframes orbital-collision-shockwave {
   0%, 43.3% { opacity: 0; transform: scale(0.12); }
-  43.6% { opacity: 0.86; transform: scale(0.35); }
-  51% { opacity: 0.3; transform: scale(6); }
-  58%, 100% { opacity: 0; transform: scale(9); }
+  43.6% { opacity: 0.62; transform: scale(0.28); }
+  48% { opacity: 0.22; transform: scale(2.2); }
+  53%, 100% { opacity: 0; transform: scale(3.4); }
 }
 
 @keyframes orbital-collision-smoke-cloud {
