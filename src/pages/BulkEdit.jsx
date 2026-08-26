@@ -510,7 +510,7 @@ function BulkEdit({
               </button>
 
               <button
-                onClick={moveSelectedChatsToProject}
+                onClick={moveSelectedChatsToProject} 
                 className="px-5 py-3 rounded-xl bg-purple-600 border border-purple-500 text-white hover:bg-purple-700"
               >
                 Move chats
