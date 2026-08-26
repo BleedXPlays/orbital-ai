@@ -656,7 +656,7 @@ body {
   top: var(--collision-start-y);
   right: auto;
   bottom: auto;
-  animation: orbital-real-collision-approach 13s ease-in-out both;
+  animation: orbital-real-collision-approach 13s linear both;
 }
 
 .orbital-key-event .orbital-key-object-b {
@@ -683,9 +683,57 @@ body {
   z-index: 4;
   top: 50%;
   left: 50%;
-  width: clamp(6rem, 9vw, 10rem);
+  width: clamp(7rem, 10vw, 11rem);
   opacity: 0;
   animation: orbital-real-collision-blast 13s ease-out both;
+}
+
+.orbital-collision-flash,
+.orbital-collision-shockwave,
+.orbital-collision-smoke-cloud {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.orbital-collision-flash {
+  border-radius: 50%;
+  background: white;
+  box-shadow:
+    0 0 12px 7px rgba(255, 251, 221, 0.98),
+    0 0 34px 18px rgba(255, 153, 54, 0.72),
+    0 0 72px 34px rgba(255, 73, 20, 0.3);
+  animation: orbital-collision-flash 13s linear both;
+}
+
+.orbital-collision-shockwave {
+  z-index: 5;
+  width: 24px;
+  height: 24px;
+  margin: -12px;
+  border: 2px solid rgba(255, 214, 135, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(255, 126, 37, 0.45);
+  animation: orbital-collision-shockwave 13s ease-out both;
+}
+
+.orbital-collision-smoke-cloud {
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  margin: -21px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(166, 143, 119, 0.72), transparent 43%),
+    radial-gradient(circle at 66% 40%, rgba(96, 92, 91, 0.68), transparent 49%),
+    radial-gradient(circle at 48% 70%, rgba(74, 71, 73, 0.58), transparent 54%);
+  filter: blur(5px);
+  animation: orbital-collision-smoke-cloud 13s ease-out both;
 }
 
 .orbital-collision-debris,
@@ -702,12 +750,12 @@ body {
 }
 
 .orbital-collision-debris span {
-  width: 3px;
-  height: 3px;
+  width: 2px;
+  height: 2px;
   border-radius: 50%;
   background: rgba(174, 158, 137, 0.76);
-  box-shadow: 0 0 3px rgba(170, 151, 127, 0.28);
-  filter: blur(0.25px);
+  box-shadow: 0 0 4px rgba(210, 177, 137, 0.34);
+  filter: blur(0.35px);
   opacity: 0;
   animation: orbital-collision-debris-fall 13s ease-out var(--debris-delay) both;
 }
@@ -734,19 +782,19 @@ body {
   5% {
     opacity: 0.82;
   }
-  24% {
+  23% {
     left: var(--collision-curve-x);
     top: var(--collision-curve-y);
     opacity: 0.86;
     transform: translate(-50%, -50%) rotate(0deg) scale(0.82);
   }
-  45% {
+  43.2% {
     left: var(--impact-x);
     top: var(--impact-y);
-    opacity: 0.92;
-    transform: translate(-50%, -50%) rotate(0deg) scale(0.92);
+    opacity: 0.88;
+    transform: translate(-50%, -50%) rotate(3deg) scale(0.88);
   }
-  49%,
+  43.7%,
   100% {
     left: var(--impact-x);
     top: var(--impact-y);
@@ -757,19 +805,19 @@ body {
 
 @keyframes orbital-real-collision-blast {
   0%,
-  45% {
+  43.1% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.12) rotate(-7deg);
   }
-  48% {
-    opacity: 0.82;
-    transform: translate(-50%, -50%) scale(0.52) rotate(0deg);
+  43.6% {
+    opacity: 0.96;
+    transform: translate(-50%, -50%) scale(0.36) rotate(0deg);
   }
-  53% {
-    opacity: 0.72;
+  48% {
+    opacity: 0.88;
     transform: translate(-50%, -50%) scale(0.76) rotate(3deg);
   }
-  62% {
+  59% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.18) rotate(7deg);
   }
@@ -780,26 +828,47 @@ body {
 
 @keyframes orbital-collision-debris-fall {
   0%,
-  45% {
+  43.2% {
     opacity: 0;
     transform: translate(0, 0) rotate(0deg) scale(0.3);
   }
-  49% {
-    opacity: 0.82;
+  44.2% {
+    opacity: 0.88;
     transform: translate(var(--debris-x), var(--debris-lift)) rotate(var(--debris-rotation)) scale(1);
   }
-  64% {
-    opacity: 0.64;
+  61% {
+    opacity: 0.58;
     transform: translate(var(--debris-mid-x), 12vh) rotate(calc(var(--debris-rotation) + 120deg)) scale(0.86);
   }
-  84% {
-    opacity: 0.42;
+  82% {
+    opacity: 0.34;
     transform: translate(var(--debris-settle-x), 48vh) rotate(calc(var(--debris-rotation) + 280deg)) scale(0.68);
   }
   100% {
     opacity: 0;
     transform: translate(var(--debris-settle-x), 76vh) rotate(calc(var(--debris-rotation) + 430deg)) scale(0.35);
   }
+}
+
+@keyframes orbital-collision-flash {
+  0%, 43.1% { opacity: 0; transform: scale(0.2); }
+  43.35% { opacity: 1; transform: scale(1.2); }
+  44.2% { opacity: 0.72; transform: scale(2.1); }
+  46%, 100% { opacity: 0; transform: scale(3.4); }
+}
+
+@keyframes orbital-collision-shockwave {
+  0%, 43.3% { opacity: 0; transform: scale(0.12); }
+  43.6% { opacity: 0.86; transform: scale(0.35); }
+  51% { opacity: 0.3; transform: scale(6); }
+  58%, 100% { opacity: 0; transform: scale(9); }
+}
+
+@keyframes orbital-collision-smoke-cloud {
+  0%, 43.5% { opacity: 0; transform: scale(0.35) rotate(0deg); }
+  47% { opacity: 0.72; transform: scale(1.2) rotate(18deg); }
+  64% { opacity: 0.42; transform: translate(14px, 22px) scale(3.8) rotate(70deg); }
+  86%, 100% { opacity: 0; transform: translate(32px, 68px) scale(6.2) rotate(124deg); }
 }
 
 @keyframes orbital-distant-real-explosion {
