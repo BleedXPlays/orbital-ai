@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
 import { apiFetch, getApiErrorMessage } from "../services/apiClient";
 import { uploadChatAttachment } from "../services/attachmentService";
+import { getNextNewChatName } from "../utils/defaultItemNames";
 
 function Home({
   user,
@@ -57,7 +58,7 @@ function Home({
       .filter((word) => word.length > 3)
       .slice(0, 4);
 
-    if (words.length === 0) return `New Chat ${chats.length + 1}`;
+    if (words.length === 0) return getNextNewChatName(chats);
 
     let title = words
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

@@ -10,6 +10,7 @@ import {
 } from "../services/attachmentService";
 import { apiFetch, getApiErrorMessage } from "../services/apiClient";
 import { analyzeTask, getOutputs } from "../utils/taskRouting";
+import { getNextNewChatName } from "../utils/defaultItemNames";
 
 const MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 const MAX_READABLE_FILE_BYTES = 3 * 1024 * 1024;
@@ -690,7 +691,7 @@ function Chat({
       .filter((word) => word.length > 3)
       .slice(0, 4);
 
-    if (words.length === 0) return `New Chat ${chats.length + 1}`;
+    if (words.length === 0) return getNextNewChatName(chats);
 
     let title = words
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

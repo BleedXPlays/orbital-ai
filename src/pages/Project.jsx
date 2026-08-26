@@ -5,6 +5,7 @@ import ProjectNoteCard from "../components/ProjectNoteCard";
 import FilePreviewModal from "../components/FilePreviewModal";
 import ConfirmModal from "../components/ConfirmModal";
 import RenameModal from "../components/RenameModal";
+import { getNextNewChatName } from "../utils/defaultItemNames";
 import {
   deleteProjectFile,
   getProjectFileUrl,
@@ -149,7 +150,7 @@ function Project({
   };
 
   const createProjectChat = () => {
-    const chatName = `New Chat ${rawProjectChatList.length + 1}`;
+    const chatName = getNextNewChatName(rawProjectChatList);
     const now = new Date().toISOString();
 
     setProjectChats({

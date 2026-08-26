@@ -8,6 +8,10 @@ import MoveChatModal from "./MoveChatModal";
 import RenameModal from "./RenameModal";
 import ConfirmModal from "./ConfirmModal";
 import logo from "../assets/orbital-logo.png";
+import {
+  getNextNewChatName,
+  getNextNewProjectName,
+} from "../utils/defaultItemNames";
 
 function SearchIcon({ className = "h-4 w-4" }) {
   return (
@@ -226,7 +230,7 @@ function Sidebar({
   };
 
   const createChat = () => {
-    const newChatName = `New Chat ${chats.length + 1}`;
+    const newChatName = getNextNewChatName(chats);
     const now = new Date().toISOString();
 
     setChats([...chats, newChatName]);
@@ -239,7 +243,7 @@ function Sidebar({
   };
 
   const createProject = () => {
-    const newProjectName = `New Project ${projects.length + 1}`;
+    const newProjectName = getNextNewProjectName(projects);
 
     setProjects([...projects, newProjectName]);
     setProjectChats({ ...projectChats, [newProjectName]: [] });
