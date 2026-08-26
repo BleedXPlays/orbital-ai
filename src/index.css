@@ -157,6 +157,7 @@ body {
   width: max-content;
   will-change: transform, opacity;
   filter: drop-shadow(0 0 18px rgba(79, 142, 255, 0.22));
+  scale: var(--object-size, 1);
 }
 
 .orbital-realistic-satellite {
@@ -345,7 +346,7 @@ body {
   height: 8px;
   background: radial-gradient(circle, #fff 0 15%, #fff7a5 28%, #ff9b22 55%, #ef3d0b 76%, transparent 78%);
   box-shadow: 0 0 8px 3px rgba(255, 127, 30, 0.7);
-  animation: orbital-distant-core 210s linear infinite;
+  animation: orbital-distant-core 90s linear infinite;
 }
 
 .orbital-explosion-halo {
@@ -353,7 +354,7 @@ body {
   height: 14px;
   border: 1px solid rgba(255, 185, 82, 0.85);
   box-shadow: 0 0 9px rgba(255, 105, 28, 0.7);
-  animation: orbital-distant-halo 210s linear infinite;
+  animation: orbital-distant-halo 90s linear infinite;
 }
 
 .orbital-explosion-smoke {
@@ -361,7 +362,7 @@ body {
   height: 10px;
   background: radial-gradient(circle, rgba(105, 83, 76, 0.42), rgba(34, 42, 58, 0.2) 58%, transparent 72%);
   filter: blur(1.5px);
-  animation: orbital-distant-smoke 210s linear infinite;
+  animation: orbital-distant-smoke 90s linear infinite;
 }
 
 .orbital-explosion-sparks {
@@ -374,7 +375,7 @@ body {
   height: 2px;
   background: #ffc95c;
   box-shadow: 0 0 4px rgba(255, 103, 24, 0.9);
-  animation: orbital-distant-spark 210s linear var(--explosion-delay) infinite;
+  animation: orbital-distant-spark 90s linear var(--explosion-delay) infinite;
 }
 
 @keyframes orbital-satellite-east {
