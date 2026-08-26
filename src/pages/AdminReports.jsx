@@ -156,15 +156,23 @@ function AdminReports() {
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto text-white">
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-20 sm:px-6 sm:py-9 lg:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-300">Private administration</p><h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">User reports</h1><p className="mt-2 text-sm text-slate-400">Review feedback, reply to users, and manage resolution status.</p></div>
-          <button onClick={loadReports} className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-sm text-slate-200 hover:bg-white/[0.07]">Refresh</button>
+      <div className="relative mx-auto max-w-5xl px-4 pb-20 pt-20 sm:px-6 sm:py-12 lg:px-8">
+        <header className="mx-auto mb-8 max-w-2xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/15 bg-violet-400/[0.07] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-violet-300"><span className="h-1.5 w-1.5 rounded-full bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.9)]" />Private administration</span>
+          <h1 className="mt-4 bg-gradient-to-r from-white via-blue-100 to-violet-200 bg-clip-text text-3xl font-semibold tracking-[-0.04em] text-transparent sm:text-4xl">User reports</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-400">Review user feedback, send responses, and manage every report from one secure workspace.</p>
         </header>
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-[1fr_210px]">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search reports, users, or email…" className="rounded-xl border border-white/[0.1] bg-[#091426]/85 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-violet-400/50" />
-          <div ref={filterRef} className="relative">
+        <section className="relative overflow-visible rounded-[28px] border border-blue-200/[0.16] bg-[#071426]/72 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.4),0_0_45px_rgba(66,119,255,0.06)] backdrop-blur-2xl sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-16 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent" />
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] pb-4">
+            <div><h2 className="text-sm font-semibold text-slate-100">Report inbox</h2><p className="mt-1 text-xs text-slate-500">{filteredReports.length} {filteredReports.length === 1 ? "report" : "reports"} in this view</p></div>
+            <button onClick={loadReports} className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-slate-200 transition hover:border-blue-300/20 hover:bg-white/[0.07]">Refresh</button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_210px]">
+          <div className="relative"><svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="m16 16 4 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" /></svg><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search reports, users, or email…" className="w-full rounded-xl border border-white/[0.1] bg-[#091426]/85 py-3 pl-11 pr-4 text-sm outline-none placeholder:text-slate-600 transition focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/10" /></div>
+          <div ref={filterRef} className="relative z-30">
             <button type="button" aria-haspopup="listbox" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)} className="flex h-full min-h-12 w-full items-center justify-between rounded-xl border border-white/[0.1] bg-[#091426]/95 px-4 py-3 text-left text-sm text-slate-200 shadow-lg backdrop-blur-xl transition hover:border-blue-300/25 hover:bg-[#0d1a30]">
               <span className="flex items-center gap-2.5"><span className={`h-2 w-2 rounded-full ${statusFilter === "all" ? "bg-violet-400" : statusStyles[statusFilter]}`} />{statusFilter === "all" ? "All statuses" : labelize(statusFilter)}</span>
               <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-4 w-4 text-slate-400 transition ${filterOpen ? "rotate-180" : ""}`}><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" /></svg>
@@ -173,12 +181,12 @@ function AdminReports() {
               {["all", ...statuses].map((status) => <button key={status} type="button" role="option" aria-selected={statusFilter === status} onClick={() => { setStatusFilter(status); setFilterOpen(false); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${statusFilter === status ? "bg-violet-500/15 text-violet-100" : "text-slate-300 hover:bg-white/[0.06]"}`}><span className="flex items-center gap-2.5"><span className={`h-2 w-2 rounded-full ${status === "all" ? "bg-violet-400" : statusStyles[status]}`} />{status === "all" ? "All statuses" : labelize(status)}</span>{statusFilter === status && <span className="text-violet-300">✓</span>}</button>)}
             </div>}
           </div>
-        </div>
+          </div>
 
         {message && <p role="status" className="mt-4 rounded-xl border border-blue-300/15 bg-blue-400/[0.07] px-4 py-3 text-sm text-blue-200">{message}</p>}
 
-        {loading ? <div className="mt-6 rounded-2xl border border-white/[0.08] bg-[#071426]/70 p-6 text-sm text-slate-400">Loading reports…</div> : filteredReports.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-white/[0.12] p-8 text-center text-sm text-slate-500">No reports match this view.</div> : (
-          <div className="mt-6 space-y-3">
+        {loading ? <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/10 p-6 text-center text-sm text-slate-400">Loading reports…</div> : filteredReports.length === 0 ? <div className="mt-5 rounded-2xl border border-dashed border-blue-200/[0.14] bg-black/10 p-8 text-center"><div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-slate-500">✓</div><p className="mt-3 text-sm font-medium text-slate-400">No reports found</p><p className="mt-1 text-xs text-slate-600">Try changing the search or status filter.</p></div> : (
+          <div className="mt-5 space-y-3">
             {filteredReports.map((report) => (
               <article key={report.id} className={`overflow-hidden rounded-2xl border bg-[#071426]/82 shadow-xl backdrop-blur-xl transition ${report.archived ? "border-white/[0.06] opacity-65" : expandedId === report.id ? "border-violet-300/25" : "border-blue-200/[0.12] hover:border-blue-200/25"}`}>
                 <button type="button" aria-expanded={expandedId === report.id} onClick={() => setExpandedId((current) => current === report.id ? "" : report.id)} className="relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 text-left sm:grid-cols-[auto_minmax(150px,0.75fr)_minmax(180px,1.25fr)_auto] sm:px-5">
@@ -205,6 +213,7 @@ function AdminReports() {
             ))}
           </div>
         )}
+        </section>
       </div>
     </div>
   );
