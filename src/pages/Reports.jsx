@@ -101,41 +101,49 @@ function Reports({ user }) {
 
   return (
     <div className="orbital-page relative h-full min-h-0 overflow-y-auto text-white">
-      <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 sm:py-9 lg:px-8">
-        <header className="mb-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-300">Support center</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Report a problem</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Send a bug report, complaint, or feature request. You can follow its status and read the administrator’s response here.</p>
+      <div className="relative mx-auto max-w-4xl px-4 pb-20 pt-20 sm:px-6 sm:py-12 lg:px-8">
+        <header className="mx-auto mb-8 max-w-2xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/15 bg-violet-400/[0.07] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-violet-300"><span className="h-1.5 w-1.5 rounded-full bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.9)]" />Support center</span>
+          <h1 className="mt-4 bg-gradient-to-r from-white via-blue-100 to-violet-200 bg-clip-text text-3xl font-semibold tracking-[-0.04em] text-transparent sm:text-4xl">Report a problem</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-400">Tell us what happened. Your report stays private between you and the OrbitalAI administration team.</p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <form onSubmit={submitReport} className="h-fit rounded-3xl border border-blue-200/[0.15] bg-[#071426]/80 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
-            <label className="block text-sm font-medium text-slate-200">Category</label>
-            <select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-4 py-3 text-sm text-white outline-none focus:border-violet-400/50">
-              {Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+        <div className="mx-auto max-w-2xl">
+          <form onSubmit={submitReport} className="relative overflow-hidden rounded-[28px] border border-blue-200/[0.18] bg-[#071426]/75 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.4),0_0_45px_rgba(66,119,255,0.07)] backdrop-blur-2xl sm:p-7">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-14 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent" />
+            <div className="mb-6 flex items-center gap-3 border-b border-white/[0.07] pb-5"><span className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-300/20 bg-blue-400/10 text-lg">✦</span><div><h2 className="font-semibold text-slate-100">How can we help?</h2><p className="mt-0.5 text-xs text-slate-500">Complete the details below and we’ll review your report.</p></div></div>
 
-            <label className="mt-5 block text-sm font-medium text-slate-200">Subject</label>
-            <input value={form.subject} maxLength={120} onChange={(event) => setForm({ ...form, subject: event.target.value })} placeholder="Briefly explain the issue" className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-400/50" />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-200">Category
+                <select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="mt-2.5 w-full rounded-xl border border-white/[0.1] bg-[#0b172a]/95 px-4 py-3 text-sm text-white outline-none transition focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/10">
+                  {Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
 
-            <label className="mt-5 block text-sm font-medium text-slate-200">Description</label>
-            <textarea value={form.description} maxLength={5000} rows={7} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="What happened, and what did you expect?" className="mt-2 w-full resize-y rounded-xl border border-white/[0.1] bg-[#0c1729] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-violet-400/50" />
-            <div className="mt-2 text-right text-xs text-slate-600">{form.description.length}/5000</div>
+              <label className="block text-sm font-medium text-slate-200">Subject
+                <input value={form.subject} maxLength={120} onChange={(event) => setForm({ ...form, subject: event.target.value })} placeholder="Briefly explain the issue" className="mt-2.5 w-full rounded-xl border border-white/[0.1] bg-[#0b172a]/95 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/10" />
+              </label>
+            </div>
+
+            <label className="mt-5 block text-sm font-medium text-slate-200">Description
+              <textarea value={form.description} maxLength={5000} rows={6} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="What happened, and what did you expect?" className="mt-2.5 w-full resize-y rounded-xl border border-white/[0.1] bg-[#0b172a]/95 px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/10" />
+            </label>
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-600"><span>Your report is private.</span><span>{form.description.length}/5000</span></div>
 
             {message && <p role="status" className={`mt-4 rounded-xl border px-3 py-2.5 text-sm ${message.includes("successfully") ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200" : "border-red-400/20 bg-red-400/10 text-red-200"}`}>{message}</p>}
 
-            <button disabled={submitting} className="mt-5 w-full rounded-xl border border-violet-400/30 bg-gradient-to-r from-blue-600/80 to-violet-600/80 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50">
-              {submitting ? "Submitting…" : "Submit report"}
+            <button disabled={submitting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-300/30 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(100,75,255,0.22)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:translate-y-0 disabled:opacity-50">
+              {submitting ? "Submitting…" : "Submit report"}<span aria-hidden="true">→</span>
             </button>
           </form>
 
-          <section className="min-w-0">
-            <div className="mb-4 flex items-center justify-between">
-              <div><h2 className="text-xl font-semibold">My reports</h2><p className="mt-1 text-sm text-slate-500">Only you and an administrator can view these reports.</p></div>
-              <button type="button" onClick={loadReports} className="rounded-xl border border-white/[0.09] px-3 py-2 text-xs text-slate-300 hover:bg-white/[0.05]">Refresh</button>
+          <section className="mt-9 min-w-0">
+            <div className="mb-4 flex items-end justify-between gap-4 px-1">
+              <div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">Report history</p><h2 className="mt-1 text-xl font-semibold">My reports</h2><p className="mt-1 text-sm text-slate-500">Track progress and read administrator responses.</p></div>
+              <button type="button" onClick={loadReports} className="rounded-xl border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 text-xs text-slate-300 transition hover:border-blue-300/20 hover:bg-white/[0.06]">Refresh</button>
             </div>
 
-            {loading ? <div className="rounded-2xl border border-white/[0.08] bg-[#071426]/70 p-6 text-sm text-slate-400">Loading reports…</div> : reports.length === 0 ? <div className="rounded-2xl border border-dashed border-white/[0.12] bg-[#071426]/55 p-8 text-center text-sm text-slate-500">You have not submitted any reports yet.</div> : (
+            {loading ? <div className="rounded-2xl border border-white/[0.08] bg-[#071426]/70 p-6 text-center text-sm text-slate-400 backdrop-blur-xl">Loading reports…</div> : reports.length === 0 ? <div className="rounded-2xl border border-dashed border-blue-200/[0.14] bg-[#071426]/55 p-8 text-center backdrop-blur-xl"><div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-slate-500">✓</div><p className="mt-3 text-sm font-medium text-slate-400">No reports yet</p><p className="mt-1 text-xs text-slate-600">Reports you submit will appear here.</p></div> : (
               <div className="space-y-4">
                 {reports.map((report) => (
                   <article key={report.id} className="rounded-2xl border border-white/[0.09] bg-[#081426]/78 p-4 backdrop-blur-xl sm:p-5">
