@@ -349,6 +349,7 @@ body {
   background: radial-gradient(circle, #fff 0 15%, #fff7a5 28%, #ff9b22 55%, #ef3d0b 76%, transparent 78%);
   box-shadow: 0 0 8px 3px rgba(255, 127, 30, 0.7);
   animation: orbital-distant-core 90s linear infinite;
+  animation-delay: var(--distant-delay, 0s);
 }
 
 .orbital-explosion-halo {
@@ -357,6 +358,7 @@ body {
   border: 1px solid rgba(255, 185, 82, 0.85);
   box-shadow: 0 0 9px rgba(255, 105, 28, 0.7);
   animation: orbital-distant-halo 90s linear infinite;
+  animation-delay: var(--distant-delay, 0s);
 }
 
 .orbital-explosion-smoke {
@@ -365,6 +367,7 @@ body {
   background: radial-gradient(circle, rgba(105, 83, 76, 0.42), rgba(34, 42, 58, 0.2) 58%, transparent 72%);
   filter: blur(1.5px);
   animation: orbital-distant-smoke 90s linear infinite;
+  animation-delay: var(--distant-delay, 0s);
 }
 
 .orbital-explosion-sparks {
@@ -377,7 +380,7 @@ body {
   height: 2px;
   background: #ffc95c;
   box-shadow: 0 0 4px rgba(255, 103, 24, 0.9);
-  animation: orbital-distant-spark 90s linear var(--explosion-delay) infinite;
+  animation: orbital-distant-spark 90s linear calc(var(--distant-delay, 0s) + var(--explosion-delay)) infinite;
 }
 
 .orbital-explosion-dust {
@@ -391,7 +394,7 @@ body {
   background: rgba(166, 151, 133, 0.68);
   box-shadow: 0 0 3px rgba(210, 183, 145, 0.35);
   filter: blur(0.25px);
-  animation: orbital-distant-dust 90s ease-out var(--dust-delay) infinite;
+  animation: orbital-distant-dust 90s ease-out calc(var(--distant-delay, 0s) + var(--dust-delay)) infinite;
 }
 
 .orbital-explosion-dust span:nth-child(3n) {
@@ -562,9 +565,10 @@ body {
   z-index: 2;
   top: 50%;
   left: 50%;
-  width: 58px;
+  width: var(--distant-size, 32px);
   opacity: 0;
   animation: orbital-distant-real-explosion 90s linear infinite;
+  animation-delay: var(--distant-delay, 0s);
 }
 
 .orbital-key-event-right {

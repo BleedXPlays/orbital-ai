@@ -61,6 +61,12 @@ const arrowDirections = {
   ArrowDown: "down",
 };
 
+const distantBursts = [
+  { top: 15, left: 73, size: 34, delay: -16 },
+  { top: 32, left: 45, size: 27, delay: -47 },
+  { top: 52, left: 82, size: 31, delay: -72 },
+];
+
 const createCollisionEvent = (direction, sequence, source = "keyboard") => {
   const impactX = Math.round(25 + Math.random() * 50);
   const impactY = Math.round(19 + Math.random() * 43);
@@ -171,41 +177,53 @@ function SpaceTraffic({ variant = "app" }) {
           className="orbital-realistic-asteroid"
         />
       </div>
-      <div className="orbital-distant-explosion">
-        <img
-          src="/orbital-collision-explosion.png"
-          alt=""
-          draggable="false"
-          className="orbital-explosion-image orbital-distant-explosion-image"
-        />
-        <span className="orbital-explosion-halo" />
-        <span className="orbital-explosion-core" />
-        <span className="orbital-explosion-smoke" />
-        <div className="orbital-explosion-sparks">
-          {explosionSparks.map(([x, y], index) => (
-            <span
-              key={`${x}-${y}`}
-              style={{ "--explosion-x": `${x}px`, "--explosion-y": `${y}px`, "--explosion-delay": `${index * 18}ms` }}
-            />
-          ))}
+      {distantBursts.map((burst, burstIndex) => (
+        <div
+          className="orbital-distant-explosion"
+          key={`${burst.top}-${burst.left}`}
+          style={{
+            top: `${burst.top}%`,
+            left: `${burst.left}%`,
+            right: "auto",
+            "--distant-size": `${burst.size}px`,
+            "--distant-delay": `${burst.delay}s`,
+          }}
+        >
+          <img
+            src="/orbital-collision-explosion.png"
+            alt=""
+            draggable="false"
+            className="orbital-explosion-image orbital-distant-explosion-image"
+          />
+          <span className="orbital-explosion-halo" />
+          <span className="orbital-explosion-core" />
+          <span className="orbital-explosion-smoke" />
+          <div className="orbital-explosion-sparks">
+            {explosionSparks.map(([x, y], index) => (
+              <span
+                key={`${burstIndex}-${x}-${y}`}
+                style={{ "--explosion-x": `${x}px`, "--explosion-y": `${y}px`, "--explosion-delay": `${index * 18}ms` }}
+              />
+            ))}
+          </div>
+          <div className="orbital-explosion-dust">
+            {explosionDust.map(([x, y], index) => (
+              <span
+                key={`${burstIndex}-${x}-${y}`}
+                style={{
+                  "--dust-x": `${x}px`,
+                  "--dust-y": `${y}px`,
+                  "--dust-mid-x": `${Math.round(x * 0.72)}px`,
+                  "--dust-mid-y": `${Math.round(y * 0.72)}px`,
+                  "--dust-far-x": `${Math.round(x * 1.18)}px`,
+                  "--dust-far-y": `${Math.round(y * 1.18) - 5}px`,
+                  "--dust-delay": `${index * 35}ms`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="orbital-explosion-dust">
-          {explosionDust.map(([x, y], index) => (
-            <span
-              key={`${x}-${y}`}
-              style={{
-                "--dust-x": `${x}px`,
-                "--dust-y": `${y}px`,
-                "--dust-mid-x": `${Math.round(x * 0.72)}px`,
-                "--dust-mid-y": `${Math.round(y * 0.72)}px`,
-                "--dust-far-x": `${Math.round(x * 1.18)}px`,
-                "--dust-far-y": `${Math.round(y * 1.18) - 5}px`,
-                "--dust-delay": `${index * 35}ms`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      ))}
       {keyEvent && (
         <div
           key={keyEvent.id}
