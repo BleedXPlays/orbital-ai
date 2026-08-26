@@ -7,25 +7,16 @@ const Satellite = ({ className = "" }) => (
   />
 );
 
-const Spacecraft = () => (
-  <div className="orbital-realistic-spacecraft">
-    <div className="orbital-engine-glow" />
-    <div className="orbital-exhaust-plume">
-      <span className="orbital-flame orbital-flame-outer" />
-      <span className="orbital-flame orbital-flame-core" />
-    </div>
-    <div className="orbital-sparks">
-      {Array.from({ length: 18 }, (_, index) => (
-        <span key={index} style={{ "--spark-index": index }} />
-      ))}
-    </div>
-    <img
-      src="/orbital-spacecraft-realistic.png"
-      alt=""
-      draggable="false"
-    />
-  </div>
-);
+const explosionSparks = [
+  [18, -12],
+  [14, 11],
+  [-16, -10],
+  [-20, 8],
+  [3, -19],
+  [-4, 18],
+  [22, 2],
+  [-23, -2],
+];
 
 function SpaceTraffic({ variant = "app" }) {
   return (
@@ -39,9 +30,6 @@ function SpaceTraffic({ variant = "app" }) {
       <div className="orbital-flight orbital-flight-satellite-two">
         <Satellite className="orbital-realistic-satellite orbital-realistic-satellite-far" />
       </div>
-      <div className="orbital-flight orbital-flight-spacecraft">
-        <Spacecraft />
-      </div>
       <div className="orbital-flight orbital-flight-asteroid">
         <img
           src="/orbital-asteroid-realistic.png"
@@ -49,6 +37,19 @@ function SpaceTraffic({ variant = "app" }) {
           draggable="false"
           className="orbital-realistic-asteroid"
         />
+      </div>
+      <div className="orbital-distant-explosion">
+        <span className="orbital-explosion-halo" />
+        <span className="orbital-explosion-core" />
+        <span className="orbital-explosion-smoke" />
+        <div className="orbital-explosion-sparks">
+          {explosionSparks.map(([x, y], index) => (
+            <span
+              key={`${x}-${y}`}
+              style={{ "--explosion-x": `${x}px`, "--explosion-y": `${y}px`, "--explosion-delay": `${index * 18}ms` }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
