@@ -50,9 +50,9 @@ const cleanText = (value, maximum) => String(value || "").trim().slice(0, maximu
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
-  response.setHeader("Allow", "GET, POST, PATCH");
+  response.setHeader("Allow", "GET, POST, PUT, PATCH, DELETE");
 
-  if (!["GET", "POST", "PATCH"].includes(request.method)) {
+  if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
     return reject(response, 405, "Method not allowed.", "method_not_allowed");
   }
 
@@ -120,11 +120,39 @@ export default async function handler(request, response) {
       return response.status(201).json({ report: rows?.[0] || null });
     }
 
+    if (request.method === "PUT") {
+      const suppliedPhotoUrl = cleanText(request.body?.userPhotoUrl, 2048);
+      const userPhotoUrl = /^https:\/\/[^\s]+$/i.test(suppliedPhotoUrl) ? suppliedPhotoUrl : "";
+      if (!userPhotoUrl) {
+        return reject(response, 400, "A valid profile photo is required.", "invalid_profile_photo");
+      }
+
+      await requestSupabase(`user_reports?firebase_uid=eq.${encodeURIComponent(user.uid)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ user_photo_url: userPhotoUrl }),
+      });
+      return response.status(204).end();
+    }
+
     if (!isAdmin) {
       return reject(response, 403, "Administrator access is required.", "admin_required");
     }
 
     const id = cleanText(request.body?.id, 80);
+
+    if (request.method === "DELETE") {
+      if (!/^[0-9a-f-]{36}$/i.test(id)) {
+        return reject(response, 400, "The report ID is invalid.", "invalid_report_id");
+      }
+
+      await requestSupabase(`user_reports?id=eq.${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+      });
+      return response.status(204).end();
+    }
+
     const status = cleanText(request.body?.status, 20);
     const priority = cleanText(request.body?.priority, 20);
     const adminResponse = cleanText(request.body?.adminResponse, 5000);

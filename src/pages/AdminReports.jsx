@@ -31,6 +31,8 @@ function AdminReports() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [savingId, setSavingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
   const [message, setMessage] = useState("");
   const [expandedId, setExpandedId] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -121,6 +123,35 @@ function AdminReports() {
     }
   };
 
+  const deleteReport = async (report) => {
+    if (deleteConfirmId !== report.id) {
+      setDeleteConfirmId(report.id);
+      return;
+    }
+
+    setDeletingId(report.id);
+    setMessage("");
+    try {
+      const response = await apiFetch("/api/reports", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: report.id }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Could not delete the report.");
+      }
+      setReports((current) => current.filter((item) => item.id !== report.id));
+      setExpandedId("");
+      setDeleteConfirmId("");
+      setMessage("Report permanently deleted.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   if (denied) return <div className="orbital-page flex h-full items-center justify-center px-5 text-white"><div className="max-w-md rounded-3xl border border-red-400/20 bg-[#140b18]/85 p-7 text-center"><div className="text-3xl">🔒</div><h1 className="mt-4 text-2xl font-semibold">Access denied</h1><p className="mt-3 text-sm leading-6 text-slate-400">This page is available only to an approved OrbitalAI administrator.</p></div></div>;
 
   return (
@@ -161,7 +192,14 @@ function AdminReports() {
                   <p className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-white/[0.06] bg-black/15 p-3.5 text-sm leading-6 text-slate-300">{report.description}</p>
                   <div className="mt-4 grid gap-4 md:grid-cols-2"><label className="text-xs font-medium text-slate-400">Status<select value={report.status} onChange={(event) => changeReport(report.id, "status", event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-3 py-2.5 text-sm text-white">{statuses.map((status) => <option key={status}>{status}</option>)}</select></label><label className="text-xs font-medium text-slate-400">Priority<select value={report.priority} onChange={(event) => changeReport(report.id, "priority", event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-3 py-2.5 text-sm text-white">{priorities.map((priority) => <option key={priority}>{priority}</option>)}</select></label></div>
                   <label className="mt-4 block text-xs font-medium text-slate-400">Response to user<textarea rows={4} maxLength={5000} value={report.admin_response || ""} onChange={(event) => changeReport(report.id, "admin_response", event.target.value)} placeholder="Write a response that the user can see…" className="mt-2 w-full resize-y rounded-xl border border-white/[0.1] bg-[#0c1729] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-violet-400/50" /></label>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm text-slate-400"><input type="checkbox" checked={Boolean(report.archived)} onChange={(event) => changeReport(report.id, "archived", event.target.checked)} className="accent-violet-500" /> Archive report</label><button onClick={() => saveReport(report)} disabled={savingId === report.id} className="rounded-xl border border-violet-400/30 bg-violet-500/15 px-5 py-2.5 text-sm font-semibold text-violet-100 hover:bg-violet-500/25 disabled:opacity-50">{savingId === report.id ? "Saving…" : "Save changes"}</button></div>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <label className="flex items-center gap-2 text-sm text-slate-400"><input type="checkbox" checked={Boolean(report.archived)} onChange={(event) => changeReport(report.id, "archived", event.target.checked)} className="accent-violet-500" /> Archive report</label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {deleteConfirmId === report.id && <button type="button" onClick={() => setDeleteConfirmId("")} className="rounded-xl border border-white/[0.1] px-4 py-2.5 text-sm text-slate-300 hover:bg-white/[0.05]">Cancel</button>}
+                      <button type="button" onClick={() => deleteReport(report)} disabled={deletingId === report.id} className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${deleteConfirmId === report.id ? "border-red-400/40 bg-red-500/20 text-red-100 hover:bg-red-500/30" : "border-red-400/20 bg-red-500/[0.07] text-red-300 hover:bg-red-500/15"}`}>{deletingId === report.id ? "Deleting…" : deleteConfirmId === report.id ? "Confirm delete" : "Delete report"}</button>
+                      <button type="button" onClick={() => saveReport(report)} disabled={savingId === report.id} className="rounded-xl border border-violet-400/30 bg-violet-500/15 px-5 py-2.5 text-sm font-semibold text-violet-100 hover:bg-violet-500/25 disabled:opacity-50">{savingId === report.id ? "Saving…" : "Save changes"}</button>
+                    </div>
+                  </div>
                 </div>}
               </article>
             ))}

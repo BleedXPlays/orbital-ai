@@ -21,6 +21,7 @@ function Reports({ user }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({ category: "bug", subject: "", description: "" });
+  const userPhotoUrl = user?.photoURL || user?.providerData?.find((provider) => provider.providerId === "google.com")?.photoURL || "";
 
   const loadReports = useCallback(async () => {
     setLoading(true);
@@ -56,6 +57,17 @@ function Reports({ user }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!userPhotoUrl) return;
+    apiFetch("/api/reports", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userPhotoUrl }),
+    }).catch(() => {
+      // Profile-photo synchronization is non-critical; report loading still works.
+    });
+  }, [userPhotoUrl]);
+
   const submitReport = async (event) => {
     event.preventDefault();
     setMessage("");
@@ -72,7 +84,7 @@ function Reports({ user }) {
         body: JSON.stringify({
           ...form,
           userName: user?.displayName || "",
-          userPhotoUrl: user?.photoURL || user?.providerData?.find((provider) => provider.providerId === "google.com")?.photoURL || "",
+          userPhotoUrl,
         }),
       });
       const data = await response.json();
