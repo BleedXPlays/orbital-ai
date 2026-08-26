@@ -423,19 +423,19 @@ body {
 }
 
 .orbital-key-event-right .orbital-key-object {
-  animation: orbital-key-object-right 4.2s ease-in-out both;
+  animation: orbital-key-object-right 13s ease-in-out both;
 }
 
 .orbital-key-event-left .orbital-key-object {
-  animation: orbital-key-object-left 4.2s ease-in-out both;
+  animation: orbital-key-object-left 13s ease-in-out both;
 }
 
 .orbital-key-event-up .orbital-key-object {
-  animation: orbital-key-object-up 4.2s ease-in-out both;
+  animation: orbital-key-object-up 13s ease-in-out both;
 }
 
 .orbital-key-event-down .orbital-key-object {
-  animation: orbital-key-object-down 4.2s ease-in-out both;
+  animation: orbital-key-object-down 13s ease-in-out both;
 }
 
 .orbital-key-explosion {
@@ -589,49 +589,65 @@ body {
 
 .orbital-key-event-right .orbital-key-object-a {
   --collision-start-x: -16rem;
-  --collision-start-y: 48%;
+  --collision-start-y: 72%;
+  --collision-curve-x: 27%;
+  --collision-curve-y: 55%;
   --collision-start-rotation: -8deg;
 }
 
 .orbital-key-event-right .orbital-key-object-b {
   --collision-start-x: 105%;
   --collision-start-y: 8%;
+  --collision-curve-x: 91%;
+  --collision-curve-y: 18%;
   --collision-start-rotation: 168deg;
 }
 
 .orbital-key-event-left .orbital-key-object-a {
   --collision-start-x: 105%;
   --collision-start-y: 20%;
+  --collision-curve-x: 73%;
+  --collision-curve-y: 31%;
   --collision-start-rotation: 172deg;
 }
 
 .orbital-key-event-left .orbital-key-object-b {
   --collision-start-x: -16rem;
   --collision-start-y: 72%;
+  --collision-curve-x: 25%;
+  --collision-curve-y: 58%;
   --collision-start-rotation: -18deg;
 }
 
 .orbital-key-event-up .orbital-key-object-a {
   --collision-start-x: 22%;
   --collision-start-y: 105%;
+  --collision-curve-x: 39%;
+  --collision-curve-y: 67%;
   --collision-start-rotation: -38deg;
 }
 
 .orbital-key-event-up .orbital-key-object-b {
   --collision-start-x: 88%;
   --collision-start-y: -16rem;
+  --collision-curve-x: 76%;
+  --collision-curve-y: 24%;
   --collision-start-rotation: 142deg;
 }
 
 .orbital-key-event-down .orbital-key-object-a {
   --collision-start-x: 15%;
   --collision-start-y: -16rem;
+  --collision-curve-x: 35%;
+  --collision-curve-y: 29%;
   --collision-start-rotation: 38deg;
 }
 
 .orbital-key-event-down .orbital-key-object-b {
   --collision-start-x: 90%;
   --collision-start-y: 105%;
+  --collision-curve-x: 81%;
+  --collision-curve-y: 68%;
   --collision-start-rotation: -142deg;
 }
 
@@ -640,13 +656,17 @@ body {
   top: var(--collision-start-y);
   right: auto;
   bottom: auto;
-  animation: orbital-real-collision-approach 8s ease-in-out both;
+  animation: orbital-real-collision-approach 13s ease-in-out both;
 }
 
 .orbital-key-event .orbital-key-object-b {
-  width: clamp(7rem, 9vw, 11rem);
+  width: clamp(6rem, 7.5vw, 9rem);
   scale: var(--manual-object-size, 1);
   filter: brightness(0.78) drop-shadow(0 0 12px rgba(101, 159, 255, 0.18));
+}
+
+.orbital-key-event .orbital-key-object-collision-asteroid {
+  filter: brightness(0.84) drop-shadow(0 0 12px rgba(255, 151, 78, 0.16));
 }
 
 .orbital-key-event .orbital-key-explosion {
@@ -663,9 +683,9 @@ body {
   z-index: 4;
   top: 50%;
   left: 50%;
-  width: clamp(10rem, 15vw, 18rem);
+  width: clamp(6rem, 9vw, 10rem);
   opacity: 0;
-  animation: orbital-real-collision-blast 8s ease-out both;
+  animation: orbital-real-collision-blast 13s ease-out both;
 }
 
 .orbital-collision-debris,
@@ -682,26 +702,28 @@ body {
 }
 
 .orbital-collision-debris span {
-  width: 7px;
+  width: 3px;
   height: 3px;
-  border-radius: 1px;
-  background: linear-gradient(90deg, #aeb8c6, #394454);
-  box-shadow: 0 0 4px rgba(255, 130, 40, 0.45);
+  border-radius: 50%;
+  background: rgba(174, 158, 137, 0.76);
+  box-shadow: 0 0 3px rgba(170, 151, 127, 0.28);
+  filter: blur(0.25px);
   opacity: 0;
-  animation: orbital-collision-debris-fall 8s ease-out var(--debris-delay) both;
+  animation: orbital-collision-debris-fall 13s ease-out var(--debris-delay) both;
 }
 
 .orbital-collision-debris span:nth-child(3n) {
-  width: 9px;
-  height: 5px;
-  background: linear-gradient(135deg, #284d8e, #0c1f45 60%, #a6c7ff);
+  width: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(106, 117, 130, 0.68);
 }
 
 .orbital-collision-debris span:nth-child(4n) {
-  width: 4px;
-  height: 4px;
+  width: 2px;
+  height: 2px;
   border-radius: 50%;
-  background: #ff8b27;
+  background: rgba(213, 145, 82, 0.72);
 }
 
 @keyframes orbital-real-collision-approach {
@@ -712,13 +734,19 @@ body {
   5% {
     opacity: 0.82;
   }
-  28% {
+  24% {
+    left: var(--collision-curve-x);
+    top: var(--collision-curve-y);
+    opacity: 0.86;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.82);
+  }
+  45% {
     left: var(--impact-x);
     top: var(--impact-y);
     opacity: 0.92;
     transform: translate(-50%, -50%) rotate(0deg) scale(0.92);
   }
-  33%,
+  49%,
   100% {
     left: var(--impact-x);
     top: var(--impact-y);
@@ -729,19 +757,19 @@ body {
 
 @keyframes orbital-real-collision-blast {
   0%,
-  28% {
+  45% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.12) rotate(-7deg);
   }
-  34% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.68) rotate(0deg);
+  48% {
+    opacity: 0.82;
+    transform: translate(-50%, -50%) scale(0.52) rotate(0deg);
   }
-  46% {
-    opacity: 0.92;
-    transform: translate(-50%, -50%) scale(1) rotate(3deg);
+  53% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(0.76) rotate(3deg);
   }
-  61% {
+  62% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.18) rotate(7deg);
   }
@@ -752,20 +780,20 @@ body {
 
 @keyframes orbital-collision-debris-fall {
   0%,
-  30% {
+  45% {
     opacity: 0;
     transform: translate(0, 0) rotate(0deg) scale(0.3);
   }
-  36% {
-    opacity: 0.95;
+  49% {
+    opacity: 0.82;
     transform: translate(var(--debris-x), var(--debris-lift)) rotate(var(--debris-rotation)) scale(1);
   }
-  55% {
-    opacity: 0.82;
+  64% {
+    opacity: 0.64;
     transform: translate(var(--debris-mid-x), 12vh) rotate(calc(var(--debris-rotation) + 120deg)) scale(0.86);
   }
-  82% {
-    opacity: 0.56;
+  84% {
+    opacity: 0.42;
     transform: translate(var(--debris-settle-x), 48vh) rotate(calc(var(--debris-rotation) + 280deg)) scale(0.68);
   }
   100% {

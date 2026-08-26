@@ -54,6 +54,16 @@ const collisionDebris = [
   [46, 55, -160],
   [-66, -51, 115],
   [67, -53, -205],
+  [-118, -12, 75],
+  [121, 9, -82],
+  [-86, 61, 230],
+  [88, 64, -215],
+  [-51, 76, 145],
+  [54, 79, -135],
+  [-17, 68, 190],
+  [19, 72, -175],
+  [-111, 34, 118],
+  [114, 38, -128],
 ];
 
 const randomScale = (minimum, maximum) =>
@@ -189,10 +199,10 @@ function SpaceTraffic({ variant = "app" }) {
             className="orbital-key-object orbital-key-object-a"
           />
           <img
-            src="/orbital-satellite-realistic.png"
+            src="/orbital-asteroid-realistic.png"
             alt=""
             draggable="false"
-            className="orbital-key-object orbital-key-object-b"
+            className="orbital-key-object orbital-key-object-b orbital-key-object-collision-asteroid"
           />
           <div className="orbital-key-explosion">
             <img
