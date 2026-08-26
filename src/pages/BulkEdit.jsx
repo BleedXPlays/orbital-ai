@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 
 const ChatItemIcon = () => (
@@ -58,6 +58,8 @@ function BulkEdit({
   const [targetProject, setTargetProject] = useState("");
   const [notice, setNotice] = useState("");
   const [activeCollection, setActiveCollection] = useState("chats");
+  const lastChatIndex = useRef(null);
+  const lastProjectIndex = useRef(null);
 
   const showNotice = (message) => {
     setNotice(message);
@@ -67,20 +69,47 @@ function BulkEdit({
     }, 3000);
   };
 
-  const toggleChat = (chat) => {
+  const toggleChat = (chat, index, shiftKey = false) => {
+    if (shiftKey && lastChatIndex.current !== null) {
+      const start = Math.min(lastChatIndex.current, index);
+      const end = Math.max(lastChatIndex.current, index);
+      setSelectedChats((current) => [
+        ...new Set([...current, ...chats.slice(start, end + 1)]),
+      ]);
+      lastChatIndex.current = index;
+      return;
+    }
+
     if (selectedChats.includes(chat)) {
       setSelectedChats(selectedChats.filter((item) => item !== chat));
     } else {
       setSelectedChats([...selectedChats, chat]);
     }
+    lastChatIndex.current = index;
   };
 
-  const toggleProject = (project) => {
+  const toggleProject = (project, index, shiftKey = false) => {
+    if (shiftKey && lastProjectIndex.current !== null) {
+      const start = Math.min(lastProjectIndex.current, index);
+      const end = Math.max(lastProjectIndex.current, index);
+      setSelectedProjects((current) => [
+        ...new Set([...current, ...projects.slice(start, end + 1)]),
+      ]);
+      lastProjectIndex.current = index;
+      return;
+    }
+
     if (selectedProjects.includes(project)) {
       setSelectedProjects(selectedProjects.filter((item) => item !== project));
     } else {
       setSelectedProjects([...selectedProjects, project]);
     }
+    lastProjectIndex.current = index;
+  };
+
+  const resetSelectionAnchors = () => {
+    lastChatIndex.current = null;
+    lastProjectIndex.current = null;
   };
 
   const archiveSelected = () => {
@@ -133,6 +162,7 @@ function BulkEdit({
     setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
+    resetSelectionAnchors();
   };
 
   const deleteSelected = () => {
@@ -177,6 +207,7 @@ function BulkEdit({
     setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
+    resetSelectionAnchors();
     setConfirmModalOpen(false);
   };
 
@@ -244,6 +275,7 @@ function BulkEdit({
     setChatActivity(updatedChatActivity);
     setSelectedChats([]);
     setSelectedProjects([]);
+    resetSelectionAnchors();
   };
 
   const openMoveSelectedChatsModal = () => {
@@ -279,6 +311,7 @@ function BulkEdit({
     });
 
     setSelectedChats([]);
+    lastChatIndex.current = null;
     setTargetProject("");
     setMoveModalOpen(false);
   };
@@ -286,6 +319,7 @@ function BulkEdit({
   const clearSelection = () => {
     setSelectedChats([]);
     setSelectedProjects([]);
+    resetSelectionAnchors();
   };
 
   const totalSelected = selectedChats.length + selectedProjects.length;
@@ -348,7 +382,7 @@ function BulkEdit({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {chats.map((chat) => {
+                    {chats.map((chat, index) => {
                       const selected = selectedChats.includes(chat);
 
                       return (
@@ -363,7 +397,9 @@ function BulkEdit({
                           <input
                             type="checkbox"
                             checked={selected}
-                            onChange={() => toggleChat(chat)}
+                            onChange={(event) =>
+                              toggleChat(chat, index, event.nativeEvent.shiftKey)
+                            }
                             className="accent-purple-600"
                           />
 
@@ -392,7 +428,7 @@ function BulkEdit({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {projects.map((project) => {
+                    {projects.map((project, index) => {
                       const selected = selectedProjects.includes(project);
 
                       return (
@@ -407,7 +443,13 @@ function BulkEdit({
                           <input
                             type="checkbox"
                             checked={selected}
-                            onChange={() => toggleProject(project)}
+                            onChange={(event) =>
+                              toggleProject(
+                                project,
+                                index,
+                                event.nativeEvent.shiftKey
+                              )
+                            }
                             className="accent-purple-600"
                           />
 
@@ -536,5 +578,3 @@ function BulkEdit({
 }
 
 export default BulkEdit;
-
-
