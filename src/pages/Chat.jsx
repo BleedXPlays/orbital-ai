@@ -2613,12 +2613,14 @@ function Chat({
                     <div className="mb-5 flex flex-col sm:mb-6">
                       <div className="min-w-0">
                         <div>
-                          <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-white/[0.06] pb-4">
-                            <img
-                              src={orbitalLogo}
-                              alt="OrbitalAI"
-                              className="h-auto w-[112px] object-contain drop-shadow-[0_0_12px_rgba(139,92,246,0.2)] sm:w-[124px]"
-                            />
+                          <div className="mb-4 flex min-h-8 flex-wrap items-center gap-2.5 border-b border-white/[0.06] pb-4">
+                            <span className="relative h-7 w-[100px] shrink-0 overflow-hidden sm:w-[106px]">
+                              <img
+                                src={orbitalLogo}
+                                alt="OrbitalAI"
+                                className="absolute left-0 top-[-4px] h-auto w-full object-contain drop-shadow-[0_0_10px_rgba(139,92,246,0.18)]"
+                              />
+                            </span>
                             <ProviderBadge
                               provider={
                                 message.outputs?.some(

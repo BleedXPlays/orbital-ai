@@ -122,6 +122,7 @@ function Sidebar({
     title: "",
     message: "",
     confirmText: "Delete",
+    cancelText: "Cancel",
     onConfirm: null,
   });
 
@@ -131,6 +132,7 @@ function Sidebar({
       title: "",
       message: "",
       confirmText: "Delete",
+      cancelText: "Cancel",
       onConfirm: null,
     });
   };
@@ -832,9 +834,20 @@ function Sidebar({
               <div className="my-1 border-t border-white/[0.08]" />
               <button
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   setAccountMenuOpen(false);
-                  await handleLogout?.();
+                  setConfirmModal({
+                    isOpen: true,
+                    title: "Log out of OrbitalAI?",
+                    message:
+                      "You will be signed out of the current account. Your saved chats and projects will remain available when you sign in again.",
+                    confirmText: "Yes, log out",
+                    cancelText: "Stay signed in",
+                    onConfirm: async () => {
+                      closeConfirmModal();
+                      await handleLogout?.();
+                    },
+                  });
                 }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-400 transition hover:bg-red-400/[0.1] hover:text-red-300"
               >
@@ -907,6 +920,7 @@ function Sidebar({
         title={confirmModal.title}
         message={confirmModal.message}
         confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText || "Cancel"}
         danger={true}
         onCancel={closeConfirmModal}
         onConfirm={() => {

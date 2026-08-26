@@ -1,6 +1,34 @@
 import { useState } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 
+const ChatItemIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-5 w-5 shrink-0 text-violet-300"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+  >
+    <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.9 8.9 0 0 1-3.1-.55L4 20l1.55-4.15A7.1 7.1 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z" />
+  </svg>
+);
+
+const ProjectItemIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-5 w-5 shrink-0 text-blue-300"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinejoin="round"
+  >
+    <path d="M3.5 7.5h6l1.8 2H20.5v8.8a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7V7.5Z" />
+    <path d="M3.5 7.5V5.7A1.7 1.7 0 0 1 5.2 4h4.2l1.8 2h7.6a1.7 1.7 0 0 1 1.7 1.7v1.8" />
+  </svg>
+);
+
 function BulkEdit({
   chats,
   setChats,
@@ -339,7 +367,8 @@ function BulkEdit({
                             className="accent-purple-600"
                           />
 
-                          <span className="text-slate-500">▢</span><span className="truncate text-sm">{chat}</span>
+                          <ChatItemIcon />
+                          <span className="truncate text-sm">{chat}</span>
                         </label>
                       );
                     })}
@@ -382,7 +411,8 @@ function BulkEdit({
                             className="accent-purple-600"
                           />
 
-                          <span className="text-blue-400">◇</span><span className="truncate text-sm">{project}</span>
+                          <ProjectItemIcon />
+                          <span className="truncate text-sm">{project}</span>
                         </label>
                       );
                     })}
@@ -506,6 +536,5 @@ function BulkEdit({
 }
 
 export default BulkEdit;
-
 
 
