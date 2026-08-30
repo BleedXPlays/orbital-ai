@@ -160,44 +160,6 @@ body {
   scale: var(--object-size, 1);
 }
 
-.orbital-realistic-satellite {
-  display: block;
-  height: auto;
-  user-select: none;
-}
-
-.orbital-realistic-satellite-near {
-  width: clamp(12rem, 15vw, 19rem);
-}
-
-.orbital-realistic-satellite-far {
-  width: clamp(9rem, 11vw, 14rem);
-}
-
-.orbital-flight-satellite-one {
-  top: 10%;
-  opacity: 0;
-  animation: orbital-satellite-east 40s linear infinite;
-}
-
-.orbital-flight-satellite-two {
-  top: 20%;
-  right: 0;
-  left: auto;
-  opacity: 0;
-  animation: orbital-satellite-west 40s linear infinite;
-}
-
-.orbital-flight-satellite-two svg {
-  opacity: 0.58;
-  transform: rotate(8deg);
-}
-
-.orbital-flight-satellite-two img {
-  opacity: 0.82;
-  transform: rotate(8deg);
-}
-
 .orbital-flight-spacecraft {
   top: 13%;
   opacity: 0;
@@ -903,57 +865,6 @@ body {
   }
 }
 
-@keyframes orbital-satellite-east {
-  0% {
-    opacity: 0;
-    transform: translate3d(-20rem, 6vh, 0) rotate(-9deg) scale(0.82);
-  }
-  2% {
-    opacity: 0.78;
-  }
-  11% {
-    transform: translate3d(22vw, 13vh, 0) rotate(-2deg) scale(0.9);
-  }
-  21% {
-    opacity: 0.82;
-    transform: translate3d(64vw, 3vh, 0) rotate(5deg) scale(0.98);
-  }
-  30% {
-    opacity: 0;
-    transform: translate3d(calc(100vw + 20rem), 11vh, 0) rotate(10deg) scale(1.04);
-  }
-  30.01%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes orbital-satellite-west {
-  0%,
-  35% {
-    opacity: 0;
-    transform: translate3d(16rem, -4vh, 0) rotate(10deg) scale(0.72);
-  }
-  37% {
-    opacity: 0.68;
-  }
-  46% {
-    transform: translate3d(-30vw, 10vh, 0) rotate(1deg) scale(0.82);
-  }
-  56% {
-    opacity: 0.72;
-    transform: translate3d(-70vw, -3vh, 0) rotate(-8deg) scale(0.92);
-  }
-  65% {
-    opacity: 0;
-    transform: translate3d(calc(-100vw - 18rem), 9vh, 0) rotate(-14deg) scale(1);
-  }
-  65.01%,
-  100% {
-    opacity: 0;
-  }
-}
-
 @keyframes orbital-spacecraft-pass {
   0%,
   25% {
@@ -987,26 +898,25 @@ body {
 }
 
 @keyframes orbital-asteroid-pass {
-  0%,
-  69% {
+  0% {
     opacity: 0;
     transform: translate3d(14rem, -9vh, 0) rotate(0deg) scale(0.68);
   }
-  71% {
+  4% {
     opacity: 0.8;
   }
-  80% {
+  32% {
     transform: translate3d(-28vw, 28vh, 0) rotate(-110deg) scale(0.82);
   }
-  90% {
+  62% {
     opacity: 0.84;
     transform: translate3d(-68vw, 48vh, 0) rotate(-235deg) scale(0.95);
   }
-  98% {
+  82% {
     opacity: 0;
     transform: translate3d(calc(-100vw - 16rem), 72vh, 0) rotate(-360deg) scale(1.08);
   }
-  98.01%,
+  82.01%,
   100% {
     opacity: 0;
   }
@@ -1159,9 +1069,7 @@ body {
     opacity: 0.48;
   }
 
-  .orbital-flight-satellite-two,
-  .orbital-flight-spacecraft,
-  .orbital-flight-asteroid {
+  .orbital-flight-spacecraft {
     display: none;
   }
 }
