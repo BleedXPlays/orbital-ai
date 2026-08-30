@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const helpItems = [
   {
     title: "Getting started",
-    description: "Create chats, projects, and your first AI workflow.",
+    description: "Create chats and organize related work inside projects.",
     steps: [
       "Choose New Chat for a standalone conversation, or New Project to group related work.",
       "Write your request in the message box and attach supporting files when useful.",

@@ -67,11 +67,11 @@ function Settings({
   const totalNotes = Object.values(projectNotes || {}).flat().length;
   const archivedTotal = archivedChats.length + archivedProjects.length;
   const formatUsageReset = (resetAt) => {
-    if (!resetAt) return "The reset timer starts after your first use.";
+    if (!resetAt) return "Your full allowance is currently available.";
     const resetDate = new Date(resetAt);
     if (Number.isNaN(resetDate.getTime())) return "Reset time unavailable";
 
-    return `Resets ${new Intl.DateTimeFormat(undefined, {
+    return `Next allowance refresh: ${new Intl.DateTimeFormat(undefined, {
       weekday: "short",
       day: "numeric",
       month: "short",

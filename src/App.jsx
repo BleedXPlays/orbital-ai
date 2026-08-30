@@ -22,7 +22,6 @@ const Chat = lazy(() => import("./pages/Chat"));
 const Project = lazy(() => import("./pages/Project"));
 const Search = lazy(() => import("./pages/Search"));
 const BulkEdit = lazy(() => import("./pages/BulkEdit"));
-const AIWorkflow = lazy(() => import("./pages/AIWorkflow"));
 const Archived = lazy(() => import("./pages/Archived"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
@@ -71,7 +70,6 @@ const getPathFromWorkspaceState = ({
 
   if (page === "search") return "/search";
   if (page === "bulk") return "/bulk-edit";
-  if (page === "workflow") return "/ai-workflow";
   if (page === "archived") return "/archived";
   if (page === "settings") return "/settings";
   if (page === "help") return "/help";
@@ -85,6 +83,23 @@ const createDefaultUsageSummary = () => ({
   chat: { limit: 24, remaining: 24, resetAt: "" },
   documents: { limit: 30, remaining: 30, resetAt: "" },
 });
+
+const normalizeUsageSummary = (summary, now = Date.now()) => {
+  const defaults = createDefaultUsageSummary();
+  return Object.fromEntries(Object.keys(defaults).map((key) => {
+    const value = summary?.[key] || defaults[key];
+    const limit = Math.max(1, Number(value.limit || defaults[key].limit));
+    const resetTime = new Date(value.resetAt || "").getTime();
+    if (Number.isFinite(resetTime) && resetTime <= now) {
+      return [key, { limit, remaining: limit, resetAt: "" }];
+    }
+    return [key, {
+      limit,
+      remaining: Math.min(limit, Math.max(0, Number(value.remaining ?? limit))),
+      resetAt: String(value.resetAt || ""),
+    }];
+  }));
+};
 
 function App() {
   const saveTimer = useRef(null);
@@ -125,6 +140,17 @@ function App() {
   const [chatActivity, setChatActivity] = useState({});
   const [activityLog, setActivityLog] = useState([]);
   const [usageSummary, setUsageSummary] = useState(createDefaultUsageSummary);
+
+  const refreshUsageSummary = useCallback(async () => {
+    if (!currentUserRef.current) return;
+    try {
+      const response = await apiFetch("/api/usage");
+      const data = await response.json();
+      if (response.ok) setUsageSummary(normalizeUsageSummary(data));
+    } catch {
+      setUsageSummary((current) => normalizeUsageSummary(current));
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return undefined;
@@ -170,6 +196,23 @@ function App() {
       JSON.stringify(usageSummary)
     );
   }, [user?.uid, usageSummary]);
+
+  useEffect(() => {
+    if (!user?.uid) return undefined;
+    const timer = window.setTimeout(refreshUsageSummary, 0);
+    return () => window.clearTimeout(timer);
+  }, [user?.uid, refreshUsageSummary]);
+
+  useEffect(() => {
+    if (!user?.uid) return undefined;
+    const resetTimes = Object.values(usageSummary)
+      .map((usage) => new Date(usage?.resetAt || "").getTime())
+      .filter((time) => Number.isFinite(time) && time > Date.now());
+    if (!resetTimes.length) return undefined;
+    const nextReset = Math.min(...resetTimes);
+    const timer = window.setTimeout(refreshUsageSummary, Math.min(nextReset - Date.now() + 1000, 2_147_000_000));
+    return () => window.clearTimeout(timer);
+  }, [user?.uid, usageSummary, refreshUsageSummary]);
 
   const enqueueWorkspaceSave = useCallback(({ force = false } = {}) => {
     if (saveTimer.current) {
@@ -318,7 +361,7 @@ function App() {
             window.localStorage.getItem(`orbitalai-usage-${currentUser.uid}`) ||
               "null"
           );
-          setUsageSummary(savedUsage || createDefaultUsageSummary());
+          setUsageSummary(normalizeUsageSummary(savedUsage));
         } catch {
           setUsageSummary(createDefaultUsageSummary());
         }
@@ -423,12 +466,6 @@ function App() {
 
       if (firstPart === "bulk-edit") {
         setPage("bulk");
-        setRouteReady(true);
-        return;
-      }
-
-      if (firstPart === "ai-workflow") {
-        setPage("workflow");
         setRouteReady(true);
         return;
       }
@@ -712,9 +749,6 @@ function App() {
             setArchivedProjects={setArchivedProjects}
           />
         );
-
-      case "workflow":
-        return <AIWorkflow />;
 
       case "archived":
         return (
