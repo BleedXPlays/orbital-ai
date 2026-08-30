@@ -34,7 +34,8 @@ const sections = [
       "Message, document, and other usage limits may apply and may reset after a stated period. Features, providers, limits, and availability can change to manage cost, security, reliability, or provider restrictions.",
     ],
   },
-  {
+  { 
+    
     title: "Product ownership",
     paragraphs: [
       "OrbitalAI and its interface, branding, software, and original product materials are protected by applicable intellectual-property laws. These terms do not grant permission to copy, resell, or misrepresent the service.",
