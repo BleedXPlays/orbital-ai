@@ -459,7 +459,7 @@ function Settings({
                     className="w-full rounded-2xl border border-blue-200/[0.14] bg-[#050d1d]/80 px-4 py-3.5 text-white outline-none placeholder:text-slate-600 transition focus:border-violet-400/60 focus:ring-4 focus:ring-violet-500/10"
                   />
                   <div className="md:col-span-2">
-                    <PasswordRequirements password={newPassword} confirmPassword={confirmNewPassword} />
+                    <PasswordRequirements password={newPassword} />
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center md:col-span-2">
                     <button

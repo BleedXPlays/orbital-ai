@@ -253,10 +253,7 @@ function ResetPassword() {
               />
             </label>
 
-            <PasswordRequirements
-              password={newPassword}
-              confirmPassword={confirmPassword}
-            />
+            <PasswordRequirements password={newPassword} />
 
             <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-300">
               <input

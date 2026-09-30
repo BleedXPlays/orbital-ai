@@ -5,24 +5,9 @@ export const PASSWORD_REQUIREMENTS = [
     test: (password) => password.length >= 8 && password.length <= 128,
   },
   {
-    id: "uppercase",
-    label: "One uppercase letter",
-    test: (password) => /[A-Z]/.test(password),
-  },
-  {
-    id: "lowercase",
-    label: "One lowercase letter",
-    test: (password) => /[a-z]/.test(password),
-  },
-  {
     id: "number",
     label: "One number",
     test: (password) => /\d/.test(password),
-  },
-  {
-    id: "symbol",
-    label: "One special character",
-    test: (password) => /[^A-Za-z0-9\s]/.test(password),
   },
   {
     id: "spaces",

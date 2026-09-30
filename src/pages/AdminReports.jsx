@@ -3,6 +3,12 @@ import { apiFetch } from "../services/apiClient";
 
 const statuses = ["new", "reviewing", "resolved", "closed"];
 const priorities = ["low", "normal", "high", "urgent"];
+const priorityDetails = {
+  low: { description: "Minor issue", color: "bg-slate-400" },
+  normal: { description: "Standard attention", color: "bg-blue-400" },
+  high: { description: "Needs prompt attention", color: "bg-amber-400" },
+  urgent: { description: "Critical or blocking", color: "bg-red-400" },
+};
 const statusStyles = {
   new: "bg-blue-400",
   reviewing: "bg-amber-400",
@@ -11,6 +17,74 @@ const statusStyles = {
 };
 
 const labelize = (value) => String(value || "").replaceAll("_", " ");
+
+function PrioritySelect({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selectRef = useRef(null);
+  const selected = priorityDetails[value] || priorityDetails.normal;
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const close = (event) => {
+      if (event.key === "Escape" || !selectRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={selectRef} className="relative mt-2">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-blue-200/[0.13] bg-[#0c1729]/95 px-3.5 py-2.5 text-left text-sm text-white outline-none transition hover:border-blue-300/25 focus-visible:border-violet-400/50 focus-visible:ring-2 focus-visible:ring-violet-400/10"
+      >
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${selected.color}`} />
+          <span className="capitalize">{value}</span>
+          <span className="truncate text-xs text-slate-500">{selected.description}</span>
+        </span>
+        <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-4 w-4 shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`}><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" /></svg>
+      </button>
+
+      {open && (
+        <div role="listbox" className="absolute inset-x-0 top-[calc(100%+0.45rem)] z-50 overflow-hidden rounded-2xl border border-blue-200/[0.18] bg-[#091528]/95 p-1.5 shadow-[0_22px_55px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+          {priorities.map((priority) => {
+            const detail = priorityDetails[priority];
+            const isSelected = priority === value;
+            return (
+              <button
+                key={priority}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(priority);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${isSelected ? "bg-violet-500/15 text-white" : "text-slate-300 hover:bg-white/[0.06]"}`}
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${detail.color}`} />
+                <span className="min-w-0 flex-1"><span className="block text-sm font-medium capitalize">{priority}</span><span className="block text-xs text-slate-500">{detail.description}</span></span>
+                {isSelected && <span className="text-violet-300">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ReporterAvatar({ report }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -198,14 +272,18 @@ function AdminReports() {
                 {expandedId === report.id && <div className="border-t border-white/[0.07] px-4 pb-5 pt-4 sm:px-5">
                   <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-slate-500">Submitted {new Date(report.created_at).toLocaleString()}</p><span className="rounded-full border border-white/[0.1] px-2.5 py-1 text-[10px] text-slate-500">ID {report.id.slice(0, 8)}</span></div>
                   <p className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-white/[0.06] bg-black/15 p-3.5 text-sm leading-6 text-slate-300">{report.description}</p>
-                  <div className="mt-4 grid gap-4 md:grid-cols-2"><label className="text-xs font-medium text-slate-400">Status<select value={report.status} onChange={(event) => changeReport(report.id, "status", event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-3 py-2.5 text-sm text-white">{statuses.map((status) => <option key={status}>{status}</option>)}</select></label><label className="text-xs font-medium text-slate-400">Priority<select value={report.priority} onChange={(event) => changeReport(report.id, "priority", event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-3 py-2.5 text-sm text-white">{priorities.map((priority) => <option key={priority}>{priority}</option>)}</select></label></div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2"><label className="text-xs font-medium text-slate-400">Status<select value={report.status} onChange={(event) => changeReport(report.id, "status", event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.1] bg-[#0c1729] px-3 py-2.5 text-sm text-white">{statuses.map((status) => <option key={status}>{status}</option>)}</select></label><div className="text-xs font-medium text-slate-400">Priority<PrioritySelect value={report.priority || "normal"} onChange={(priority) => changeReport(report.id, "priority", priority)} /></div></div>
                   <label className="mt-4 block text-xs font-medium text-slate-400">Response to user<textarea rows={4} maxLength={5000} value={report.admin_response || ""} onChange={(event) => changeReport(report.id, "admin_response", event.target.value)} placeholder="Write a response that the user can see…" className="mt-2 w-full resize-y rounded-xl border border-white/[0.1] bg-[#0c1729] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-violet-400/50" /></label>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <label className="flex items-center gap-2 text-sm text-slate-400"><input type="checkbox" checked={Boolean(report.archived)} onChange={(event) => changeReport(report.id, "archived", event.target.checked)} className="accent-violet-500" /> Archive report</label>
+                    <label className="group flex cursor-pointer items-center gap-3 rounded-xl border border-blue-200/[0.1] bg-white/[0.025] px-3 py-2.5 text-sm text-slate-400 transition hover:border-blue-200/20 hover:bg-white/[0.045] hover:text-slate-200">
+                      <input type="checkbox" checked={Boolean(report.archived)} onChange={(event) => changeReport(report.id, "archived", event.target.checked)} className="peer sr-only" />
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-slate-500/60 bg-[#07101f] text-xs text-transparent transition peer-checked:border-violet-300/60 peer-checked:bg-gradient-to-br peer-checked:from-blue-500 peer-checked:to-violet-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-300/60">✓</span>
+                      <span><span className="block font-medium text-slate-300">Archive report</span><span className="block text-[11px] text-slate-600">Hide it from the active inbox</span></span>
+                    </label>
                     <div className="flex flex-wrap items-center gap-2">
                       {deleteConfirmId === report.id && <button type="button" onClick={() => setDeleteConfirmId("")} className="rounded-xl border border-white/[0.1] px-4 py-2.5 text-sm text-slate-300 hover:bg-white/[0.05]">Cancel</button>}
-                      <button type="button" onClick={() => deleteReport(report)} disabled={deletingId === report.id} className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${deleteConfirmId === report.id ? "border-red-400/40 bg-red-500/20 text-red-100 hover:bg-red-500/30" : "border-red-400/20 bg-red-500/[0.07] text-red-300 hover:bg-red-500/15"}`}>{deletingId === report.id ? "Deleting…" : deleteConfirmId === report.id ? "Confirm delete" : "Delete report"}</button>
-                      <button type="button" onClick={() => saveReport(report)} disabled={savingId === report.id} className="rounded-xl border border-violet-400/30 bg-violet-500/15 px-5 py-2.5 text-sm font-semibold text-violet-100 hover:bg-violet-500/25 disabled:opacity-50">{savingId === report.id ? "Saving…" : "Save changes"}</button>
+                      <button type="button" onClick={() => deleteReport(report)} disabled={deletingId === report.id} className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50 disabled:opacity-50 ${deleteConfirmId === report.id ? "border-red-300/45 bg-red-500/25 text-red-50 hover:bg-red-500/35" : "border-red-400/25 bg-red-500/[0.08] text-red-300 hover:border-red-300/40 hover:bg-red-500/[0.15]"}`}><span aria-hidden="true">⌫</span>{deletingId === report.id ? "Deleting…" : deleteConfirmId === report.id ? "Confirm delete" : "Delete report"}</button>
+                      <button type="button" onClick={() => saveReport(report)} disabled={savingId === report.id} className="inline-flex items-center gap-2 rounded-xl border border-blue-300/30 bg-gradient-to-r from-blue-600/90 to-violet-600/90 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(53,86,255,0.22)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 disabled:cursor-wait disabled:opacity-50"><span aria-hidden="true">✓</span>{savingId === report.id ? "Saving…" : "Save changes"}</button>
                     </div>
                   </div>
                 </div>}

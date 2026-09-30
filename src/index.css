@@ -118,6 +118,60 @@ body {
   }
 }
 
+@media (min-width: 1024px) and (max-height: 850px) {
+  .orbital-sidebar {
+    margin: 0.5rem;
+    height: calc(100% - 1rem);
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .orbital-sidebar-header > div:first-child {
+    height: 2.75rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .orbital-sidebar-header > div:first-child img {
+    width: 9rem;
+    transform: translateY(0.35rem);
+  }
+
+  .orbital-sidebar-header > button {
+    margin-bottom: 0.45rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .orbital-sidebar-pinned {
+    margin-bottom: 0.4rem;
+  }
+
+  .orbital-sidebar-lists {
+    grid-template-rows: minmax(0, 1.45fr) minmax(0, 0.55fr);
+    gap: 0.4rem;
+  }
+
+  .orbital-sidebar-footer {
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+  }
+
+  .orbital-sidebar-footer > button:first-of-type {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .orbital-sidebar-footer > button:last-of-type {
+    padding: 0.4rem;
+  }
+
+  .orbital-sidebar-footer > button:last-of-type img,
+  .orbital-sidebar-footer > button:last-of-type > span:first-child {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+}
+
 .orbital-app-shell .orbital-earth-horizon {
   display: none;
 }

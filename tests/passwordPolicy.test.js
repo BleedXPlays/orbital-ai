@@ -11,14 +11,15 @@ test("accepts a password that meets every OrbitalAI requirement", () => {
   assert.equal(getPasswordPolicyError("Orbit@lAI2026"), "");
 });
 
-test("rejects passwords missing required character types", () => {
+test("requires a number without requiring letter case or symbols", () => {
   const results = getPasswordRequirementResults("alllowercase");
   const unmetRequirementIds = results
     .filter((requirement) => !requirement.met)
     .map((requirement) => requirement.id);
 
-  assert.deepEqual(unmetRequirementIds, ["uppercase", "number", "symbol"]);
+  assert.deepEqual(unmetRequirementIds, ["number"]);
   assert.equal(isPasswordValid("alllowercase"), false);
+  assert.equal(isPasswordValid("password1"), true);
 });
 
 test("rejects passwords containing spaces or exceeding 128 characters", () => {

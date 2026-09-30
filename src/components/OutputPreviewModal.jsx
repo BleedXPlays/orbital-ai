@@ -188,10 +188,15 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
   return (
     <div className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
       <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-[#1B2540] bg-[#07101F] text-white shadow-2xl shadow-purple-950/30 sm:max-h-[85vh] sm:rounded-3xl">
-        <div className="flex items-start justify-between gap-3 border-b border-[#1B2540] px-4 py-4 sm:gap-5 sm:px-7 sm:py-6">
+        <div className="flex items-start justify-between gap-3 border-b border-blue-200/[0.12] bg-[linear-gradient(110deg,rgba(35,72,160,0.14),rgba(112,72,232,0.08),transparent_72%)] px-4 py-4 sm:gap-5 sm:px-7 sm:py-6">
           <div className="min-w-0">
-            <p className="text-sm text-purple-300 mb-2">Generated Output</p>
-            <h2 className="break-words text-xl font-bold sm:text-2xl">{title}</h2>
+            <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-300 shadow-[0_0_10px_rgba(196,181,253,0.9)]" />
+              Generated output
+            </p>
+            <h2 className="break-words bg-gradient-to-r from-white via-blue-100 to-violet-200 bg-clip-text text-xl font-semibold tracking-[-0.025em] text-transparent sm:text-2xl">
+              {title}
+            </h2>
           </div>
 
           <button
@@ -215,7 +220,7 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
                 key={index}
                 className="min-w-0 rounded-2xl bg-[#101827] border border-[#1B2540] p-4 sm:p-5"
               >
-                <h3 className="text-lg font-bold mb-2">
+                <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold tracking-[-0.015em] text-slate-50">
                   {output[0]} {output[1]}
                 </h3>
 
@@ -227,11 +232,15 @@ function OutputPreviewModal({ isOpen, title, outputs, onClose }) {
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-[#1B2540] px-4 py-4 sm:px-7 sm:py-5">
+        <div className="flex justify-end border-t border-blue-200/[0.12] bg-[linear-gradient(90deg,rgba(6,15,32,0.82),rgba(11,20,43,0.92))] px-4 py-4 sm:px-7 sm:py-5">
           <button
+            type="button"
             onClick={onClose}
-            className="px-5 py-3 rounded-xl bg-purple-600 text-white hover:bg-purple-700"
+            className="inline-flex items-center gap-2 rounded-xl border border-blue-300/30 bg-gradient-to-r from-blue-600/90 to-violet-600/90 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(53,86,255,0.22)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
           >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="2">
+              <path d="m5 12.5 4.2 4.2L19 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             Done
           </button>
         </div>

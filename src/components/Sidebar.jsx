@@ -572,7 +572,7 @@ function Sidebar({
           </div>
         )}
 
-        <div className="shrink-0">
+        <div className="orbital-sidebar-header shrink-0">
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -602,7 +602,7 @@ function Sidebar({
         </div>
 
         {pinnedChats.length > 0 && (
-          <div className="mb-3 shrink-0 lg:mb-2">
+          <div className="orbital-sidebar-pinned mb-3 shrink-0 lg:mb-2">
             <h2 className="mb-2 text-xs font-semibold tracking-wide text-yellow-400 lg:mb-1 lg:text-[10px]">
               PINNED
             </h2>
@@ -682,7 +682,7 @@ function Sidebar({
           </div>
         )}
 
-        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-4 overflow-hidden pr-0.5 lg:gap-2.5">
+        <div className="orbital-sidebar-lists grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-4 overflow-hidden pr-0.5 lg:gap-2.5">
           <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
             <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
               CHATS
@@ -851,7 +851,7 @@ function Sidebar({
           </section>
         </div>
 
-        <div className="relative mt-3 shrink-0 space-y-1 border-t border-blue-200/[0.14] pt-3 lg:mt-2 lg:pt-2">
+        <div className="orbital-sidebar-footer relative mt-3 shrink-0 space-y-1 border-t border-blue-200/[0.14] pt-3 lg:mt-2 lg:pt-2">
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -43,6 +43,25 @@ const getFriendlyAuthError = (error) => {
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
+const OpenAIIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-7 w-7">
+    <path d="M12 3.25a4.15 4.15 0 0 1 3.9 2.72 4.15 4.15 0 0 1 4.48 5.72 4.15 4.15 0 0 1-2.06 6.96A4.15 4.15 0 0 1 12 22.28a4.15 4.15 0 0 1-6.32-3.63 4.15 4.15 0 0 1-2.06-6.96A4.15 4.15 0 0 1 8.1 5.97 4.15 4.15 0 0 1 12 3.25Z" stroke="currentColor" strokeWidth="1.55" strokeLinejoin="round" />
+    <path d="m8.2 6.05 7.55 4.35v7.2M15.8 6.05 8.25 10.4v7.2M4.45 11.7 12 16.05l7.55-4.35M8.25 17.6 12 19.75l3.75-2.15M12 3.25v4.4" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ClaudeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-7 w-7">
+    <path d="M12 2.75v18.5M4 7.38l16 9.24M4 16.62l16-9.24M6.35 3.95l11.3 16.1M17.65 3.95 6.35 20.05" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const GeminiIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7">
+    <path d="M12 2.5c.7 5.65 3.85 8.8 9.5 9.5-5.65.7-8.8 3.85-9.5 9.5-.7-5.65-3.85-8.8-9.5-9.5 5.65-.7 8.8-3.85 9.5-9.5Z" fill="currentColor" />
+  </svg>
+);
+
 const postPasswordReset = async (path, payload) => {
   const response = await fetch(path, {
     method: "POST",
@@ -261,13 +280,13 @@ function Login() {
 
               <div className="mt-10 max-w-[540px] divide-y divide-white/10">
                 {[
-              ["◎", "OpenAI", "General chat, reasoning, voice transcription and image generation.", "text-emerald-300"],
-                  ["AI", "Claude", "Detailed writing, documents and coding.", "text-orange-300"],
-              ["✦", "Gemini", "Uploaded-image understanding and multimodal research.", "text-blue-300"],
-                ].map(([icon, name, description, color]) => (
+                  [OpenAIIcon, "OpenAI", "General chat, reasoning, voice transcription and image generation.", "text-emerald-300"],
+                  [ClaudeIcon, "Claude", "Detailed writing, documents and coding.", "text-orange-300"],
+                  [GeminiIcon, "Gemini", "Uploaded-image understanding and multimodal research.", "text-blue-300"],
+                ].map(([ProviderIcon, name, description, color]) => (
                   <div key={name} className="flex items-center gap-4 py-4 first:pt-0">
                     <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-[#050b1b]/65 text-lg font-semibold ${color}`}>
-                      {icon}
+                      <ProviderIcon />
                     </span>
                     <div>
                       <p className="text-lg font-semibold text-white">{name}</p>
@@ -579,10 +598,7 @@ function Login() {
                             />
                           </label>
 
-                          <PasswordRequirements
-                            password={password}
-                            confirmPassword={confirmPassword}
-                          />
+                          <PasswordRequirements password={password} />
                         </>
                       )}
 
