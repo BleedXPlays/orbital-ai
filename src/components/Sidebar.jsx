@@ -608,23 +608,76 @@ function Sidebar({
             </h2>
 
             <div className="max-h-24 space-y-1.5 overflow-y-auto pr-1 lg:max-h-10 lg:space-y-1">
-              {pinnedChats.map((chat) => (
-                <div
-                  key={chat}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedChat(chat);
-                    setPage("chat");
-                  }}
-                  className={`cursor-pointer rounded-lg border px-3 py-2 lg:py-1.5 ${
-                    selectedChat === chat
-                      ? "bg-[#101827] border-purple-700"
-                      : "bg-[#101827] border-gray-800 hover:border-purple-700"
-                  }`}
-                >
-                  <p className="truncate text-sm">⭐ {chat}</p>
-                </div>
-              ))}
+              {pinnedChats.map((chat) => {
+                const originalIndex = chats.indexOf(chat);
+                const pinnedMenuKey = `pinned:${chat}`;
+
+                return (
+                  <div key={chat} className="relative">
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedChat(chat);
+                        setPage("chat");
+                        setOpenChatMenu(null);
+                        setOpenProjectMenu(null);
+                      }}
+                      className="grid cursor-pointer items-center gap-2 rounded-lg border border-gray-800 bg-[#101827] px-3 py-2 transition hover:border-white/15 lg:py-1.5"
+                      style={{ gridTemplateColumns: "minmax(0, 1fr) 28px" }}
+                    >
+                      <p className="truncate text-sm" title={chat}>⭐ {chat}</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChatMenuPosition(getMenuPosition(e, 176, 224));
+                          setOpenChatMenu(
+                            openChatMenu === pinnedMenuKey
+                              ? null
+                              : pinnedMenuKey
+                          );
+                          setOpenProjectMenu(null);
+                        }}
+                        aria-label={`Open menu for pinned chat ${chat}`}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-xl leading-none text-slate-600 transition hover:bg-white/[0.06] hover:text-white"
+                      >
+                        ⋮
+                      </button>
+                    </div>
+
+                    {openChatMenu === pinnedMenuKey && (
+                      <ChatMenu
+                        position={chatMenuPosition}
+                        isPinned
+                        onRename={(e) => {
+                          e.stopPropagation();
+                          openRenameModal("chat", originalIndex, chat);
+                        }}
+                        onMove={(e) => {
+                          e.stopPropagation();
+                          openMoveModal(chat);
+                          setOpenChatMenu(null);
+                        }}
+                        onTogglePin={(e) => {
+                          e.stopPropagation();
+                          togglePinChat(chat);
+                          setOpenChatMenu(null);
+                        }}
+                        onArchive={(e) => {
+                          e.stopPropagation();
+                          archiveChat(originalIndex);
+                          setOpenChatMenu(null);
+                        }}
+                        onDelete={(e) => {
+                          e.stopPropagation();
+                          deleteChat(originalIndex);
+                          setOpenChatMenu(null);
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

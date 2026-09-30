@@ -1212,6 +1212,12 @@ select:focus-visible {
   mask-image: linear-gradient(to bottom, black, transparent 92%);
 }
 
+.auth-form-section {
+  /* Center forms when they fit, but keep the top reachable on shorter screens. */
+  align-items: safe center;
+  overscroll-behavior: contain;
+}
+
 .auth-input {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.16);

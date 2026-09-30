@@ -279,7 +279,7 @@ function Login() {
             </div>
           </section>
 
-          <section className="auth-form-section flex h-full min-h-0 items-center justify-center overflow-y-auto px-5 py-6 sm:px-8 lg:overflow-hidden lg:px-14 xl:px-20">
+          <section className="auth-form-section flex h-full min-h-0 justify-center overflow-y-auto px-5 py-6 sm:px-8 lg:px-14 xl:px-20">
             <div className="w-full max-w-[500px]">
               <div className="mb-5 flex h-[78px] justify-center overflow-hidden lg:hidden">
                 <img
