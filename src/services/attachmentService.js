@@ -22,6 +22,17 @@ export const getChatAttachmentUrl = async (filePath) => {
   return data.signedUrl;
 };
 
+export const downloadChatAttachment = async (filePath) => {
+  if (!filePath) throw new Error("Attachment path is required.");
+
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .download(filePath);
+
+  if (error) throw error;
+  return data;
+};
+
 export const uploadChatAttachment = async ({
   userId,
   chatName,
