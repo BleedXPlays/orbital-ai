@@ -80,6 +80,26 @@ test("routes image generation to OpenAI", () => {
   );
 });
 
+test("forwards the authenticated user to the selected image provider", async () => {
+  let receivedUserId = "";
+
+  await generateWithProvider(
+    {
+      message: "Generate an image of the solar system",
+      tasks: [{ task: "Image Generation" }],
+      userId: "firebase-user-123",
+    },
+    {
+      openai: async (input) => {
+        receivedUserId = input.userId;
+        return { reply: "done", provider: "openai" };
+      },
+    }
+  );
+
+  assert.equal(receivedUserId, "firebase-user-123");
+});
+
 test("does not replace a failed Gemini image analysis with a guessed fallback", async () => {
   let openAiWasCalled = false;
   const geminiError = Object.assign(new Error("Model is not available"), {

@@ -303,6 +303,7 @@ export default async function handler(request, response) {
       conversationHistory,
       imageBase64,
       imageMimeType,
+      userId: authenticatedUser.uid,
     });
 
     return response.status(200).json(result);

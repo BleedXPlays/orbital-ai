@@ -564,7 +564,7 @@ function Sidebar({
           setOpenProjectMenu(null);
           setAccountMenuOpen(false);
         }}
-        className="orbital-sidebar flex h-dvh min-h-0 w-[min(92vw,21rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-blue-300/[0.14] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:m-3 lg:h-[calc(100%-1.5rem)] lg:w-[288px] lg:rounded-[22px] lg:border lg:px-5 lg:py-3"
+        className="orbital-sidebar flex h-dvh min-h-0 w-[min(92vw,21rem)] shrink-0 flex-col overflow-hidden overscroll-contain border-r border-blue-300/[0.14] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white lg:m-3 lg:h-[calc(100%-1.5rem)] lg:w-[clamp(288px,19vw,320px)] lg:rounded-[22px] lg:border lg:px-5 lg:py-3"
       >
         {notice && (
           <div className="fixed left-3 right-3 top-16 z-[10000] rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 text-sm shadow-2xl shadow-red-950/20 lg:left-72 lg:right-auto lg:top-5 lg:max-w-sm">
@@ -629,7 +629,7 @@ function Sidebar({
           </div>
         )}
 
-        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 overflow-hidden pr-0.5 lg:gap-2.5">
+        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-4 overflow-hidden pr-0.5 lg:gap-2.5">
           <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
             <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
               CHATS

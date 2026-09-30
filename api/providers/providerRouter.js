@@ -246,6 +246,7 @@ export const generateWithProvider = async (
     conversationHistory,
     imageBase64,
     imageMimeType,
+    userId,
   },
   providers = defaultProviders
 ) => {
@@ -265,6 +266,7 @@ export const generateWithProvider = async (
     conversationHistory,
     imageBase64,
     imageMimeType,
+    userId,
   };
 
   try {

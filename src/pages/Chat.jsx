@@ -126,23 +126,20 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
   if (!provider) return null;
 
   const providerKey = String(provider).toLowerCase();
-  const isOrbitalImage = providerKey === "orbital-image";
   const isOpenAI = providerKey.includes("openai") || providerKey.includes("gpt");
-  const isClaude = providerKey.includes("claude") || providerKey.includes("anthropic");
-  const isGemini = providerKey.includes("gemini") || providerKey.includes("google");
-  const providerLabel = isOrbitalImage
-    ? "OrbitalAI Image"
-    : isOpenAI
-      ? "OpenAI"
-      : isClaude
-        ? "Claude"
-        : isGemini
-          ? "Gemini"
-          : provider;
-  const colorClasses = isOrbitalImage
-    ? "border-violet-300/30 bg-violet-400/[0.1] text-violet-200 shadow-[0_0_20px_rgba(139,92,246,0.08)]"
-    : isOpenAI
-      ? "border-emerald-300/30 bg-emerald-400/[0.1] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+  const isClaude =
+    providerKey.includes("claude") || providerKey.includes("anthropic");
+  const isGemini =
+    providerKey.includes("gemini") || providerKey.includes("google");
+  const providerLabel = isOpenAI
+    ? "OpenAI"
+    : isClaude
+      ? "Claude"
+      : isGemini
+        ? "Gemini"
+        : provider;
+  const colorClasses = isOpenAI
+    ? "border-emerald-300/30 bg-emerald-400/[0.1] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
     : isClaude
       ? "border-orange-300/30 bg-orange-400/[0.1] text-orange-200"
       : isGemini
@@ -153,9 +150,7 @@ const ProviderBadge = ({ provider, fallbackFrom = "" }) => {
     <span
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] sm:text-[10px] ${colorClasses}`}
     >
-      {isOrbitalImage ? (
-        <span aria-hidden="true" className="text-[12px] leading-none">✦</span>
-      ) : isOpenAI ? (
+      {isOpenAI ? (
         <OpenAIIcon className="h-3.5 w-3.5" />
       ) : isGemini ? (
         <GeminiIcon className="h-3.5 w-3.5" />
@@ -634,9 +629,20 @@ function Chat({
     try {
       const savedImages = await Promise.all(
         generatedImages.map(async (image, index) => {
+          if (image?.path || image?.url) {
+            return {
+              kind: "generated-image",
+              ...image,
+              storageStatus: image.storageStatus || "saved",
+              sizeLabel:
+                image.sizeLabel ||
+                (image.size ? formatFileSize(image.size) : "OpenAI image"),
+            };
+          }
+
           const mimeType = image.mimeType || "image/png";
           const extension = mimeType === "image/jpeg" ? "jpg" : "png";
-        const filename = `orbitalai-openai-${Date.now()}-${
+          const filename = `orbitalai-openai-${Date.now()}-${
             index + 1
           }.${extension}`;
           const file = base64ToFile({
@@ -2627,7 +2633,7 @@ function Chat({
                                 message.outputs?.some(
                                   (output) => output?.[1] === "Generated Image"
                                 )
-                                  ? "orbital-image"
+                                  ? "openai"
                                   : message.provider
                               }
                               fallbackFrom={
