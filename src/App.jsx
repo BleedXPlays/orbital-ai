@@ -27,6 +27,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
 const Reports = lazy(() => import("./pages/Reports"));
 const AdminReports = lazy(() => import("./pages/AdminReports"));
+const Quiz = lazy(() => import("./pages/Quiz"));
 const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -75,6 +76,7 @@ const getPathFromWorkspaceState = ({
   if (page === "help") return "/help";
   if (page === "reports") return "/reports";
   if (page === "adminReports") return "/admin/reports";
+  if (page === "quiz") return "/quiz";
 
   return "/";
 };
@@ -494,6 +496,12 @@ function App() {
         return;
       }
 
+      if (firstPart === "quiz") {
+        setPage("quiz");
+        setRouteReady(true);
+        return;
+      }
+
       if (firstPart === "admin" && secondPart === "reports") {
         setPage("adminReports");
         setRouteReady(true);
@@ -803,6 +811,9 @@ function App() {
 
       case "adminReports":
         return <AdminReports />;
+
+      case "quiz":
+        return <Quiz />;
 
       default:
         return (

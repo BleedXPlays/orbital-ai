@@ -30,6 +30,7 @@ function FooterIcon({ type }) {
     profile: <><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></>,
     help: <><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.5 2.5 0 1 1 3.2 2.4c-.9.35-1.4.9-1.4 1.8v.3M11.5 17h.01" /></>,
     report: <><path d="M5 4h14v13H9l-4 3V4Z" /><path d="M9 8h6M9 12h4" /></>,
+    quiz: <><path d="M5 4h14v16H5z" /><path d="M8 8h5M8 12h8M8 16h4" /><path d="m15 7 1 1 2-2" /></>,
     admin: <><path d="M12 3 4.5 6v5.2c0 4.8 3.2 8.2 7.5 9.8 4.3-1.6 7.5-5 7.5-9.8V6L12 3Z" /><path d="M9.5 12.2 11.2 14l3.6-4" /></>,
     logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" /></>,
   };
@@ -875,6 +876,7 @@ function Sidebar({
             >
               {[
                 ["profile", "Profile", "settings"],
+                ["quiz", "Quiz Studio", "quiz"],
                 ["report", "Report a problem", "reports"],
                 ...(isAdmin ? [["admin", "Admin reports", "adminReports"]] : []),
                 ["settings", "Settings", "settings"],

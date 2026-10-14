@@ -23,6 +23,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/quiz",
+      "destination": "/index.html"
+    },
+    {
       "source": "/ai-workflow",
       "destination": "/index.html"
     },

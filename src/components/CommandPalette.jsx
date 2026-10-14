@@ -71,6 +71,14 @@ function CommandPalette({
         action: () => setPage("search"),
       },
       {
+        id: "page-quiz",
+        type: "Page",
+        icon: "quiz",
+        title: "Quiz Studio",
+        subtitle: "Create an interactive study quiz",
+        action: () => setPage("quiz"),
+      },
+      {
         id: "page-archived",
         type: "Page",
         icon: "archive",
@@ -191,6 +199,7 @@ function CommandPalette({
     archive: "▣",
     settings: "⚙",
     help: "?",
+    quiz: "✓",
   };
 
   return (
