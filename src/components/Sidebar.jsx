@@ -683,8 +683,8 @@ function Sidebar({
         )}
 
         <div className="orbital-sidebar-lists grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1.25fr)_minmax(0,0.75fr)] gap-4 overflow-hidden pr-0.5 lg:gap-2.5">
-          <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
-            <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
+          <section className="orbital-sidebar-section flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
+            <h2 className="orbital-sidebar-heading mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
               CHATS
             </h2>
 
@@ -693,17 +693,17 @@ function Sidebar({
                 e.stopPropagation();
                 createChat();
               }}
-              className="orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100 lg:mb-1.5 lg:py-2"
+              className="orbital-sidebar-create orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100 lg:mb-1.5 lg:py-2"
             >
               + New Chat
             </button>
 
-            <label className="orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500 lg:mb-1.5 lg:py-2">
+            <label className="orbital-sidebar-filter orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500 lg:mb-1.5 lg:py-2">
               <SearchIcon className="h-4 w-4 shrink-0" />
               <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search chats" value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
             </label>
 
-            <div className="min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+            <div className="orbital-sidebar-scroll min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
               {filteredChats.map((chat) => {
                 const originalIndex = chats.indexOf(chat);
 
@@ -771,8 +771,8 @@ function Sidebar({
             </div>
           </section>
 
-          <section className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
-            <h2 className="mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
+          <section className="orbital-sidebar-section flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden">
+            <h2 className="orbital-sidebar-heading mb-2.5 shrink-0 text-[11px] font-semibold tracking-[0.25em] text-slate-400 lg:mb-1.5">
               PROJECTS
             </h2>
 
@@ -781,17 +781,17 @@ function Sidebar({
                 e.stopPropagation();
                 createProject();
               }}
-              className="orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100 lg:mb-1.5 lg:py-2"
+              className="orbital-sidebar-create orbital-nav-action mb-2.5 w-full min-w-0 max-w-full shrink-0 rounded-xl px-3.5 py-3 text-left text-sm text-slate-100 lg:mb-1.5 lg:py-2"
             >
               + New Project
             </button>
 
-            <label className="orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500 lg:mb-1.5 lg:py-2">
+            <label className="orbital-sidebar-filter orbital-nav-field mb-2.5 flex w-full min-w-0 max-w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-slate-500 lg:mb-1.5 lg:py-2">
               <SearchIcon className="h-4 w-4 shrink-0" />
               <input onClick={(e) => e.stopPropagation()} type="text" placeholder="Search projects" value={projectSearch} onChange={(e) => setProjectSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600" />
             </label>
 
-            <div className="min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+            <div className="orbital-sidebar-scroll min-h-0 min-w-0 max-w-full flex-1 space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
               {filteredProjects.map((project) => {
                 const originalIndex = projects.indexOf(project);
 

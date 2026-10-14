@@ -4,7 +4,7 @@ function ChatCard({ chat, selectedChat, onOpen, onMenuClick }) {
   return (
     <div
       onClick={onOpen}
-      className={`group relative grid w-full min-w-0 max-w-full cursor-pointer items-center gap-2 overflow-hidden rounded-xl border px-3 py-2.5 transition lg:py-1 ${
+      className={`orbital-sidebar-item group relative grid w-full min-w-0 max-w-full cursor-pointer items-center gap-2 overflow-hidden rounded-xl border px-3 py-2.5 transition lg:py-1 ${
         isSelected
           ? "border-violet-400/25 bg-gradient-to-r from-violet-500/[0.16] to-blue-500/[0.07] text-white shadow-[inset_3px_0_0_#8b6cff]"
           : "border-transparent text-slate-300 hover:border-white/[0.06] hover:bg-white/[0.035] hover:text-white"

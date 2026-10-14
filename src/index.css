@@ -118,10 +118,12 @@ body {
   }
 }
 
-@media (min-width: 1024px) and (max-height: 850px) {
+@media (max-height: 900px) {
   .orbital-sidebar {
     margin: 0.5rem;
     height: calc(100% - 1rem);
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
     padding-top: 0.45rem;
     padding-bottom: 0.45rem;
   }
@@ -146,9 +148,39 @@ body {
     margin-bottom: 0.4rem;
   }
 
+  .orbital-sidebar-pinned > div {
+    max-height: 2.25rem;
+  }
+
   .orbital-sidebar-lists {
-    grid-template-rows: minmax(0, 1.45fr) minmax(0, 0.55fr);
+    grid-template-rows: minmax(0, 1.5fr) minmax(0, 0.5fr);
     gap: 0.4rem;
+  }
+
+  .orbital-sidebar-heading,
+  .orbital-sidebar-create,
+  .orbital-sidebar-filter {
+    margin-bottom: 0.3rem;
+  }
+
+  .orbital-sidebar-create,
+  .orbital-sidebar-filter {
+    padding-top: 0.38rem;
+    padding-bottom: 0.38rem;
+  }
+
+  .orbital-sidebar-scroll {
+    gap: 0;
+  }
+
+  .orbital-sidebar-scroll > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.12rem;
+  }
+
+  .orbital-sidebar-item {
+    min-height: 1.9rem;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
   }
 
   .orbital-sidebar-footer {
@@ -169,6 +201,55 @@ body {
   .orbital-sidebar-footer > button:last-of-type > span:first-child {
     width: 1.8rem;
     height: 1.8rem;
+  }
+}
+
+@media (max-height: 720px) {
+  .orbital-sidebar-header > div:first-child {
+    height: 2.2rem;
+  }
+
+  .orbital-sidebar-header > div:first-child img {
+    width: 8rem;
+    transform: translateY(0.2rem);
+  }
+
+  .orbital-sidebar-header > button {
+    margin-bottom: 0.3rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .orbital-sidebar-pinned {
+    margin-bottom: 0.25rem;
+  }
+
+  .orbital-sidebar-lists {
+    grid-template-rows: minmax(0, 1.6fr) minmax(0, 0.4fr);
+    gap: 0.25rem;
+  }
+
+  .orbital-sidebar-create,
+  .orbital-sidebar-filter {
+    padding-top: 0.28rem;
+    padding-bottom: 0.28rem;
+  }
+
+  .orbital-sidebar-item {
+    min-height: 1.7rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+  }
+
+  .orbital-sidebar-footer {
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+  }
+
+  .orbital-sidebar-footer > button:first-of-type {
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    font-size: 0.75rem;
   }
 }
 
